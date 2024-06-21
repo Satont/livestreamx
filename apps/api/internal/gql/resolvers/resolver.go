@@ -28,7 +28,8 @@ type Resolver struct {
 	config         config.Config
 
 	chatListenersChannels map[string]chan *gqlmodel.ChatMessage
-	streamState           *gqlmodel.Stream
+	streamViewers         int
+	streamChatters        map[string]gqlmodel.Chatter
 }
 
 type Opts struct {
@@ -49,15 +50,13 @@ func New(opts Opts) *Resolver {
 	return &Resolver{
 		chatMessageRepo:          opts.ChatMessageRepo,
 		userRepo:                 opts.UserRepo,
-		sessionStorage:           opts.SessionStorage,
 		chatMessagesWithUserRepo: opts.ChatMessagesWithUserRepo,
+		sessionStorage:           opts.SessionStorage,
+		converter:                opts.Converter,
+		config:                   config.Config{},
 		// userFilesRepo:            opts.UserFilesRepo,
 		chatListenersChannels: make(map[string]chan *gqlmodel.ChatMessage),
-		converter:             opts.Converter,
-		// s3:                    opts.S3,
-		streamState: &gqlmodel.Stream{
-			Viewers:  0,
-			Chatters: make([]gqlmodel.Chatter, 0),
-		},
+		streamViewers:         0,
+		streamChatters:        make(map[string]gqlmodel.Chatter),
 	}
 }

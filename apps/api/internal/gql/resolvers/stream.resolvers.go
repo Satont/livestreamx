@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 )
 
@@ -22,7 +23,7 @@ func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
 // StreamInfo is the resolver for the streamInfo field.
 func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error) {
 	viewersLock.Lock()
-	r.streamState.Viewers += 1
+	r.streamViewers += 1
 	viewersLock.Unlock()
 
 	userID, userIdErr := r.sessionStorage.GetUserID(ctx)
@@ -37,21 +38,19 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 		}
 
 		chattersLock.Lock()
-		r.streamState.Chatters = append(
-			r.streamState.Chatters,
-			gqlmodel.Chatter{
-				User: &gqlmodel.User{
-					ID:          user.ID.String(),
-					Name:        user.Name,
-					DisplayName: user.DisplayName,
-					Color:       user.Color,
-					Roles:       nil,
-					IsBanned:    user.Banned,
-					CreatedAt:   user.CreatedAt,
-					AvatarURL:   user.AvatarUrl,
-				},
+		r.streamChatters[user.ID.String()] = gqlmodel.Chatter{
+			User: &gqlmodel.User{
+				ID:          user.ID.String(),
+				Name:        user.Name,
+				DisplayName: user.DisplayName,
+				Color:       user.Color,
+				Roles:       nil,
+				IsBanned:    user.Banned,
+				CreatedAt:   user.CreatedAt,
+				AvatarURL:   user.AvatarUrl,
 			},
-		)
+		}
+
 		chattersLock.Unlock()
 	}
 
@@ -66,22 +65,19 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 				defer viewersLock.Unlock()
 				defer chattersLock.Unlock()
 
-				r.streamState.Viewers -= 1
+				r.streamViewers -= 1
 
-				for i, chatter := range r.streamState.Chatters {
-					if chatter.User.ID == userID {
-						r.streamState.Chatters = append(
-							r.streamState.Chatters[:i],
-							r.streamState.Chatters[i+1:]...,
-						)
-						break
-					}
+				if userIdErr == nil {
+					delete(r.streamChatters, userID)
 				}
 
 				close(chann)
 				return
 			default:
-				chann <- r.streamState
+				chann <- &gqlmodel.Stream{
+					Viewers:  r.streamViewers,
+					Chatters: lo.Values(r.streamChatters),
+				}
 				time.Sleep(1 * time.Second)
 			}
 		}
