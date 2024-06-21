@@ -1,0 +1,50 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest-ffmpeg
+    network_mode: host
+    volumes:
+      - ./mediamtx.dev.yml:/mediamtx.yml
+
+  redis:
+    image: redis:latest
+    ports:
+      - "8879:6379"
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: stream
+      POSTGRES_PASSWORD: stream
+      POSTGRES_DB: stream
+    ports:
+      - "8832:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  logto:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: svhd/logto:latest
+    entrypoint: [ "sh", "-c", "npm run cli db seed -- --swe && npm start" ]
+    ports:
+      - 3001:3001
+      - 3002:3002
+    environment:
+      - TRUST_PROXY_HEADER=1
+      - DB_URL=postgres://stream:stream@postgres:5432/logto
+      - ENDPOINT
+      - ADMIN_ENDPOINT
+
+  casdoor:
+    image: casbin/casdoor-all-in-one
+    ports:
+      - 8008:8000
+
+volumes:
+  postgres:

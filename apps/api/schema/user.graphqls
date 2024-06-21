@@ -1,0 +1,25 @@
+extend type Query {
+    userProfile: User! @isAuthenticated
+}
+
+type User {
+    id: ID!
+    name: String!
+    displayName: String!
+    color: String!
+    roles: [Role!]!
+    isBanned: Boolean!
+    createdAt: Time!
+    avatarUrl: String!
+}
+
+type Role {
+    id: ID!
+    name: String!
+    imageUrl: String
+    features: [RoleFeature!]!
+}
+
+enum RoleFeature {
+    BAN_USERS
+}

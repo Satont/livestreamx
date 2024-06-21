@@ -1,0 +1,5 @@
+paths:
+  mystream:
+  proxy:
+    runOnReady: ffmpeg -i rtsp://localhost:$RTSP_PORT/$RTSP_PATH -vcodec copy -ac 2 -c:a libopus -b:a 128k -async 50 -f rtsp rtsp://localhost:$RTSP_PORT/mystream
+    runOnInitRestart: yes

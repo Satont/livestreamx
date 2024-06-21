@@ -1,0 +1,49 @@
+extend type Mutation {
+    sendMessage(input: SendMessageInput!): Boolean! @notBanned
+}
+
+extend type Query {
+    chatMessagesLatest(limit: Int): [ChatMessage!]!
+}
+
+extend type Subscription {
+    chatMessages: ChatMessage!
+}
+
+type ChatMessage {
+    id: ID!
+    segments: [MessageSegment!]!
+    sender: User!
+    createdAt: Time!
+}
+
+enum MessageSegmentType {
+    TEXT
+    LINK
+    MENTION
+}
+
+interface MessageSegment {
+    type: MessageSegmentType!
+    content: String!
+}
+
+input SendMessageInput {
+    text: String!
+}
+
+type MessageSegmentText implements MessageSegment {
+    content: String!
+    type: MessageSegmentType!
+}
+
+type MessageSegmentLink implements MessageSegment {
+    content: String!
+    type: MessageSegmentType!
+}
+
+type MessageSegmentMention implements MessageSegment {
+    content: String!
+    type: MessageSegmentType!
+    user: User!
+}

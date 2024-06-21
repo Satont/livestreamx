@@ -1,0 +1,7 @@
+extend type Query {
+    stream: Stream
+}
+
+type Stream {
+    ID: String!
+}

@@ -1,0 +1,8 @@
+extend type Mutation {
+    chatSwitchUserBan(input: BanUser!): Boolean! @hasFeature(features: [BAN_USERS])
+}
+
+input BanUser {
+    userId: String!
+    newValue: Boolean!
+}
