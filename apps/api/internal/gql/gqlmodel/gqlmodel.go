@@ -15,6 +15,15 @@ type MessageSegment interface {
 	GetContent() string
 }
 
+type AttachedFile struct {
+	ID        string    `json:"id"`
+	URL       string    `json:"url"`
+	Name      string    `json:"name"`
+	Size      int       `json:"size"`
+	MimeType  string    `json:"mimeType"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type BanUser struct {
 	UserID   string `json:"userId"`
 	NewValue bool   `json:"newValue"`
@@ -25,6 +34,10 @@ type ChatMessage struct {
 	Segments  []MessageSegment `json:"segments"`
 	Sender    *User            `json:"sender"`
 	CreatedAt time.Time        `json:"createdAt"`
+}
+
+type Chatter struct {
+	User *User `json:"user"`
 }
 
 type MessageSegmentLink struct {
@@ -73,7 +86,8 @@ type SendMessageInput struct {
 }
 
 type Stream struct {
-	ID string `json:"ID"`
+	Viewers  int       `json:"viewers"`
+	Chatters []Chatter `json:"chatters"`
 }
 
 type Subscription struct {

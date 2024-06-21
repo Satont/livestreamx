@@ -4,6 +4,7 @@ import tailwind from "tailwindcss"
 import autoprefixer from "autoprefixer"
 import path from "node:path"
 import { watch } from 'vite-plugin-watch'
+import { webUpdateNotice } from "@plugin-web-update-notification/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -18,6 +19,15 @@ export default defineConfig({
       onInit: true,
       pattern: 'src/**/*.ts',
       command: 'graphql-codegen',
+    }),
+    webUpdateNotice({
+      notificationProps: {
+        title: 'New version',
+        description: 'An update available, please refresh the page to get latest features and bug fixes!',
+        buttonText: 'refresh',
+        dismissButtonText: 'cancel',
+      },
+      checkInterval: 1 * 60 * 1000,
     }),
   ],
   resolve: {

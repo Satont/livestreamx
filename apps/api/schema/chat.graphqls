@@ -1,5 +1,6 @@
 extend type Mutation {
-    sendMessage(input: SendMessageInput!): Boolean! @notBanned
+    sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
+    attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
 }
 
 extend type Query {
@@ -46,4 +47,13 @@ type MessageSegmentMention implements MessageSegment {
     content: String!
     type: MessageSegmentType!
     user: User!
+}
+
+type AttachedFile {
+    id: ID!
+    url: String!
+    name: String!
+    size: Int!
+    mimeType: String!
+    createdAt: Time!
 }

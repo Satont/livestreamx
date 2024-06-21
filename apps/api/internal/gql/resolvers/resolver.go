@@ -1,6 +1,8 @@
 package resolvers
 
 import (
+	"github.com/minio/minio-go/v7"
+	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/gql/converters"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
@@ -18,10 +20,15 @@ type Resolver struct {
 	chatMessageRepo          chat_message.Repository
 	userRepo                 user.Repository
 	chatMessagesWithUserRepo chat_messages_with_user.Repository
-	sessionStorage           *session_storage.SessionStorage
-	converter                *converters.Converters
+	// userFilesRepo            user_file.Repository
+
+	sessionStorage *session_storage.SessionStorage
+	converter      *converters.Converters
+	s3             *minio.Client
+	config         config.Config
 
 	chatListenersChannels map[string]chan *gqlmodel.ChatMessage
+	streamState           *gqlmodel.Stream
 }
 
 type Opts struct {
@@ -29,9 +36,13 @@ type Opts struct {
 
 	ChatMessageRepo          chat_message.Repository
 	UserRepo                 user.Repository
-	SessionStorage           *session_storage.SessionStorage
 	ChatMessagesWithUserRepo chat_messages_with_user.Repository
-	Converter                *converters.Converters
+	// UserFilesRepo            user_file.Repository
+
+	SessionStorage *session_storage.SessionStorage
+	Converter      *converters.Converters
+	// S3             *minio.Client
+	Config config.Config
 }
 
 func New(opts Opts) *Resolver {
@@ -40,7 +51,13 @@ func New(opts Opts) *Resolver {
 		userRepo:                 opts.UserRepo,
 		sessionStorage:           opts.SessionStorage,
 		chatMessagesWithUserRepo: opts.ChatMessagesWithUserRepo,
-		chatListenersChannels:    make(map[string]chan *gqlmodel.ChatMessage),
-		converter:                opts.Converter,
+		// userFilesRepo:            opts.UserFilesRepo,
+		chatListenersChannels: make(map[string]chan *gqlmodel.ChatMessage),
+		converter:             opts.Converter,
+		// s3:                    opts.S3,
+		streamState: &gqlmodel.Stream{
+			Viewers:  0,
+			Chatters: make([]gqlmodel.Chatter, 0),
+		},
 	}
 }

@@ -49,6 +49,7 @@ var App = fx.Options(
 	),
 
 	fx.Provide(
+		// s3.New,
 		converters.New,
 		session_storage.New,
 		resolvers.New,

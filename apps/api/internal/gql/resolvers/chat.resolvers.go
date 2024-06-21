@@ -8,8 +8,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
+	minio "github.com/minio/minio-go/v7"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
@@ -25,6 +28,10 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 	text := input.Text
 	text = strings.ReplaceAll(text, "\n", "")
 	text = strings.ReplaceAll(text, "\r", "")
+
+	if utf8.RuneCountInString(text) > 700 {
+		return false, nil
+	}
 
 	message, err := r.chatMessageRepo.Create(
 		ctx,
@@ -49,6 +56,34 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 	}
 
 	return true, nil
+}
+
+// AttachFile is the resolver for the attachFile field.
+func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error) {
+	_, err := r.s3.PutObject(
+		ctx,
+		r.config.S3Bucket,
+		fmt.Sprintf("badges/%s", file.Filename),
+		file.File,
+		file.Size,
+		minio.PutObjectOptions{
+			ContentType: file.ContentType,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to put object to s3: %w", err)
+	}
+
+	// attachedFile := &gqlmodel.AttachedFile{
+	// 	ID:        "",
+	// 	URL:       "",
+	// 	Name:      "",
+	// 	Size:      int(uploadInfo.Size),
+	// 	MimeType:  file.ContentType,
+	// 	CreatedAt: time.Time{},
+	// }
+
+	panic(fmt.Errorf("not implemented: AttachFile - attachFile"))
 }
 
 // ChatMessagesLatest is the resolver for the chatMessagesLatest field.

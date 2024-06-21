@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useScroll } from "@vueuse/core";
 import { useProfile } from "@/api/profile.ts";
 import ChatSettings from "@/components/chat-settings.vue";
+import { useStream } from "@/api/stream.ts";
+import ChatViewers from "@/components/chat-viewers.vue";
 
 const { data: profile } = useProfile();
 const { messages, useSendMessage } = useChat()
@@ -62,9 +64,12 @@ watch(messages, async () => {
   <div class="flex h-full max-h-full flex-col">
     <div class="flex flex-row justify-between bg-secondary border-b-2 border-red-400 items-center px-4 min-w-48">
       <div class="flex items-center">
-				<ThemeSwitcher />
+				<ChatViewers />
 			</div>
-      <ChatProfile />
+			<div class="flex items-center">
+				<ThemeSwitcher />
+				<ChatProfile />
+			</div>
     </div>
     <div ref="messagesEl" class="h-full max-w-96 relative flex flex-col overflow-y-auto pl-2">
       <ChatMessage

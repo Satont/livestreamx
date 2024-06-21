@@ -41,6 +41,16 @@ services:
       - ENDPOINT
       - ADMIN_ENDPOINT
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "8810:9000"
+      - "8811:9090"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio-password
+    command: server /data
+
   casdoor:
     image: casbin/casdoor-all-in-one
     ports:

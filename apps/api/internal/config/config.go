@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	AppEnv            string `envconfig:"APP_ENV" default:"development"`
 	RedisURL          string `envconfig:"REDIS_URL"`
 	PostgresURL       string `envconfig:"POSTGRES_URL"`
 	TwitchClientID    string `envconfig:"TWITCH_CLIENT_ID"`
@@ -17,6 +18,12 @@ type Config struct {
 	ApiPort           int    `required:"false"  envconfig:"API_PORT" default:"1337"`
 	ApiSessionSecret  string `envconfig:"API_SESSION_SECRET"`
 	SevenTVEmoteSetID string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`
+
+	S3Host        string `envconfig:"S3_HOST"`
+	S3AccessToken string `envconfig:"S3_ACCESS_TOKEN"`
+	S3SecretToken string `envconfig:"S3_SECRET_TOKEN"`
+	S3Region      string `envconfig:"S3_REGION"`
+	S3Bucket      string `envconfig:"S3_BUCKET"`
 }
 
 func New() (Config, error) {

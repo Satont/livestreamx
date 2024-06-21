@@ -2,6 +2,15 @@ extend type Query {
     stream: Stream
 }
 
+extend type Subscription {
+    streamInfo: Stream
+}
+
 type Stream {
-    ID: String!
+    viewers: Int!
+    chatters: [Chatter!]!
+}
+
+type Chatter {
+    user: User!
 }

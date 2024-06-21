@@ -52,11 +52,24 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AttachedFile struct {
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		MimeType  func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Size      func(childComplexity int) int
+		URL       func(childComplexity int) int
+	}
+
 	ChatMessage struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Segments  func(childComplexity int) int
 		Sender    func(childComplexity int) int
+	}
+
+	Chatter struct {
+		User func(childComplexity int) int
 	}
 
 	MessageSegmentLink struct {
@@ -76,6 +89,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AttachFile        func(childComplexity int, file graphql.Upload) int
 		ChatSwitchUserBan func(childComplexity int, input gqlmodel.BanUser) int
 		SendMessage       func(childComplexity int, input gqlmodel.SendMessageInput) int
 	}
@@ -95,11 +109,13 @@ type ComplexityRoot struct {
 	}
 
 	Stream struct {
-		ID func(childComplexity int) int
+		Chatters func(childComplexity int) int
+		Viewers  func(childComplexity int) int
 	}
 
 	Subscription struct {
 		ChatMessages func(childComplexity int) int
+		StreamInfo   func(childComplexity int) int
 	}
 
 	User struct {
@@ -117,6 +133,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	ChatSwitchUserBan(ctx context.Context, input gqlmodel.BanUser) (bool, error)
 	SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error)
+	AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error)
 }
 type QueryResolver interface {
 	ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error)
@@ -126,6 +143,7 @@ type QueryResolver interface {
 }
 type SubscriptionResolver interface {
 	ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error)
+	StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error)
 }
 
 type executableSchema struct {
@@ -146,6 +164,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AttachedFile.createdAt":
+		if e.complexity.AttachedFile.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.AttachedFile.CreatedAt(childComplexity), true
+
+	case "AttachedFile.id":
+		if e.complexity.AttachedFile.ID == nil {
+			break
+		}
+
+		return e.complexity.AttachedFile.ID(childComplexity), true
+
+	case "AttachedFile.mimeType":
+		if e.complexity.AttachedFile.MimeType == nil {
+			break
+		}
+
+		return e.complexity.AttachedFile.MimeType(childComplexity), true
+
+	case "AttachedFile.name":
+		if e.complexity.AttachedFile.Name == nil {
+			break
+		}
+
+		return e.complexity.AttachedFile.Name(childComplexity), true
+
+	case "AttachedFile.size":
+		if e.complexity.AttachedFile.Size == nil {
+			break
+		}
+
+		return e.complexity.AttachedFile.Size(childComplexity), true
+
+	case "AttachedFile.url":
+		if e.complexity.AttachedFile.URL == nil {
+			break
+		}
+
+		return e.complexity.AttachedFile.URL(childComplexity), true
 
 	case "ChatMessage.createdAt":
 		if e.complexity.ChatMessage.CreatedAt == nil {
@@ -174,6 +234,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatMessage.Sender(childComplexity), true
+
+	case "Chatter.user":
+		if e.complexity.Chatter.User == nil {
+			break
+		}
+
+		return e.complexity.Chatter.User(childComplexity), true
 
 	case "MessageSegmentLink.content":
 		if e.complexity.MessageSegmentLink.Content == nil {
@@ -223,6 +290,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageSegmentText.Type(childComplexity), true
+
+	case "Mutation.attachFile":
+		if e.complexity.Mutation.AttachFile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_attachFile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AttachFile(childComplexity, args["file"].(graphql.Upload)), true
 
 	case "Mutation.chatSwitchUserBan":
 		if e.complexity.Mutation.ChatSwitchUserBan == nil {
@@ -309,12 +388,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Role.Name(childComplexity), true
 
-	case "Stream.ID":
-		if e.complexity.Stream.ID == nil {
+	case "Stream.chatters":
+		if e.complexity.Stream.Chatters == nil {
 			break
 		}
 
-		return e.complexity.Stream.ID(childComplexity), true
+		return e.complexity.Stream.Chatters(childComplexity), true
+
+	case "Stream.viewers":
+		if e.complexity.Stream.Viewers == nil {
+			break
+		}
+
+		return e.complexity.Stream.Viewers(childComplexity), true
 
 	case "Subscription.chatMessages":
 		if e.complexity.Subscription.ChatMessages == nil {
@@ -322,6 +408,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.ChatMessages(childComplexity), true
+
+	case "Subscription.streamInfo":
+		if e.complexity.Subscription.StreamInfo == nil {
+			break
+		}
+
+		return e.complexity.Subscription.StreamInfo(childComplexity), true
 
 	case "User.avatarUrl":
 		if e.complexity.User.AvatarURL == nil {
@@ -512,7 +605,8 @@ input BanUser {
     newValue: Boolean!
 }`, BuiltIn: false},
 	{Name: "../../../schema/chat.graphqls", Input: `extend type Mutation {
-    sendMessage(input: SendMessageInput!): Boolean! @notBanned
+    sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
+    attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
 }
 
 extend type Query {
@@ -560,7 +654,15 @@ type MessageSegmentMention implements MessageSegment {
     type: MessageSegmentType!
     user: User!
 }
-`, BuiltIn: false},
+
+type AttachedFile {
+    id: ID!
+    url: String!
+    name: String!
+    size: Int!
+    mimeType: String!
+    createdAt: Time!
+}`, BuiltIn: false},
 	{Name: "../../../schema/dashboard.graphqls", Input: `extend type Query {
     roles: [Role!]!
 }`, BuiltIn: false},
@@ -583,8 +685,17 @@ scalar Time`, BuiltIn: false},
     stream: Stream
 }
 
+extend type Subscription {
+    streamInfo: Stream
+}
+
 type Stream {
-    ID: String!
+    viewers: Int!
+    chatters: [Chatter!]!
+}
+
+type Chatter {
+    user: User!
 }`, BuiltIn: false},
 	{Name: "../../../schema/user.graphqls", Input: `extend type Query {
     userProfile: User! @isAuthenticated
@@ -630,6 +741,21 @@ func (ec *executionContext) dir_hasFeature_args(ctx context.Context, rawArgs map
 		}
 	}
 	args["features"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_attachFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 graphql.Upload
+	if tmp, ok := rawArgs["file"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+		arg0, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["file"] = arg0
 	return args, nil
 }
 
@@ -730,6 +856,270 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AttachedFile_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AttachedFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttachedFile_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttachedFile_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttachedFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AttachedFile_url(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AttachedFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttachedFile_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttachedFile_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttachedFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AttachedFile_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AttachedFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttachedFile_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttachedFile_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttachedFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AttachedFile_size(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AttachedFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttachedFile_size(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Size, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttachedFile_size(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttachedFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AttachedFile_mimeType(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AttachedFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttachedFile_mimeType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MimeType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttachedFile_mimeType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttachedFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AttachedFile_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AttachedFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttachedFile_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttachedFile_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttachedFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _ChatMessage_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ChatMessage_id(ctx, field)
@@ -920,6 +1310,68 @@ func (ec *executionContext) fieldContext_ChatMessage_createdAt(_ context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Chatter_user(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Chatter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Chatter_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Chatter_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Chatter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -1348,13 +1800,19 @@ func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field gra
 			return ec.resolvers.Mutation().SendMessage(rctx, fc.Args["input"].(gqlmodel.SendMessageInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAuthenticated == nil {
+				return nil, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.NotBanned == nil {
 				return nil, errors.New("directive notBanned is not implemented")
 			}
-			return ec.directives.NotBanned(ctx, nil, directive0)
+			return ec.directives.NotBanned(ctx, nil, directive1)
 		}
 
-		tmp, err := directive1(rctx)
+		tmp, err := directive2(rctx)
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
@@ -1399,6 +1857,101 @@ func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_sendMessage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_attachFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_attachFile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AttachFile(rctx, fc.Args["file"].(graphql.Upload))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAuthenticated == nil {
+				return nil, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NotBanned == nil {
+				return nil, errors.New("directive notBanned is not implemented")
+			}
+			return ec.directives.NotBanned(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*gqlmodel.AttachedFile); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/satont/stream/apps/api/internal/gql/gqlmodel.AttachedFile`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.AttachedFile)
+	fc.Result = res
+	return ec.marshalNAttachedFile2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAttachedFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_attachFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AttachedFile_id(ctx, field)
+			case "url":
+				return ec.fieldContext_AttachedFile_url(ctx, field)
+			case "name":
+				return ec.fieldContext_AttachedFile_name(ctx, field)
+			case "size":
+				return ec.fieldContext_AttachedFile_size(ctx, field)
+			case "mimeType":
+				return ec.fieldContext_AttachedFile_mimeType(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AttachedFile_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AttachedFile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_attachFile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -1560,8 +2113,10 @@ func (ec *executionContext) fieldContext_Query_stream(_ context.Context, field g
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Stream_ID(ctx, field)
+			case "viewers":
+				return ec.fieldContext_Stream_viewers(ctx, field)
+			case "chatters":
+				return ec.fieldContext_Stream_chatters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
 		},
@@ -1953,8 +2508,8 @@ func (ec *executionContext) fieldContext_Role_features(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Stream_ID(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Stream) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Stream_ID(ctx, field)
+func (ec *executionContext) _Stream_viewers(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Stream) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stream_viewers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1967,7 +2522,7 @@ func (ec *executionContext) _Stream_ID(ctx context.Context, field graphql.Collec
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Viewers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1979,19 +2534,67 @@ func (ec *executionContext) _Stream_ID(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Stream_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Stream_viewers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Stream",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Stream_chatters(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Stream) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stream_chatters(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Chatters, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]gqlmodel.Chatter)
+	fc.Result = res
+	return ec.marshalNChatter2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatterᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stream_chatters(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stream",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "user":
+				return ec.fieldContext_Chatter_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Chatter", field.Name)
 		},
 	}
 	return fc, nil
@@ -2060,6 +2663,67 @@ func (ec *executionContext) fieldContext_Subscription_chatMessages(_ context.Con
 				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_streamInfo(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_streamInfo(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().StreamInfo(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan *gqlmodel.Stream):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalOStream2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐStream(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_streamInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "viewers":
+				return ec.fieldContext_Stream_viewers(ctx, field)
+			case "chatters":
+				return ec.fieldContext_Stream_chatters(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
 		},
 	}
 	return fc, nil
@@ -4299,6 +4963,70 @@ func (ec *executionContext) _MessageSegment(ctx context.Context, sel ast.Selecti
 
 // region    **************************** object.gotpl ****************************
 
+var attachedFileImplementors = []string{"AttachedFile"}
+
+func (ec *executionContext) _AttachedFile(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.AttachedFile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, attachedFileImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AttachedFile")
+		case "id":
+			out.Values[i] = ec._AttachedFile_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "url":
+			out.Values[i] = ec._AttachedFile_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._AttachedFile_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "size":
+			out.Values[i] = ec._AttachedFile_size(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mimeType":
+			out.Values[i] = ec._AttachedFile_mimeType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._AttachedFile_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var chatMessageImplementors = []string{"ChatMessage"}
 
 func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.ChatMessage) graphql.Marshaler {
@@ -4327,6 +5055,45 @@ func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionS
 			}
 		case "createdAt":
 			out.Values[i] = ec._ChatMessage_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var chatterImplementors = []string{"Chatter"}
+
+func (ec *executionContext) _Chatter(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.Chatter) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, chatterImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Chatter")
+		case "user":
+			out.Values[i] = ec._Chatter_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4519,6 +5286,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "sendMessage":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_sendMessage(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "attachFile":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_attachFile(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -4743,8 +5517,13 @@ func (ec *executionContext) _Stream(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Stream")
-		case "ID":
-			out.Values[i] = ec._Stream_ID(ctx, field, obj)
+		case "viewers":
+			out.Values[i] = ec._Stream_viewers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "chatters":
+			out.Values[i] = ec._Stream_chatters(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4786,6 +5565,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	switch fields[0].Name {
 	case "chatMessages":
 		return ec._Subscription_chatMessages(ctx, fields[0])
+	case "streamInfo":
+		return ec._Subscription_streamInfo(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
@@ -5191,6 +5972,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAttachedFile2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAttachedFile(ctx context.Context, sel ast.SelectionSet, v gqlmodel.AttachedFile) graphql.Marshaler {
+	return ec._AttachedFile(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAttachedFile2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAttachedFile(ctx context.Context, sel ast.SelectionSet, v *gqlmodel.AttachedFile) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AttachedFile(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBanUser2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐBanUser(ctx context.Context, v interface{}) (gqlmodel.BanUser, error) {
 	res, err := ec.unmarshalInputBanUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5269,6 +6064,54 @@ func (ec *executionContext) marshalNChatMessage2ᚖgithubᚗcomᚋsatontᚋstrea
 	return ec._ChatMessage(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNChatter2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatter(ctx context.Context, sel ast.SelectionSet, v gqlmodel.Chatter) graphql.Marshaler {
+	return ec._Chatter(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNChatter2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatterᚄ(ctx context.Context, sel ast.SelectionSet, v []gqlmodel.Chatter) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNChatter2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatter(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5276,6 +6119,21 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -5494,6 +6352,21 @@ func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v in
 
 func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
 	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
+	res, err := graphql.UnmarshalUpload(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
+	res := graphql.MarshalUpload(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

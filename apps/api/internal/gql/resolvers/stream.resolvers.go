@@ -7,7 +7,10 @@ package resolvers
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 )
 
@@ -15,3 +18,83 @@ import (
 func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
 	panic(fmt.Errorf("not implemented: Stream - stream"))
 }
+
+// StreamInfo is the resolver for the streamInfo field.
+func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error) {
+	viewersLock.Lock()
+	r.streamState.Viewers += 1
+	viewersLock.Unlock()
+
+	userID, userIdErr := r.sessionStorage.GetUserID(ctx)
+	if userIdErr != nil {
+		return nil, userIdErr
+	}
+
+	if userIdErr == nil {
+		user, err := r.userRepo.FindByID(ctx, uuid.MustParse(userID))
+		if err != nil {
+			return nil, err
+		}
+
+		chattersLock.Lock()
+		r.streamState.Chatters = append(
+			r.streamState.Chatters,
+			gqlmodel.Chatter{
+				User: &gqlmodel.User{
+					ID:          user.ID.String(),
+					Name:        user.Name,
+					DisplayName: user.DisplayName,
+					Color:       user.Color,
+					Roles:       nil,
+					IsBanned:    user.Banned,
+					CreatedAt:   user.CreatedAt,
+					AvatarURL:   user.AvatarUrl,
+				},
+			},
+		)
+		chattersLock.Unlock()
+	}
+
+	chann := make(chan *gqlmodel.Stream)
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				viewersLock.Lock()
+				chattersLock.Lock()
+				defer viewersLock.Unlock()
+				defer chattersLock.Unlock()
+
+				r.streamState.Viewers -= 1
+
+				for i, chatter := range r.streamState.Chatters {
+					if chatter.User.ID == userID {
+						r.streamState.Chatters = append(
+							r.streamState.Chatters[:i],
+							r.streamState.Chatters[i+1:]...,
+						)
+						break
+					}
+				}
+
+				close(chann)
+				return
+			default:
+				chann <- r.streamState
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+
+	return chann, nil
+}
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+var chattersLock = sync.Mutex{}
+var viewersLock = sync.Mutex{}

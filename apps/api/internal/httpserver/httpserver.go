@@ -29,7 +29,7 @@ func New(opts Opts) *Server {
 	s := &Server{
 		Engine: gin.New(),
 	}
-	
+
 	s.Use(
 		cors.New(
 			cors.Config{
@@ -53,7 +53,7 @@ func New(opts Opts) *Server {
 
 	s.GET(
 		"/", func(c *gin.Context) {
-			playground.Handler("GraphQL", "/query").ServeHTTP(c.Writer, c.Request)
+			playground.Handler("GraphQL", "/api/query").ServeHTTP(c.Writer, c.Request)
 		},
 	)
 
