@@ -8,11 +8,10 @@ RUN corepack enable
 COPY apps/frontend/package.json ./apps/frontend/pnpm-lock.yaml /app/apps/frontend/
 COPY apps/api/schema /app/apps/api/schema/
 
-RUN cd /app/apps/frontend && pnpm install
+RUN cd /app/apps/frontend && pnpm install --frozen-lockfile
 
-COPY apps/frontend ./
-
+COPY apps/frontend /app/apps/frontend
 RUN cd /app/apps/frontend && pnpm build
 
 FROM devforth/spa-to-http:latest
-COPY --from=builder /app/dist /app
+COPY --from=builder /app/apps/frontend/dist /app
