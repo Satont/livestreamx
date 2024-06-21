@@ -14,4 +14,4 @@ COPY apps/frontend /app/apps/frontend
 RUN cd /app/apps/frontend && pnpm build
 
 FROM devforth/spa-to-http:latest
-COPY --from=builder /app/apps/frontend/dist /app
+COPY --from=builder /app/apps/frontend/dist .
