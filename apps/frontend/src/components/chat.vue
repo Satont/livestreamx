@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useScroll } from "@vueuse/core";
 import { useProfile } from "@/api/profile.ts";
 import ChatSettings from "@/components/chat-settings.vue";
-import { useStream } from "@/api/stream.ts";
 import ChatViewers from "@/components/chat-viewers.vue";
 
 const { data: profile } = useProfile();
