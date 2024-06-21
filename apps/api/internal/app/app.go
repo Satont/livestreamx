@@ -67,6 +67,7 @@ var App = fx.Options(
 			if err != nil {
 				return err
 			}
+			defer db.Close()
 
 			wd, err := os.Getwd()
 			if err != nil {

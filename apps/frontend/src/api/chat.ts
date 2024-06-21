@@ -1,9 +1,35 @@
 import { createGlobalState } from "@vueuse/core";
 import { ref } from "vue";
 import { useMutation, useQuery, useSubscription } from "@urql/vue";
-import { graphql } from "@/gql";
+import { graphql, useFragment } from "@/gql";
 import { watch } from "vue";
 import { MessageFragmentFragment } from "@/gql/graphql.ts";
+
+export const ChatMessage_Fragment = graphql(`
+    fragment MessageFragment on ChatMessage {
+        id
+        segments {
+            type
+            content
+            ...on MessageSegmentMention {
+                user {
+                    id
+                    color
+                    displayName
+                }
+            }
+        }
+        sender {
+            id
+            avatarUrl
+            color
+            createdAt
+            name
+            displayName
+        }
+        createdAt
+    }
+`)
 
 export const useChat = createGlobalState(() => {
 	const messages = ref<MessageFragmentFragment[]>([])
@@ -22,7 +48,8 @@ export const useChat = createGlobalState(() => {
 	watch(sub.data, (data) => {
 		if (!data) return
 
-		messages.value = [...messages.value, data.chatMessages]
+		const fragment = useFragment(ChatMessage_Fragment, data.chatMessages)
+		messages.value = [...messages.value, fragment]
 	})
 
 	const initialMessages = useQuery({
@@ -39,7 +66,8 @@ export const useChat = createGlobalState(() => {
 	watch(initialMessages.data, (data) => {
 		if (!data) return
 
-		messages.value = data.chatMessagesLatest
+		const fragments = useFragment(ChatMessage_Fragment, data.chatMessagesLatest)
+		messages.value = fragments
 	})
 
 	const useSendMessage = () => useMutation(graphql(`

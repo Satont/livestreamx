@@ -1,0 +1,51 @@
+services:
+  api:
+    build:
+        context: .
+        dockerfile: apps/api/Dockerfile
+    env_file: .env
+    networks:
+      - default
+      - caddy
+    image: ghcr.io/satont/livestreamx:latest
+    labels:
+      caddy: streamx.satont.dev
+      caddy.handle_path: /api/*
+      caddy.handle_path.0_reverse_proxy: "{{upstreams 1337}}"
+
+  frontend:
+    build:
+        context: .
+        dockerfile: apps/frontend/Dockerfile
+    image: ghcr.io/satont/livestreamx:latest
+    networks:
+      - default
+      - caddy
+    labels:
+      caddy: streamx.satont.dev
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+
+  redis:
+    image: redis:latest
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: livestreamx
+      POSTGRES_PASSWORD: livestreamx
+      POSTGRES_DB: livestreamx
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+    postgres:
+
+networks:
+  caddy:
+    external: true
