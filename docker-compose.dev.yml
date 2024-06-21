@@ -51,10 +51,5 @@ services:
       MINIO_ROOT_PASSWORD: minio-password
     command: server /data
 
-  casdoor:
-    image: casbin/casdoor-all-in-one
-    ports:
-      - 8008:8000
-
 volumes:
   postgres:
