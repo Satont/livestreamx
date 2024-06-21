@@ -1,5 +1,6 @@
 services:
   api:
+    image: ghcr.io/satont/livestreamx:api-latest
     build:
         context: .
         dockerfile: apps/api/Dockerfile
@@ -7,17 +8,21 @@ services:
     networks:
       - default
       - caddy
-    image: ghcr.io/satont/livestreamx:api-latest
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
     labels:
       caddy: streamx.satont.dev
       caddy.handle_path: /api/*
       caddy.handle_path.0_reverse_proxy: "{{upstreams 1337}}"
 
   frontend:
+    image: ghcr.io/satont/livestreamx:frontend-latest
+    restart: always
     build:
         context: .
         dockerfile: apps/frontend/Dockerfile
-    image: ghcr.io/satont/livestreamx:frontend-latest
     networks:
       - default
       - caddy
@@ -27,6 +32,7 @@ services:
 
   redis:
     image: redis:latest
+    restart: always
 
   postgres:
     image: postgres:16
@@ -36,6 +42,7 @@ services:
       POSTGRES_DB: livestreamx
     volumes:
       - postgres:/var/lib/postgresql/data
+    restart: always
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       interval: 10s
@@ -45,6 +52,7 @@ services:
   mediamtx:
     image: bluenviron/mediamtx:latest-ffmpeg
     network_mode: host
+    restart: always
     volumes:
       - ./mediamtx.yml:/mediamtx.yml
 
