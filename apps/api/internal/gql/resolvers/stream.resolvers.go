@@ -7,6 +7,8 @@ package resolvers
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -74,9 +76,17 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 				close(chann)
 				return
 			default:
+				chatters := lo.Values(r.streamChatters)
+				slices.SortFunc(
+					chatters,
+					func(a, b gqlmodel.Chatter) int {
+						return strings.Compare(a.User.Name, b.User.Name)
+					},
+				)
+
 				chann <- &gqlmodel.Stream{
 					Viewers:  r.streamViewers,
-					Chatters: lo.Values(r.streamChatters),
+					Chatters: chatters,
 				}
 				time.Sleep(1 * time.Second)
 			}
