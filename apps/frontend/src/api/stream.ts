@@ -20,7 +20,8 @@ export const useStream = createGlobalState(() => {
 							viewers
           }
 			}
-		`)
+		`),
+		variables: {}
 	})
 
 
