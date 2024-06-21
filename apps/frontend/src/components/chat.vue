@@ -22,8 +22,14 @@ const sendRetries = ref(0)
 async function sendMessage() {
 	if (!text.value) return;
 
+	const msg = text.value.replace(/\s+/g, ' ').trim()
+	if (!msg) return;
+	if (msg.length > 700) {
+		return;
+	}
+
 	while (sendRetries.value < 5) {
-		const res = await messageSender.executeMutation({ opts: { text: text.value }})
+		const res = await messageSender.executeMutation({ opts: { text: msg }})
 		if (res.error) {
 			console.error(res.error)
 			sendRetries.value++
