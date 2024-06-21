@@ -7,7 +7,7 @@ services:
     networks:
       - default
       - caddy
-    image: ghcr.io/satont/livestreamx:latest
+    image: ghcr.io/satont/livestreamx:api-latest
     labels:
       caddy: streamx.satont.dev
       caddy.handle_path: /api/*
@@ -17,7 +17,7 @@ services:
     build:
         context: .
         dockerfile: apps/frontend/Dockerfile
-    image: ghcr.io/satont/livestreamx:latest
+    image: ghcr.io/satont/livestreamx:frontend-latest
     networks:
       - default
       - caddy
