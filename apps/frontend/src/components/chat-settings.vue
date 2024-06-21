@@ -67,7 +67,7 @@ const max = 50
 				<Separator class="my-4" />
 				<div class="flex flex-col gap-2 px-3">
 					<div class="flex justify-between items-center">
-						<h1>Font size</h1>
+						<h1 class="text-lg text-slate-900 font-medium dark:text-slate-200">Font size</h1>
 						<NumberField :min :max v-model="chatFontSize" class="w-36">
 							<NumberFieldContent>
 								<NumberFieldDecrement />
