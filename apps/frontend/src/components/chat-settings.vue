@@ -14,6 +14,13 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import {
+	NumberField,
+	NumberFieldContent,
+	NumberFieldDecrement,
+	NumberFieldIncrement,
+	NumberFieldInput,
+} from '@/components/ui/number-field'
 
 const fontSize = computed({
 	get() {
@@ -23,6 +30,9 @@ const fontSize = computed({
 		chatFontSize.value = values.at(0)
 	}
 })
+
+const min = 10
+const max = 50
 </script>
 
 <template>
@@ -56,21 +66,26 @@ const fontSize = computed({
 				</Button>
 				<Separator class="my-4" />
 				<div class="flex flex-col gap-2 px-3">
-					<h1>Font size</h1>
+					<div class="flex justify-between items-center">
+						<h1>Font size</h1>
+						<NumberField :min :max v-model="chatFontSize" class="w-36">
+							<NumberFieldContent>
+								<NumberFieldDecrement />
+								<NumberFieldInput />
+								<NumberFieldIncrement />
+							</NumberFieldContent>
+						</NumberField>
+					</div>
 					<Slider
 						v-model="fontSize"
-						:min="10"
-						:max="50"
+						:min
+						:max
 						:step="1"
 						class="w-full"
 					/>
 					<div class="flex justify-between">
-						<span>
-							10px
-						</span>
-						<span>
-							{{ fontSize.at(0) }}px
-						</span>
+						<span>{{ min }}px</span>
+						<span>{{ max }}px</span>
 					</div>
 				</div>
 			</div>
