@@ -42,6 +42,11 @@ services:
       timeout: 5s
       retries: 5
 
+  mediamtx:
+    image: bluenviron/mediamtx:latest-ffmpeg
+    network_mode: host
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml
 
 volumes:
     postgres:
