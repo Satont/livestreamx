@@ -3,6 +3,7 @@ import { showAvatars } from "@/composables/show-avatars.js";
 import { showTimestamps } from "@/composables/show-timestamps.ts";
 import { useProfile } from "@/api/profile.ts";
 import { MessageFragmentFragment, MessageSegmentType } from "@/gql/graphql.ts";
+import { chatFontSize } from "@/composables/chat-font-size.ts";
 
 type Props = {
   message: MessageFragmentFragment
@@ -14,7 +15,9 @@ const { data: profile } = useProfile()
 </script>
 
 <template>
-	<div>
+	<div :style="{
+		fontSize: `${chatFontSize}px`
+	}">
 		<p>
 			<span v-if="showTimestamps" class="mr-1 opacity-50">
 				{{ new Date(message.createdAt)
@@ -22,7 +25,7 @@ const { data: profile } = useProfile()
 				}}
 			</span>
 			<span>
-				<span class="inline-flex items-center" v-if="showAvatars">
+				<span class="inline-flex align-sub" v-if="showAvatars">
 					<img :src="message.sender.avatarUrl" class="size-4 rounded-full mr-1" />
 				</span>
 				<span class="font-bold" :style="{ color: message.sender.color }">
