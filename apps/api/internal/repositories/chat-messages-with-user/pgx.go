@@ -99,7 +99,7 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 		).
 		From("chat_messages chat_messages").
 		Join("users users ON chat_messages.sender_id = users.id").
-		OrderBy("chat_messages.created_at ASC").
+		OrderBy("chat_messages.created_at DESC").
 		Where("users.banned IS FALSE").
 		Limit(uint64(limit)).
 		PlaceholderFormat(squirrel.Dollar).

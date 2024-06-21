@@ -7,19 +7,23 @@ package resolvers
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
-	minio "github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
 )
 
 // SendMessage is the resolver for the sendMessage field.
-func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error) {
+func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (
+	bool,
+	error,
+) {
 	userId, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return false, err
@@ -59,7 +63,10 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 }
 
 // AttachFile is the resolver for the attachFile field.
-func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error) {
+func (r *mutationResolver) AttachFile(
+	ctx context.Context,
+	file graphql.Upload,
+) (*gqlmodel.AttachedFile, error) {
 	_, err := r.s3.PutObject(
 		ctx,
 		r.config.S3Bucket,
@@ -87,7 +94,10 @@ func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) 
 }
 
 // ChatMessagesLatest is the resolver for the chatMessagesLatest field.
-func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error) {
+func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) (
+	[]gqlmodel.ChatMessage,
+	error,
+) {
 	limitQuery := 100
 	if limit != nil {
 		limitQuery = *limit
@@ -110,11 +120,24 @@ func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) ([]g
 		)
 	}
 
+	slices.SortFunc(
+		gqlMessages, func(a, b gqlmodel.ChatMessage) int {
+			if a.CreatedAt.UnixMilli() > b.CreatedAt.UnixMilli() {
+				return 1
+			} else {
+				return -1
+			}
+		},
+	)
+
 	return gqlMessages, nil
 }
 
 // ChatMessages is the resolver for the chatMessages field.
-func (r *subscriptionResolver) ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error) {
+func (r *subscriptionResolver) ChatMessages(ctx context.Context) (
+	<-chan *gqlmodel.ChatMessage,
+	error,
+) {
 	id := uuid.NewString()
 
 	r.chatListenersChannels[id] = make(chan *gqlmodel.ChatMessage, 1)
