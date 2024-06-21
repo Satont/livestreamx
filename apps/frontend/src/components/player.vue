@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <iframe src="https://streamx.satont.dev/mystream?muted=false?autoplay=true" class="h-full w-full" scrolling="no" />
+  <iframe src="https://streamx.satont.dev/stream?muted=false?autoplay=true" class="h-full w-full" scrolling="no" />
 </template>
