@@ -61,8 +61,7 @@ CREATE TABLE channels_roles (
     name varchar(255) NOT NULL,
     image_url varchar(500) NOT NULL,
 -- there might be table with prebuilt features and then pivot table to attach those features to role, but i'm to lazy, so that's done via just array of features
-    features text[] NOT NULL default '{}',
-    t jsonb
+    features text[] NOT NULL default '{}'
 );
 
 CREATE TABLE user_roles (

@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Frontend" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/apps/frontend/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="dev" />
+    </scripts>
+    <node-interpreter value="$USER_HOME$/.nvm/versions/node/v20.11.1/bin/node" />
+    <package-manager value="pnpm" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

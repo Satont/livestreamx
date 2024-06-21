@@ -2,7 +2,6 @@
 import { FragmentType, graphql, useFragment } from "@/gql";
 import { showAvatars } from "@/composables/show-avatars.js";
 import { showTimestamps } from "@/composables/show-timestamps.ts";
-import { useChat } from "@/api/chat.ts";
 import { useProfile } from "@/api/profile.ts";
 import { MessageSegmentType } from "@/gql/graphql.ts";
 
@@ -40,37 +39,7 @@ const props = defineProps<Props>()
 
 const data = useFragment(ChatMessage_Fragment, props.message)
 
-const urlRegex = /(https?:\/\/[^\s]+)/g;
-const mentionsRegex = /@(\w+)/g;
-
-const { messages } = useChat()
 const { data: profile } = useProfile()
-
-// function urlify(text: string) {
-// 	text = text.replace(urlRegex, (url) => {
-// 		return `<a class="underline" target="_blank" href="${url}">${url}</a>`;
-// 	})
-// 	text = text.replace(mentionsRegex, (mention) => {
-// 		const username = mention.slice(1).toLowerCase()
-// 		const msg = messages.value.find(m => m.sender.name === username || m.sender.displayName.toLowerCase() === username)
-//
-// 		const classes = [
-// 			'p-0.5',
-// 			'rounded'
-// 		]
-//
-// 		if (msg && msg.sender.id === profile.value?.userProfile.id) {
-// 			classes.push('bg-zinc-400')
-// 		}
-//
-// 		if (msg) {
-// 			return `<span class="${classes.join(' ')}" style="color: ${msg.sender.color}">${mention}</span>`
-// 		}
-// 		return mention
-// 	})
-//
-// 	return text
-// }
 </script>
 
 <template>
