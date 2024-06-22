@@ -50,6 +50,7 @@ var App = fx.Options(
 
 	fx.Provide(
 		// s3.New,
+		seven_tv.New,
 		converters.New,
 		session_storage.New,
 		resolvers.New,
@@ -60,7 +61,6 @@ var App = fx.Options(
 	),
 	fx.Invoke(
 		func(p *pgxpool.Pool, c config.Config) error {
-			go seven_tv.NewWs(c.SevenTVEmoteSetID)
 			if err := goose.SetDialect("pgx"); err != nil {
 				return err
 			}

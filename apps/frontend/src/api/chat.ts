@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useMutation, useQuery, useSubscription } from "@urql/vue";
 import { graphql, useFragment } from "@/gql";
 import { watch } from "vue";
-import { MessageFragmentFragment } from "@/gql/graphql.ts";
+import { MessageFragmentFragment , EmoteFragmentFragment } from "@/gql/graphql.js";
 
 export const ChatMessage_Fragment = graphql(`
     fragment MessageFragment on ChatMessage {
@@ -18,6 +18,15 @@ export const ChatMessage_Fragment = graphql(`
                     displayName
                 }
             }
+						...on MessageSegmentEmote {
+								emote {
+										id
+										name
+										url
+										width
+										height
+								}
+						}
         }
         sender {
             id
@@ -29,6 +38,14 @@ export const ChatMessage_Fragment = graphql(`
         }
         createdAt
     }
+`)
+
+export const ChatEmote_Fragment = graphql(`
+		fragment EmoteFragment on Emote {
+				id
+				name
+				url
+		}
 `)
 
 export const useChat = createGlobalState(() => {
@@ -76,8 +93,30 @@ export const useChat = createGlobalState(() => {
 		}
 	`))
 
+	const emotes = ref<EmoteFragmentFragment[]>([])
+
+	const useQueryEmotes = useQuery({
+		query: graphql(`
+			query ChatEmotes {
+				getEmotes {
+					...EmoteFragment
+				}
+			}
+		`),
+		variables: {},
+	})
+
+	watch(useQueryEmotes.data, (data) => {
+		console.log(emotes)
+		if (!data) return
+
+		const fragments = useFragment(ChatEmote_Fragment, data.getEmotes)
+		emotes.value = fragments
+	})
+
 	return {
 		messages,
 		useSendMessage,
+		emotes,
 	}
 })

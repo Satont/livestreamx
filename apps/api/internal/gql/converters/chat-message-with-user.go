@@ -5,8 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
+	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 )
 
 var linkRegexp = regexp.MustCompile(`(https?://[^\s]+)`)
@@ -18,8 +20,32 @@ func (c *Converters) ChatMessageWithUser(
 ) gqlmodel.ChatMessage {
 	splittedText := strings.Fields(m.Message.Text)
 	var segments []gqlmodel.MessageSegment
+
+	emotesSlice := lo.Values(c.sevenTv.Emotes)
+
 	for _, text := range splittedText {
-		if linkRegexp.MatchString(text) {
+		emote, emoteFound := lo.Find(
+			emotesSlice, func(item seven_tv.Emote) bool {
+				return item.Name == text
+			},
+		)
+
+		if emoteFound {
+			segments = append(
+				segments,
+				gqlmodel.MessageSegmentEmote{
+					Content: text,
+					Type:    gqlmodel.MessageSegmentTypeEmote,
+					Emote: &gqlmodel.Emote{
+						ID:     emote.ID,
+						Name:   emote.Name,
+						URL:    emote.URL,
+						Width:  emote.Width,
+						Height: emote.Height,
+					},
+				},
+			)
+		} else if linkRegexp.MatchString(text) {
 			segments = append(
 				segments, gqlmodel.MessageSegmentLink{
 					Content: text,

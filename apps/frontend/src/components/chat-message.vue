@@ -53,6 +53,12 @@ const { data: profile } = useProfile()
 					>
 						{{ segment.content }}
 					</a>
+					<img
+						v-else-if="segment.type === MessageSegmentType.Emote && 'emote' in segment"
+						:src="segment.emote.url"
+						:style="{ width: segment.emote.width > 128 ? '64px' : `32px` }"
+						class="inline-block relative"
+					/>
 					{{ ' ' }}
 				</template>
 			</span>

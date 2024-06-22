@@ -15,6 +15,11 @@ type MessageSegment interface {
 	GetContent() string
 }
 
+type SystemMessage interface {
+	IsSystemMessage()
+	GetType() SystemMessageType
+}
+
 type AttachedFile struct {
 	ID        string    `json:"id"`
 	URL       string    `json:"url"`
@@ -39,6 +44,24 @@ type ChatMessage struct {
 type Chatter struct {
 	User *User `json:"user"`
 }
+
+type Emote struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	URL    string `json:"url"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
+type MessageSegmentEmote struct {
+	Content string             `json:"content"`
+	Type    MessageSegmentType `json:"type"`
+	Emote   *Emote             `json:"emote"`
+}
+
+func (MessageSegmentEmote) IsMessageSegment()                {}
+func (this MessageSegmentEmote) GetType() MessageSegmentType { return this.Type }
+func (this MessageSegmentEmote) GetContent() string          { return this.Content }
 
 type MessageSegmentLink struct {
 	Content string             `json:"content"`
@@ -93,6 +116,30 @@ type Stream struct {
 type Subscription struct {
 }
 
+type SystemMessageEmoteAdded struct {
+	Type  SystemMessageType `json:"type"`
+	Emote *Emote            `json:"emote"`
+}
+
+func (SystemMessageEmoteAdded) IsSystemMessage()                {}
+func (this SystemMessageEmoteAdded) GetType() SystemMessageType { return this.Type }
+
+type SystemMessageEmoteRemoved struct {
+	Type    SystemMessageType `json:"type"`
+	EmoteID string            `json:"emoteId"`
+}
+
+func (SystemMessageEmoteRemoved) IsSystemMessage()                {}
+func (this SystemMessageEmoteRemoved) GetType() SystemMessageType { return this.Type }
+
+type SystemMessageEmoteUpdated struct {
+	Type  SystemMessageType `json:"type"`
+	Emote *Emote            `json:"emote"`
+}
+
+func (SystemMessageEmoteUpdated) IsSystemMessage()                {}
+func (this SystemMessageEmoteUpdated) GetType() SystemMessageType { return this.Type }
+
 type User struct {
 	ID          string    `json:"id"`
 	Name        string    `json:"name"`
@@ -110,17 +157,19 @@ const (
 	MessageSegmentTypeText    MessageSegmentType = "TEXT"
 	MessageSegmentTypeLink    MessageSegmentType = "LINK"
 	MessageSegmentTypeMention MessageSegmentType = "MENTION"
+	MessageSegmentTypeEmote   MessageSegmentType = "EMOTE"
 )
 
 var AllMessageSegmentType = []MessageSegmentType{
 	MessageSegmentTypeText,
 	MessageSegmentTypeLink,
 	MessageSegmentTypeMention,
+	MessageSegmentTypeEmote,
 }
 
 func (e MessageSegmentType) IsValid() bool {
 	switch e {
-	case MessageSegmentTypeText, MessageSegmentTypeLink, MessageSegmentTypeMention:
+	case MessageSegmentTypeText, MessageSegmentTypeLink, MessageSegmentTypeMention, MessageSegmentTypeEmote:
 		return true
 	}
 	return false
@@ -183,5 +232,48 @@ func (e *RoleFeature) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RoleFeature) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SystemMessageType string
+
+const (
+	SystemMessageTypeEmoteAdded   SystemMessageType = "EMOTE_ADDED"
+	SystemMessageTypeEmoteRemoved SystemMessageType = "EMOTE_REMOVED"
+	SystemMessageTypeEmoteUpdated SystemMessageType = "EMOTE_UPDATED"
+)
+
+var AllSystemMessageType = []SystemMessageType{
+	SystemMessageTypeEmoteAdded,
+	SystemMessageTypeEmoteRemoved,
+	SystemMessageTypeEmoteUpdated,
+}
+
+func (e SystemMessageType) IsValid() bool {
+	switch e {
+	case SystemMessageTypeEmoteAdded, SystemMessageTypeEmoteRemoved, SystemMessageTypeEmoteUpdated:
+		return true
+	}
+	return false
+}
+
+func (e SystemMessageType) String() string {
+	return string(e)
+}
+
+func (e *SystemMessageType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SystemMessageType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SystemMessageType", str)
+	}
+	return nil
+}
+
+func (e SystemMessageType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -13,17 +13,14 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
-	"github.com/minio/minio-go/v7"
+	minio "github.com/minio/minio-go/v7"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
 )
 
 // SendMessage is the resolver for the sendMessage field.
-func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (
-	bool,
-	error,
-) {
+func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error) {
 	userId, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return false, err
@@ -63,10 +60,7 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 }
 
 // AttachFile is the resolver for the attachFile field.
-func (r *mutationResolver) AttachFile(
-	ctx context.Context,
-	file graphql.Upload,
-) (*gqlmodel.AttachedFile, error) {
+func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error) {
 	_, err := r.s3.PutObject(
 		ctx,
 		r.config.S3Bucket,
@@ -94,10 +88,7 @@ func (r *mutationResolver) AttachFile(
 }
 
 // ChatMessagesLatest is the resolver for the chatMessagesLatest field.
-func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) (
-	[]gqlmodel.ChatMessage,
-	error,
-) {
+func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error) {
 	limitQuery := 100
 	if limit != nil {
 		limitQuery = *limit
@@ -133,11 +124,27 @@ func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) (
 	return gqlMessages, nil
 }
 
+// GetEmotes is the resolver for the getEmotes field.
+func (r *queryResolver) GetEmotes(ctx context.Context) ([]gqlmodel.Emote, error) {
+	emotes := make([]gqlmodel.Emote, 0, len(r.sevenTv.Emotes))
+	for _, emote := range r.sevenTv.Emotes {
+		emotes = append(
+			emotes,
+			gqlmodel.Emote{
+				ID:     emote.ID,
+				Name:   emote.Name,
+				URL:    emote.URL,
+				Width:  emote.Width,
+				Height: emote.Height,
+			},
+		)
+	}
+
+	return emotes, nil
+}
+
 // ChatMessages is the resolver for the chatMessages field.
-func (r *subscriptionResolver) ChatMessages(ctx context.Context) (
-	<-chan *gqlmodel.ChatMessage,
-	error,
-) {
+func (r *subscriptionResolver) ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error) {
 	id := uuid.NewString()
 
 	r.chatListenersChannels[id] = make(chan *gqlmodel.ChatMessage, 1)
@@ -154,4 +161,9 @@ func (r *subscriptionResolver) ChatMessages(ctx context.Context) (
 	}()
 
 	return r.chatListenersChannels[id], nil
+}
+
+// SystemMessages is the resolver for the systemMessages field.
+func (r *subscriptionResolver) SystemMessages(ctx context.Context) (<-chan gqlmodel.SystemMessage, error) {
+	panic(fmt.Errorf("not implemented: SystemMessages - systemMessages"))
 }

@@ -9,6 +9,7 @@ import (
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
+	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 	"go.uber.org/fx"
 )
 
@@ -26,6 +27,7 @@ type Resolver struct {
 	converter      *converters.Converters
 	s3             *minio.Client
 	config         config.Config
+	sevenTv        *seven_tv.SevenTV
 
 	chatListenersChannels map[string]chan *gqlmodel.ChatMessage
 	streamViewers         int
@@ -43,7 +45,8 @@ type Opts struct {
 	SessionStorage *session_storage.SessionStorage
 	Converter      *converters.Converters
 	// S3             *minio.Client
-	Config config.Config
+	Config  config.Config
+	SevenTv *seven_tv.SevenTV
 }
 
 func New(opts Opts) *Resolver {
@@ -55,6 +58,7 @@ func New(opts Opts) *Resolver {
 		converter:                opts.Converter,
 		config:                   config.Config{},
 		// userFilesRepo:            opts.UserFilesRepo,
+		sevenTv:               opts.SevenTv,
 		chatListenersChannels: make(map[string]chan *gqlmodel.ChatMessage),
 		streamViewers:         0,
 		streamChatters:        make(map[string]gqlmodel.Chatter),

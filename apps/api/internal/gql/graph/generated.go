@@ -72,6 +72,20 @@ type ComplexityRoot struct {
 		User func(childComplexity int) int
 	}
 
+	Emote struct {
+		Height func(childComplexity int) int
+		ID     func(childComplexity int) int
+		Name   func(childComplexity int) int
+		URL    func(childComplexity int) int
+		Width  func(childComplexity int) int
+	}
+
+	MessageSegmentEmote struct {
+		Content func(childComplexity int) int
+		Emote   func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
 	MessageSegmentLink struct {
 		Content func(childComplexity int) int
 		Type    func(childComplexity int) int
@@ -96,6 +110,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		ChatMessagesLatest func(childComplexity int, limit *int) int
+		GetEmotes          func(childComplexity int) int
 		Roles              func(childComplexity int) int
 		Stream             func(childComplexity int) int
 		UserProfile        func(childComplexity int) int
@@ -114,8 +129,24 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		ChatMessages func(childComplexity int) int
-		StreamInfo   func(childComplexity int) int
+		ChatMessages   func(childComplexity int) int
+		StreamInfo     func(childComplexity int) int
+		SystemMessages func(childComplexity int) int
+	}
+
+	SystemMessageEmoteAdded struct {
+		Emote func(childComplexity int) int
+		Type  func(childComplexity int) int
+	}
+
+	SystemMessageEmoteRemoved struct {
+		EmoteID func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
+	SystemMessageEmoteUpdated struct {
+		Emote func(childComplexity int) int
+		Type  func(childComplexity int) int
 	}
 
 	User struct {
@@ -137,12 +168,14 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error)
+	GetEmotes(ctx context.Context) ([]gqlmodel.Emote, error)
 	Roles(ctx context.Context) ([]gqlmodel.Role, error)
 	Stream(ctx context.Context) (*gqlmodel.Stream, error)
 	UserProfile(ctx context.Context) (*gqlmodel.User, error)
 }
 type SubscriptionResolver interface {
 	ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error)
+	SystemMessages(ctx context.Context) (<-chan gqlmodel.SystemMessage, error)
 	StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error)
 }
 
@@ -242,6 +275,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Chatter.User(childComplexity), true
 
+	case "Emote.height":
+		if e.complexity.Emote.Height == nil {
+			break
+		}
+
+		return e.complexity.Emote.Height(childComplexity), true
+
+	case "Emote.id":
+		if e.complexity.Emote.ID == nil {
+			break
+		}
+
+		return e.complexity.Emote.ID(childComplexity), true
+
+	case "Emote.name":
+		if e.complexity.Emote.Name == nil {
+			break
+		}
+
+		return e.complexity.Emote.Name(childComplexity), true
+
+	case "Emote.url":
+		if e.complexity.Emote.URL == nil {
+			break
+		}
+
+		return e.complexity.Emote.URL(childComplexity), true
+
+	case "Emote.width":
+		if e.complexity.Emote.Width == nil {
+			break
+		}
+
+		return e.complexity.Emote.Width(childComplexity), true
+
+	case "MessageSegmentEmote.content":
+		if e.complexity.MessageSegmentEmote.Content == nil {
+			break
+		}
+
+		return e.complexity.MessageSegmentEmote.Content(childComplexity), true
+
+	case "MessageSegmentEmote.emote":
+		if e.complexity.MessageSegmentEmote.Emote == nil {
+			break
+		}
+
+		return e.complexity.MessageSegmentEmote.Emote(childComplexity), true
+
+	case "MessageSegmentEmote.type":
+		if e.complexity.MessageSegmentEmote.Type == nil {
+			break
+		}
+
+		return e.complexity.MessageSegmentEmote.Type(childComplexity), true
+
 	case "MessageSegmentLink.content":
 		if e.complexity.MessageSegmentLink.Content == nil {
 			break
@@ -339,6 +428,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ChatMessagesLatest(childComplexity, args["limit"].(*int)), true
 
+	case "Query.getEmotes":
+		if e.complexity.Query.GetEmotes == nil {
+			break
+		}
+
+		return e.complexity.Query.GetEmotes(childComplexity), true
+
 	case "Query.roles":
 		if e.complexity.Query.Roles == nil {
 			break
@@ -415,6 +511,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.StreamInfo(childComplexity), true
+
+	case "Subscription.systemMessages":
+		if e.complexity.Subscription.SystemMessages == nil {
+			break
+		}
+
+		return e.complexity.Subscription.SystemMessages(childComplexity), true
+
+	case "SystemMessageEmoteAdded.emote":
+		if e.complexity.SystemMessageEmoteAdded.Emote == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteAdded.Emote(childComplexity), true
+
+	case "SystemMessageEmoteAdded.type":
+		if e.complexity.SystemMessageEmoteAdded.Type == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteAdded.Type(childComplexity), true
+
+	case "SystemMessageEmoteRemoved.emoteId":
+		if e.complexity.SystemMessageEmoteRemoved.EmoteID == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteRemoved.EmoteID(childComplexity), true
+
+	case "SystemMessageEmoteRemoved.type":
+		if e.complexity.SystemMessageEmoteRemoved.Type == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteRemoved.Type(childComplexity), true
+
+	case "SystemMessageEmoteUpdated.emote":
+		if e.complexity.SystemMessageEmoteUpdated.Emote == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteUpdated.Emote(childComplexity), true
+
+	case "SystemMessageEmoteUpdated.type":
+		if e.complexity.SystemMessageEmoteUpdated.Type == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteUpdated.Type(childComplexity), true
 
 	case "User.avatarUrl":
 		if e.complexity.User.AvatarURL == nil {
@@ -604,17 +749,20 @@ input BanUser {
     userId: String!
     newValue: Boolean!
 }`, BuiltIn: false},
-	{Name: "../../../schema/chat.graphqls", Input: `extend type Mutation {
+	{Name: "../../../schema/chat.graphqls", Input: `extend type Query {
+    chatMessagesLatest(limit: Int): [ChatMessage!]!
+    getEmotes: [Emote!]!
+}
+
+extend type Mutation {
     sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
     attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
 }
 
-extend type Query {
-    chatMessagesLatest(limit: Int): [ChatMessage!]!
-}
 
 extend type Subscription {
     chatMessages: ChatMessage!
+    systemMessages: SystemMessage!
 }
 
 type ChatMessage {
@@ -628,6 +776,7 @@ enum MessageSegmentType {
     TEXT
     LINK
     MENTION
+    EMOTE
 }
 
 interface MessageSegment {
@@ -655,6 +804,12 @@ type MessageSegmentMention implements MessageSegment {
     user: User!
 }
 
+type MessageSegmentEmote implements MessageSegment {
+    content: String!
+    type: MessageSegmentType!
+    emote: Emote!
+}
+
 type AttachedFile {
     id: ID!
     url: String!
@@ -662,7 +817,42 @@ type AttachedFile {
     size: Int!
     mimeType: String!
     createdAt: Time!
-}`, BuiltIn: false},
+}
+
+enum SystemMessageType {
+    EMOTE_ADDED
+    EMOTE_REMOVED
+    EMOTE_UPDATED
+}
+
+interface SystemMessage {
+    type: SystemMessageType!
+}
+
+type Emote {
+    id: String!
+    name: String!
+    url: String!
+    width: Int!
+    height: Int!
+}
+
+type SystemMessageEmoteAdded implements SystemMessage {
+    type: SystemMessageType!
+    emote: Emote!
+}
+
+type SystemMessageEmoteRemoved implements SystemMessage {
+    type: SystemMessageType!
+    emoteId: String!
+}
+
+type SystemMessageEmoteUpdated implements SystemMessage {
+    type: SystemMessageType!
+    emote: Emote!
+}
+
+`, BuiltIn: false},
 	{Name: "../../../schema/dashboard.graphqls", Input: `extend type Query {
     roles: [Role!]!
 }`, BuiltIn: false},
@@ -1377,6 +1567,370 @@ func (ec *executionContext) fieldContext_Chatter_user(_ context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _Emote_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Emote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Emote_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Emote_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Emote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Emote_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Emote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Emote_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Emote_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Emote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Emote_url(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Emote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Emote_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Emote_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Emote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Emote_width(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Emote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Emote_width(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Width, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Emote_width(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Emote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Emote_height(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Emote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Emote_height(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Height, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Emote_height(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Emote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageSegmentEmote_content(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.MessageSegmentEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageSegmentEmote_content(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Content, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageSegmentEmote_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageSegmentEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageSegmentEmote_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.MessageSegmentEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageSegmentEmote_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.MessageSegmentType)
+	fc.Result = res
+	return ec.marshalNMessageSegmentType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐMessageSegmentType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageSegmentEmote_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageSegmentEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MessageSegmentType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageSegmentEmote_emote(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.MessageSegmentEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageSegmentEmote_emote(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Emote, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.Emote)
+	fc.Result = res
+	return ec.marshalNEmote2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageSegmentEmote_emote(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageSegmentEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Emote_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Emote_name(ctx, field)
+			case "url":
+				return ec.fieldContext_Emote_url(ctx, field)
+			case "width":
+				return ec.fieldContext_Emote_width(ctx, field)
+			case "height":
+				return ec.fieldContext_Emote_height(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MessageSegmentLink_content(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.MessageSegmentLink) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MessageSegmentLink_content(ctx, field)
 	if err != nil {
@@ -2019,6 +2573,62 @@ func (ec *executionContext) fieldContext_Query_chatMessagesLatest(ctx context.Co
 	if fc.Args, err = ec.field_Query_chatMessagesLatest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getEmotes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getEmotes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetEmotes(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]gqlmodel.Emote)
+	fc.Result = res
+	return ec.marshalNEmote2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmoteᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getEmotes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Emote_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Emote_name(ctx, field)
+			case "url":
+				return ec.fieldContext_Emote_url(ctx, field)
+			case "width":
+				return ec.fieldContext_Emote_width(ctx, field)
+			case "height":
+				return ec.fieldContext_Emote_height(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -2668,6 +3278,64 @@ func (ec *executionContext) fieldContext_Subscription_chatMessages(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Subscription_systemMessages(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_systemMessages(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().SystemMessages(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan gqlmodel.SystemMessage):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalNSystemMessage2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessage(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_systemMessages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("FieldContext.Child cannot be called on type INTERFACE")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_streamInfo(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	fc, err := ec.fieldContext_Subscription_streamInfo(ctx, field)
 	if err != nil {
@@ -2724,6 +3392,294 @@ func (ec *executionContext) fieldContext_Subscription_streamInfo(_ context.Conte
 				return ec.fieldContext_Stream_chatters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteAdded_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteAdded) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteAdded_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.SystemMessageType)
+	fc.Result = res
+	return ec.marshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteAdded_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteAdded",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SystemMessageType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteAdded_emote(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteAdded) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteAdded_emote(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Emote, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.Emote)
+	fc.Result = res
+	return ec.marshalNEmote2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteAdded_emote(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteAdded",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Emote_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Emote_name(ctx, field)
+			case "url":
+				return ec.fieldContext_Emote_url(ctx, field)
+			case "width":
+				return ec.fieldContext_Emote_width(ctx, field)
+			case "height":
+				return ec.fieldContext_Emote_height(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteRemoved_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteRemoved) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteRemoved_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.SystemMessageType)
+	fc.Result = res
+	return ec.marshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteRemoved",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SystemMessageType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteRemoved_emoteId(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteRemoved) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteRemoved_emoteId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmoteID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_emoteId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteRemoved",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteUpdated_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteUpdated) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteUpdated_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.SystemMessageType)
+	fc.Result = res
+	return ec.marshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteUpdated_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteUpdated",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SystemMessageType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteUpdated_emote(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteUpdated) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteUpdated_emote(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Emote, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.Emote)
+	fc.Result = res
+	return ec.marshalNEmote2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteUpdated_emote(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteUpdated",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Emote_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Emote_name(ctx, field)
+			case "url":
+				return ec.fieldContext_Emote_url(ctx, field)
+			case "width":
+				return ec.fieldContext_Emote_width(ctx, field)
+			case "height":
+				return ec.fieldContext_Emote_height(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
 		},
 	}
 	return fc, nil
@@ -4954,6 +5910,43 @@ func (ec *executionContext) _MessageSegment(ctx context.Context, sel ast.Selecti
 			return graphql.Null
 		}
 		return ec._MessageSegmentMention(ctx, sel, obj)
+	case gqlmodel.MessageSegmentEmote:
+		return ec._MessageSegmentEmote(ctx, sel, &obj)
+	case *gqlmodel.MessageSegmentEmote:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._MessageSegmentEmote(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func (ec *executionContext) _SystemMessage(ctx context.Context, sel ast.SelectionSet, obj gqlmodel.SystemMessage) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case gqlmodel.SystemMessageEmoteAdded:
+		return ec._SystemMessageEmoteAdded(ctx, sel, &obj)
+	case *gqlmodel.SystemMessageEmoteAdded:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._SystemMessageEmoteAdded(ctx, sel, obj)
+	case gqlmodel.SystemMessageEmoteRemoved:
+		return ec._SystemMessageEmoteRemoved(ctx, sel, &obj)
+	case *gqlmodel.SystemMessageEmoteRemoved:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._SystemMessageEmoteRemoved(ctx, sel, obj)
+	case gqlmodel.SystemMessageEmoteUpdated:
+		return ec._SystemMessageEmoteUpdated(ctx, sel, &obj)
+	case *gqlmodel.SystemMessageEmoteUpdated:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._SystemMessageEmoteUpdated(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -5094,6 +6087,114 @@ func (ec *executionContext) _Chatter(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = graphql.MarshalString("Chatter")
 		case "user":
 			out.Values[i] = ec._Chatter_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var emoteImplementors = []string{"Emote"}
+
+func (ec *executionContext) _Emote(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.Emote) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, emoteImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Emote")
+		case "id":
+			out.Values[i] = ec._Emote_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Emote_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "url":
+			out.Values[i] = ec._Emote_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "width":
+			out.Values[i] = ec._Emote_width(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "height":
+			out.Values[i] = ec._Emote_height(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var messageSegmentEmoteImplementors = []string{"MessageSegmentEmote", "MessageSegment"}
+
+func (ec *executionContext) _MessageSegmentEmote(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.MessageSegmentEmote) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageSegmentEmoteImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageSegmentEmote")
+		case "content":
+			out.Values[i] = ec._MessageSegmentEmote_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._MessageSegmentEmote_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "emote":
+			out.Values[i] = ec._MessageSegmentEmote_emote(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -5361,6 +6462,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getEmotes":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getEmotes(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "roles":
 			field := field
 
@@ -5565,11 +6688,145 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	switch fields[0].Name {
 	case "chatMessages":
 		return ec._Subscription_chatMessages(ctx, fields[0])
+	case "systemMessages":
+		return ec._Subscription_systemMessages(ctx, fields[0])
 	case "streamInfo":
 		return ec._Subscription_streamInfo(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
+}
+
+var systemMessageEmoteAddedImplementors = []string{"SystemMessageEmoteAdded", "SystemMessage"}
+
+func (ec *executionContext) _SystemMessageEmoteAdded(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.SystemMessageEmoteAdded) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, systemMessageEmoteAddedImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemMessageEmoteAdded")
+		case "type":
+			out.Values[i] = ec._SystemMessageEmoteAdded_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "emote":
+			out.Values[i] = ec._SystemMessageEmoteAdded_emote(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var systemMessageEmoteRemovedImplementors = []string{"SystemMessageEmoteRemoved", "SystemMessage"}
+
+func (ec *executionContext) _SystemMessageEmoteRemoved(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.SystemMessageEmoteRemoved) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, systemMessageEmoteRemovedImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemMessageEmoteRemoved")
+		case "type":
+			out.Values[i] = ec._SystemMessageEmoteRemoved_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "emoteId":
+			out.Values[i] = ec._SystemMessageEmoteRemoved_emoteId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var systemMessageEmoteUpdatedImplementors = []string{"SystemMessageEmoteUpdated", "SystemMessage"}
+
+func (ec *executionContext) _SystemMessageEmoteUpdated(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.SystemMessageEmoteUpdated) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, systemMessageEmoteUpdatedImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemMessageEmoteUpdated")
+		case "type":
+			out.Values[i] = ec._SystemMessageEmoteUpdated_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "emote":
+			out.Values[i] = ec._SystemMessageEmoteUpdated_emote(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
 }
 
 var userImplementors = []string{"User"}
@@ -6112,6 +7369,64 @@ func (ec *executionContext) marshalNChatter2ᚕgithubᚗcomᚋsatontᚋstreamᚋ
 	return ret
 }
 
+func (ec *executionContext) marshalNEmote2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx context.Context, sel ast.SelectionSet, v gqlmodel.Emote) graphql.Marshaler {
+	return ec._Emote(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEmote2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmoteᚄ(ctx context.Context, sel ast.SelectionSet, v []gqlmodel.Emote) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEmote2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNEmote2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx context.Context, sel ast.SelectionSet, v *gqlmodel.Emote) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Emote(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6343,6 +7658,26 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNSystemMessage2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessage(ctx context.Context, sel ast.SelectionSet, v gqlmodel.SystemMessage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SystemMessage(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx context.Context, v interface{}) (gqlmodel.SystemMessageType, error) {
+	var res gqlmodel.SystemMessageType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx context.Context, sel ast.SelectionSet, v gqlmodel.SystemMessageType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

@@ -1,14 +1,17 @@
+extend type Query {
+    chatMessagesLatest(limit: Int): [ChatMessage!]!
+    getEmotes: [Emote!]!
+}
+
 extend type Mutation {
     sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
     attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
 }
 
-extend type Query {
-    chatMessagesLatest(limit: Int): [ChatMessage!]!
-}
 
 extend type Subscription {
     chatMessages: ChatMessage!
+    systemMessages: SystemMessage!
 }
 
 type ChatMessage {
@@ -22,6 +25,7 @@ enum MessageSegmentType {
     TEXT
     LINK
     MENTION
+    EMOTE
 }
 
 interface MessageSegment {
@@ -49,6 +53,12 @@ type MessageSegmentMention implements MessageSegment {
     user: User!
 }
 
+type MessageSegmentEmote implements MessageSegment {
+    content: String!
+    type: MessageSegmentType!
+    emote: Emote!
+}
+
 type AttachedFile {
     id: ID!
     url: String!
@@ -57,3 +67,37 @@ type AttachedFile {
     mimeType: String!
     createdAt: Time!
 }
+
+enum SystemMessageType {
+    EMOTE_ADDED
+    EMOTE_REMOVED
+    EMOTE_UPDATED
+}
+
+interface SystemMessage {
+    type: SystemMessageType!
+}
+
+type Emote {
+    id: String!
+    name: String!
+    url: String!
+    width: Int!
+    height: Int!
+}
+
+type SystemMessageEmoteAdded implements SystemMessage {
+    type: SystemMessageType!
+    emote: Emote!
+}
+
+type SystemMessageEmoteRemoved implements SystemMessage {
+    type: SystemMessageType!
+    emoteId: String!
+}
+
+type SystemMessageEmoteUpdated implements SystemMessage {
+    type: SystemMessageType!
+    emote: Emote!
+}
+
