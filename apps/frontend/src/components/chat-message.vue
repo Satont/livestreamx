@@ -2,13 +2,12 @@
 import { showAvatars } from "@/composables/show-avatars.js";
 import { showTimestamps } from "@/composables/show-timestamps.ts";
 import { useProfile } from "@/api/profile.ts";
-import { MessageFragmentFragment, MessageSegmentType } from "@/gql/graphql.ts";
+import { ChatMessage_FragmentFragment, ChatEmote_FragmentFragment, MessageSegmentType } from "@/gql/graphql.ts";
 import { chatFontSize } from "@/composables/chat-font-size.ts";
 
 type Props = {
-  message: MessageFragmentFragment
+  message: ChatMessage_FragmentFragment
 }
-
 defineProps<Props>()
 
 const { data: profile } = useProfile()
@@ -55,8 +54,11 @@ const { data: profile } = useProfile()
 					</a>
 					<img
 						v-else-if="segment.type === MessageSegmentType.Emote && 'emote' in segment"
-						:src="segment.emote.url"
-						:style="{ width: segment.emote.width > 128 ? '64px' : `32px` }"
+						:src="(segment.emote as ChatEmote_FragmentFragment).url"
+						:style="{
+							width: `${(segment.emote as ChatEmote_FragmentFragment).width}px`,
+							height: `${(segment.emote as ChatEmote_FragmentFragment).height}px`
+						}"
 						class="inline-block relative"
 					/>
 					{{ ' ' }}

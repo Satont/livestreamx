@@ -3,10 +3,10 @@ import { ref } from "vue";
 import { useMutation, useQuery, useSubscription } from "@urql/vue";
 import { graphql, useFragment } from "@/gql";
 import { watch } from "vue";
-import { MessageFragmentFragment , EmoteFragmentFragment } from "@/gql/graphql.js";
+import { ChatMessage_FragmentFragment , ChatEmote_FragmentFragment } from "@/gql/graphql.js";
 
 export const ChatMessage_Fragment = graphql(`
-    fragment MessageFragment on ChatMessage {
+    fragment ChatMessage_Fragment on ChatMessage {
         id
         segments {
             type
@@ -20,11 +20,7 @@ export const ChatMessage_Fragment = graphql(`
             }
 						...on MessageSegmentEmote {
 								emote {
-										id
-										name
-										url
-										width
-										height
+										...ChatEmote_Fragment
 								}
 						}
         }
@@ -41,21 +37,23 @@ export const ChatMessage_Fragment = graphql(`
 `)
 
 export const ChatEmote_Fragment = graphql(`
-		fragment EmoteFragment on Emote {
+		fragment ChatEmote_Fragment on Emote {
 				id
 				name
 				url
+				width
+				height
 		}
 `)
 
 export const useChat = createGlobalState(() => {
-	const messages = ref<MessageFragmentFragment[]>([])
+	const messages = ref<ChatMessage_FragmentFragment[]>([])
 
 	const sub = useSubscription({
 		query: graphql(`
 			subscription NewChatMessages {
 				chatMessages {
-					...MessageFragment
+					...ChatMessage_Fragment
 				}
 			}
 		`),
@@ -73,7 +71,7 @@ export const useChat = createGlobalState(() => {
 		query: graphql(`
 			query ChatMessages {
 				chatMessagesLatest {
-					...MessageFragment
+					...ChatMessage_Fragment
 				}
 			}
 		`),
@@ -93,13 +91,13 @@ export const useChat = createGlobalState(() => {
 		}
 	`))
 
-	const emotes = ref<EmoteFragmentFragment[]>([])
+	const emotes = ref<ChatEmote_FragmentFragment[]>([])
 
 	const useQueryEmotes = useQuery({
 		query: graphql(`
 			query ChatEmotes {
 				getEmotes {
-					...EmoteFragment
+					...ChatEmote_Fragment
 				}
 			}
 		`),
@@ -107,7 +105,6 @@ export const useChat = createGlobalState(() => {
 	})
 
 	watch(useQueryEmotes.data, (data) => {
-		console.log(emotes)
 		if (!data) return
 
 		const fragments = useFragment(ChatEmote_Fragment, data.getEmotes)

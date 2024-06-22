@@ -96,14 +96,14 @@ func (c *SevenTV) fetchEmotes() error {
 		file, _ := lo.Find(
 			emote.Data.Host.Files,
 			func(item fetchEmoteSetResponseFile) bool {
-				return item.Name == "4x.webp"
+				return item.Name == "1x.webp"
 			},
 		)
 
 		emotes[emote.Id] = Emote{
 			ID:     emote.Id,
 			Name:   emote.Name,
-			URL:    fmt.Sprintf("%s/%s", emote.Data.Host.Url, "4x.webp"),
+			URL:    fmt.Sprintf("%s/%s", emote.Data.Host.Url, "1x.webp"),
 			Width:  file.Width,
 			Height: file.Height,
 		}
