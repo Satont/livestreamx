@@ -10,13 +10,12 @@ import {
 	TooltipTrigger
 } from '@/components/ui/tooltip'
 import { calculateColor } from "@/lib/color.js";
-import { computed } from "vue";
 import { colorMode } from "@/composables/color-mode.ts";
 
 type Props = {
   message: ChatMessage_FragmentFragment
 }
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const { data: profile } = useProfile()
 
