@@ -90,7 +90,7 @@ function focusColorPicker() {
 					@click="focusColorPicker"
 					:disabled="!profile"
 				>
-					<span>Change color</span>
+					<span>Change nickname color</span>
 					<input
 						id="user-profile-color-picker"
 						type="color"
