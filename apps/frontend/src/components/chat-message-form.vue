@@ -82,6 +82,7 @@ const mentionItems = computed(() => {
 			<Textarea
 				v-model="text"
 				placeholder="Send message..."
+				@keydown.enter="sendMessage"
 			/>
 
 			<template #no-result>
