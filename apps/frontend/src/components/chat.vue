@@ -41,7 +41,7 @@ watch(messages, async () => {
 			</div>
     </div>
 		<TooltipProvider :delay-duration="150" :skip-delay-duration="100">
-			<div ref="messagesEl" class="h-full max-w-96 relative flex flex-col overflow-y-auto pl-2">
+			<div ref="messagesEl" class="h-full max-w-96 relative flex flex-col overflow-y-auto px-2">
 				<ChatMessage
 					v-for="message in messages"
 					:key="message.id"

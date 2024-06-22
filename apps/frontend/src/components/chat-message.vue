@@ -11,25 +11,31 @@ import {
 } from '@/components/ui/tooltip'
 import { calculateColor } from "@/lib/color.js";
 import { colorMode } from "@/composables/color-mode.ts";
+import { Button } from "@/components/ui/button";
+import { Copy } from 'lucide-vue-next'
 
 type Props = {
   message: ChatMessage_FragmentFragment
 }
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const { data: profile } = useProfile()
-
 
 function correctColor(color: string) {
 	return calculateColor(color, colorMode.value === 'dark')
 }
+
+function copyText() {
+	navigator.clipboard.writeText(props.message.segments.map(s => s.content).join(' '))
+}
 </script>
 
 <template>
-	<div :style="{
-		fontSize: `${chatFontSize}px`
-	}">
-		<p>
+	<div
+		:style="{ fontSize: `${chatFontSize}px` }"
+		class="relative group"
+	>
+		<p class="leading-7">
 			<span v-if="showTimestamps" class="mr-1 opacity-50">
 				{{ new Date(message.createdAt)
 					.toLocaleTimeString('en', { hour12: false, hour: '2-digit', minute:'2-digit' })
@@ -94,5 +100,9 @@ function correctColor(color: string) {
 				</template>
 			</span>
 		</p>
+
+		<Button class="hidden group-hover:block absolute right-0 top-0" @click="copyText" size="xs" variant="secondary">
+			<Copy class="size-4" />
+		</Button>
 	</div>
 </template>
