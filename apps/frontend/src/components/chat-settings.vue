@@ -21,6 +21,7 @@ import {
 	NumberFieldIncrement,
 	NumberFieldInput,
 } from '@/components/ui/number-field'
+import { useProfile, useProfileUpdate } from "@/api/profile.ts";
 
 const fontSize = computed({
 	get() {
@@ -33,6 +34,24 @@ const fontSize = computed({
 
 const min = 10
 const max = 50
+
+const { data: profile } = useProfile()
+const updateUser = useProfileUpdate()
+
+async function handleColorChange(e: Event) {
+	const newValue = (e.target as HTMLInputElement).value
+
+	await updateUser.executeMutation({
+		input: {
+			color: newValue
+		}
+	})
+}
+
+function focusColorPicker() {
+	const colorPicker = document.getElementById('user-profile-color-picker')
+	colorPicker?.click()
+}
 </script>
 
 <template>
@@ -63,6 +82,21 @@ const max = 50
 						Show time
 					</span>
 					<Switch :checked="showTimestamps" class="data-[state=unchecked]:bg-zinc-600"  />
+				</Button>
+				<Button
+					size="sm"
+					variant="ghost"
+					class="w-full flex justify-between"
+					@click="focusColorPicker"
+				>
+					<span>Change color</span>
+					<input
+						id="user-profile-color-picker"
+						type="color"
+						:value="profile?.userProfile.color"
+						class="size-6 rounded-full"
+						@change="handleColorChange"
+					/>
 				</Button>
 				<Separator class="my-4" />
 				<div class="flex flex-col gap-2 px-3">

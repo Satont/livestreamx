@@ -106,6 +106,7 @@ type ComplexityRoot struct {
 		AttachFile        func(childComplexity int, file graphql.Upload) int
 		ChatSwitchUserBan func(childComplexity int, input gqlmodel.BanUser) int
 		SendMessage       func(childComplexity int, input gqlmodel.SendMessageInput) int
+		UpdateUserProfile func(childComplexity int, input gqlmodel.UpdateUserProfileInput) int
 	}
 
 	Query struct {
@@ -165,6 +166,7 @@ type MutationResolver interface {
 	ChatSwitchUserBan(ctx context.Context, input gqlmodel.BanUser) (bool, error)
 	SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error)
 	AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error)
+	UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error)
 }
 type QueryResolver interface {
 	ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error)
@@ -416,6 +418,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SendMessage(childComplexity, args["input"].(gqlmodel.SendMessageInput)), true
 
+	case "Mutation.updateUserProfile":
+		if e.complexity.Mutation.UpdateUserProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(gqlmodel.UpdateUserProfileInput)), true
+
 	case "Query.chatMessagesLatest":
 		if e.complexity.Query.ChatMessagesLatest == nil {
 			break
@@ -627,6 +641,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputBanUser,
 		ec.unmarshalInputSendMessageInput,
+		ec.unmarshalInputUpdateUserProfileInput,
 	)
 	first := true
 
@@ -891,6 +906,10 @@ type Chatter {
     userProfile: User! @isAuthenticated
 }
 
+extend type Mutation {
+    updateUserProfile(input: UpdateUserProfileInput!): User! @isAuthenticated
+}
+
 type User {
     id: ID!
     name: String!
@@ -911,6 +930,10 @@ type Role {
 
 enum RoleFeature {
     BAN_USERS
+}
+
+input UpdateUserProfileInput {
+    color: String
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -971,6 +994,21 @@ func (ec *executionContext) field_Mutation_sendMessage_args(ctx context.Context,
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNSendMessageInput2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSendMessageInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 gqlmodel.UpdateUserProfileInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateUserProfileInput2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUpdateUserProfileInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2506,6 +2544,99 @@ func (ec *executionContext) fieldContext_Mutation_attachFile(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_attachFile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUserProfile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUserProfile(rctx, fc.Args["input"].(gqlmodel.UpdateUserProfileInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAuthenticated == nil {
+				return nil, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*gqlmodel.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/satont/stream/apps/api/internal/gql/gqlmodel.User`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateUserProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5881,6 +6012,33 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Context, obj interface{}) (gqlmodel.UpdateUserProfileInput, error) {
+	var it gqlmodel.UpdateUserProfileInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"color"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "color":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("color"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Color = graphql.OmittableOf(data)
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -6394,6 +6552,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "attachFile":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_attachFile(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateUserProfile":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUserProfile(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7693,6 +7858,11 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdateUserProfileInput2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUpdateUserProfileInput(ctx context.Context, v interface{}) (gqlmodel.UpdateUserProfileInput, error) {
+	res, err := ec.unmarshalInputUpdateUserProfileInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {

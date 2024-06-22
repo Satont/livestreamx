@@ -1,4 +1,4 @@
-import { useQuery } from "@urql/vue";
+import { useMutation, useQuery } from "@urql/vue";
 import { graphql } from "@/gql";
 import { createGlobalState } from "@vueuse/core";
 
@@ -19,4 +19,15 @@ export const useProfile = createGlobalState(() => {
 		`),
 		variables: {}
 	});
+})
+
+export const useProfileUpdate = createGlobalState(() => {
+	return useMutation(graphql(`
+			mutation UpdateProfile($input: UpdateUserProfileInput!) {
+			updateUserProfile(input: $input) {
+					__typename
+					id
+			}
+		}
+	`))
 })

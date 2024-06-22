@@ -2,6 +2,10 @@ extend type Query {
     userProfile: User! @isAuthenticated
 }
 
+extend type Mutation {
+    updateUserProfile(input: UpdateUserProfileInput!): User! @isAuthenticated
+}
+
 type User {
     id: ID!
     name: String!
@@ -22,4 +26,8 @@ type Role {
 
 enum RoleFeature {
     BAN_USERS
+}
+
+input UpdateUserProfileInput {
+    color: String
 }

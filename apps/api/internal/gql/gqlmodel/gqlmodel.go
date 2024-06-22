@@ -7,6 +7,8 @@ import (
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/99designs/gqlgen/graphql"
 )
 
 type MessageSegment interface {
@@ -139,6 +141,10 @@ type SystemMessageEmoteUpdated struct {
 
 func (SystemMessageEmoteUpdated) IsSystemMessage()                {}
 func (this SystemMessageEmoteUpdated) GetType() SystemMessageType { return this.Type }
+
+type UpdateUserProfileInput struct {
+	Color graphql.Omittable[*string] `json:"color,omitempty"`
+}
 
 type User struct {
 	ID          string    `json:"id"`
