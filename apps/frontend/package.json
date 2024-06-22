@@ -13,6 +13,7 @@
   "dependencies": {
     "@plugin-web-update-notification/vite": "1.7.1",
     "@urql/vue": "1.3.2",
+    "@vueuse/components": "10.11.0",
     "@vueuse/core": "10.11.0",
     "add": "2.0.6",
     "autoprefixer": "10.4.19",

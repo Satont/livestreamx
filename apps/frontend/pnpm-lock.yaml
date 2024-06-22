@@ -11,6 +11,9 @@ dependencies:
   '@urql/vue':
     specifier: 1.3.2
     version: 1.3.2(@urql/core@5.0.4)(vue@3.4.29)
+  '@vueuse/components':
+    specifier: 10.11.0
+    version: 10.11.0(vue@3.4.29)
   '@vueuse/core':
     specifier: 10.11.0
     version: 10.11.0(vue@3.4.29)
@@ -2082,6 +2085,17 @@ packages:
     dependencies:
       '@vue/compiler-core': 3.4.29
     dev: true
+
+  /@vueuse/components@10.11.0(vue@3.4.29):
+    resolution: {integrity: sha512-ZvLZI23d5ZAtva5fGyYh/jQtZO8l+zJ5tAXyYNqHJZkq1o5yWyqZhENvSv5mfDmN5IuAOp4tq02mRmX/ipFGcg==}
+    dependencies:
+      '@vueuse/core': 10.11.0(vue@3.4.29)
+      '@vueuse/shared': 10.11.0(vue@3.4.29)
+      vue-demi: 0.14.8(vue@3.4.29)
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
+    dev: false
 
   /@vueuse/core@10.11.0(vue@3.4.29):
     resolution: {integrity: sha512-x3sD4Mkm7PJ+pcq3HX8PLPBadXCAlSDR/waK87dz0gQE+qJnaaFhc/dZVfJz+IUYzTMVGum2QlR7ImiJQN4s6g==}

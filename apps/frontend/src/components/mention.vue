@@ -254,7 +254,7 @@ export default defineComponent({
 		}
 
 		function setValue(value) {
-			input .value = value
+			input.value = value
 			emitInputEvent('input')
 		}
 

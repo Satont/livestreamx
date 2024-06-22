@@ -1,13 +1,38 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
 import ChatSettings from "@/components/chat-settings.vue";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useProfile } from "@/api/profile.js";
 import { useChat } from "@/api/chat.ts";
 import { Textarea } from "@/components/ui/textarea";
+import { Smile } from 'lucide-vue-next'
+import { useVirtualList } from '@vueuse/core'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from '@/components/ui/command'
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover'
+import { UseVirtualList } from '@vueuse/components'
 
 // @ts-ignore
 import Mention from "./mention.vue";
+import { SelectEvent } from "radix-vue/dist/Combobox/ComboboxItem";
 
 const { useSendMessage, emotes, messages } = useChat()
 const { data: profile } = useProfile();
@@ -65,10 +90,29 @@ const mentionKeys = ['@', ':']
 const mentionItems = computed(() => {
 	return mentionKey.value === '@' ? usersForMention.value : emotesForMention.value
 })
+
+const emoteMenuOpened = ref(false)
+const emoteMenuSearchTerm = ref('')
+const emotesMenuEmotes = computed(() => {
+	if (!emoteMenuSearchTerm.value) return emotes.value
+
+	return emotes.value.filter(e => e.name.toLowerCase().includes(emoteMenuSearchTerm.value.toLowerCase()))
+})
+const currentCarretPosition = ref(0)
+function updateCarretPosition(e: KeyboardEvent | MouseEvent) {
+	if (!e.target) return
+	const target = e.target as HTMLTextAreaElement
+	currentCarretPosition.value = target.selectionStart
+}
+function insertEmoteInText(event: SelectEvent<string>) {
+	const newText = text.value.slice(0, currentCarretPosition.value) + event.detail.value + text.value.slice(currentCarretPosition.value)
+	text.value = newText
+	emoteMenuOpened.value = false
+}
 </script>
 
 <template>
-	<div class="flex flex-col gap-2 bg-accent border-t-2 border-red-400 min-h-36 p-2">
+	<div class="flex flex-col gap-2 bg-accent border-t-2 border-red-400 min-h-36 p-2 relative">
 		<Mention
 			:keys="mentionKeys"
 			:items="mentionItems"
@@ -84,7 +128,44 @@ const mentionItems = computed(() => {
 				placeholder="Send message..."
 				@keydown.enter="sendMessage"
 				@paste="console.log"
+				class="pr-12"
+				@keyup="updateCarretPosition"
+				@click="updateCarretPosition"
 			/>
+
+			<Popover v-model:open="emoteMenuOpened">
+				<PopoverTrigger as-child>
+					<Button class="absolute right-2 top-2" variant="ghost" size="sm">
+						<Smile />
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent class="h-[340px] w-96 p-0 mb-2">
+					<Command v-model:search-term="emoteMenuSearchTerm">
+						<CommandInput class="h-9" placeholder="Search emote..." />
+						<CommandEmpty>No emote found.</CommandEmpty>
+						<CommandList class="overflow-hidden">
+							<UseVirtualList
+								:list="emotesMenuEmotes"
+								:options="{
+									itemHeight: 44,
+								}"
+								height="340px"
+							>
+								<template #default="props">
+									<CommandItem
+										class="flex items-center justify-between pr-4"
+										:value="props.data.name"
+										@select="insertEmoteInText"
+									>
+										<span>{{ props.data.name }}</span>
+										<img :src="props.data.url" class="h-8 max-w-12" />
+									</CommandItem>
+								</template>
+							</UseVirtualList>
+						</CommandList>
+					</Command>
+				</PopoverContent>
+			</Popover>
 
 			<template #no-result>
 				<div class="dim">
