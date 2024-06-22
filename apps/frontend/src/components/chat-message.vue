@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { showAvatars } from "@/composables/show-avatars.js";
-import { showTimestamps } from "@/composables/show-timestamps.ts";
+import { showTimestamps } from "@/composables/show-timestamps.js";
 import { useProfile } from "@/api/profile.ts";
 import { ChatMessage_FragmentFragment, ChatEmote_FragmentFragment, MessageSegmentType } from "@/gql/graphql.ts";
-import { chatFontSize } from "@/composables/chat-font-size.ts";
+import { chatFontSize } from "@/composables/chat-font-size.js";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger
+} from '@/components/ui/tooltip'
 
 type Props = {
   message: ChatMessage_FragmentFragment
@@ -52,15 +57,32 @@ const { data: profile } = useProfile()
 					>
 						{{ segment.content }}
 					</a>
-					<img
-						v-else-if="segment.type === MessageSegmentType.Emote && 'emote' in segment"
-						:src="(segment.emote as ChatEmote_FragmentFragment).url"
-						:style="{
-							width: `${(segment.emote as ChatEmote_FragmentFragment).width}px`,
-							height: `${(segment.emote as ChatEmote_FragmentFragment).height}px`
-						}"
-						class="scale-90 inline-block relative"
-					/>
+					<template v-else-if="segment.type === MessageSegmentType.Emote && 'emote' in segment">
+						<Tooltip>
+							<TooltipTrigger>
+								<img
+									:src="(segment.emote as ChatEmote_FragmentFragment).url"
+									:style="{
+										width: `${(segment.emote as ChatEmote_FragmentFragment).width}px`,
+										height: `${(segment.emote as ChatEmote_FragmentFragment).height}px`
+									}"
+									class="scale-90 inline-block relative"
+								/>
+							</TooltipTrigger>
+							<TooltipContent>
+								<div class="flex flex-col">
+									<img
+										:src="(segment.emote as ChatEmote_FragmentFragment).url.replace('1x.webp', '4x.webp')"
+										:style="{
+											width: `${(segment.emote as ChatEmote_FragmentFragment).width * 2.5}px`,
+											height: `${(segment.emote as ChatEmote_FragmentFragment).height * 2.5}px`
+										}"
+									/>
+									<h1 class="place-self-center text-lg font-bold">{{ (segment.emote as ChatEmote_FragmentFragment).name }}</h1>
+								</div>
+							</TooltipContent>
+						</Tooltip>
+					</template>
 					{{ ' ' }}
 				</template>
 			</span>

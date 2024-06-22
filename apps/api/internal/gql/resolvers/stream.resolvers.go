@@ -22,11 +22,11 @@ func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
 	panic(fmt.Errorf("not implemented: Stream - stream"))
 }
 
+var chattersLock = sync.Mutex{}
+
 // StreamInfo is the resolver for the streamInfo field.
 func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error) {
-	viewersLock.Lock()
-	r.streamViewers += 1
-	viewersLock.Unlock()
+	r.streamViewers.Inc()
 
 	userID, userIdErr := r.sessionStorage.GetUserID(ctx)
 	if userIdErr != nil {
@@ -62,12 +62,10 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 		for {
 			select {
 			case <-ctx.Done():
-				viewersLock.Lock()
 				chattersLock.Lock()
-				defer viewersLock.Unlock()
 				defer chattersLock.Unlock()
 
-				r.streamViewers -= 1
+				r.streamViewers.Dec()
 
 				if userIdErr == nil {
 					delete(r.streamChatters, userID)
@@ -85,7 +83,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 				)
 
 				chann <- &gqlmodel.Stream{
-					Viewers:  r.streamViewers,
+					Viewers:  int(r.streamViewers.Load()),
 					Chatters: chatters,
 				}
 				time.Sleep(1 * time.Second)
@@ -95,12 +93,3 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 
 	return chann, nil
 }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-var chattersLock = sync.Mutex{}
-var viewersLock = sync.Mutex{}

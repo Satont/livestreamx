@@ -18,6 +18,7 @@
     "autoprefixer": "10.4.19",
     "class-variance-authority": "0.7.0",
     "clsx": "2.1.1",
+    "floating-vue": "5.2.2",
     "graphql": "16.8.2",
     "graphql-ws": "5.16.0",
     "lucide-vue-next": "0.395.0",
@@ -25,6 +26,7 @@
     "tailwind-merge": "2.3.0",
     "tailwindcss": "3.4.4",
     "tailwindcss-animate": "1.0.7",
+    "textarea-caret": "3.1.0",
     "vue": "3.4.29",
     "vue-router": "4.3.3"
   },

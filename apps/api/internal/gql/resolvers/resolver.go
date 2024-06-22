@@ -1,6 +1,8 @@
 package resolvers
 
 import (
+	"go.uber.org/atomic"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/gql/converters"
@@ -30,7 +32,7 @@ type Resolver struct {
 	sevenTv        *seven_tv.SevenTV
 
 	chatListenersChannels map[string]chan *gqlmodel.ChatMessage
-	streamViewers         int
+	streamViewers         *atomic.Int32
 	streamChatters        map[string]gqlmodel.Chatter
 }
 
@@ -60,7 +62,7 @@ func New(opts Opts) *Resolver {
 		// userFilesRepo:            opts.UserFilesRepo,
 		sevenTv:               opts.SevenTv,
 		chatListenersChannels: make(map[string]chan *gqlmodel.ChatMessage),
-		streamViewers:         0,
+		streamViewers:         atomic.NewInt32(0),
 		streamChatters:        make(map[string]gqlmodel.Chatter),
 	}
 }
