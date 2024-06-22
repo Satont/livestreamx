@@ -21,9 +21,9 @@ const props = defineProps<Props>()
 const { data: profile } = useProfile()
 
 
-const userColor = computed(() => {
-	return calculateColor(props.message.sender.color, colorMode.value === 'dark')
-})
+function correctColor(color: string) {
+	return calculateColor(color, colorMode.value === 'dark')
+}
 </script>
 
 <template>
@@ -40,7 +40,7 @@ const userColor = computed(() => {
 				<span class="inline-flex align-sub" v-if="showAvatars">
 					<img :src="message.sender.avatarUrl" class="size-4 rounded-full mr-1" />
 				</span>
-				<span class="font-bold" :style="{ color: userColor }">
+				<span class="font-bold" :style="{ color: correctColor(message.sender.color) }">
 					{{ message.sender.displayName }}
 				</span>
 			</span>
@@ -50,7 +50,7 @@ const userColor = computed(() => {
 					<template v-if="segment.type === MessageSegmentType.Text">{{ segment.content }}</template>
 					<span v-else-if="segment.type === MessageSegmentType.Mention && 'user' in segment">
 						<span
-							:style="{ color: segment.user.color }"
+							:style="{ color: correctColor(segment.user.color) }"
 							class="p-0.5 rounded"
 							:class="{ 'bg-zinc-400': segment.user.id === profile?.userProfile.id }"
 						>
