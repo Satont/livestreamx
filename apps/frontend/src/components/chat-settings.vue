@@ -94,7 +94,7 @@ function focusColorPicker() {
 						id="user-profile-color-picker"
 						type="color"
 						:value="profile?.userProfile.color"
-						class="size-6 rounded-full"
+						class="size-6"
 						@change="handleColorChange"
 					/>
 				</Button>
