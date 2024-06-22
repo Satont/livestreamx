@@ -9,13 +9,21 @@ import {
 	TooltipContent,
 	TooltipTrigger
 } from '@/components/ui/tooltip'
+import { calculateColor } from "@/lib/color.js";
+import { computed } from "vue";
+import { colorMode } from "@/composables/color-mode.ts";
 
 type Props = {
   message: ChatMessage_FragmentFragment
 }
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const { data: profile } = useProfile()
+
+
+const userColor = computed(() => {
+	return calculateColor(props.message.sender.color, colorMode.value === 'dark')
+})
 </script>
 
 <template>
@@ -32,7 +40,7 @@ const { data: profile } = useProfile()
 				<span class="inline-flex align-sub" v-if="showAvatars">
 					<img :src="message.sender.avatarUrl" class="size-4 rounded-full mr-1" />
 				</span>
-				<span class="font-bold" :style="{ color: message.sender.color }">
+				<span class="font-bold" :style="{ color: userColor }">
 					{{ message.sender.displayName }}
 				</span>
 			</span>
