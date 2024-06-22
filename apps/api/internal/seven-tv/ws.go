@@ -56,7 +56,7 @@ func (c *SevenTV) openWebSocket() {
 					c.Emotes[emote.Value.ID] = Emote{
 						ID:   emote.Value.ID,
 						Name: emote.Value.Name,
-						URL:  fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, emote.Value.ID),
+						URL:  fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, "1x.webp"),
 					}
 				}
 

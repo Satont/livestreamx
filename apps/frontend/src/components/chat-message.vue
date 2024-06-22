@@ -59,7 +59,7 @@ const { data: profile } = useProfile()
 							width: `${(segment.emote as ChatEmote_FragmentFragment).width}px`,
 							height: `${(segment.emote as ChatEmote_FragmentFragment).height}px`
 						}"
-						class="inline-block relative"
+						class="scale-90 inline-block relative"
 					/>
 					{{ ' ' }}
 				</template>
