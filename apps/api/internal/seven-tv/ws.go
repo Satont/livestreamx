@@ -53,10 +53,13 @@ func (c *SevenTV) openWebSocket() {
 
 				for _, emote := range data.D.Body.Pushed {
 					log.Printf("added: %s", emote.Value.Name)
+
 					c.Emotes[emote.Value.ID] = Emote{
-						ID:   emote.Value.ID,
-						Name: emote.Value.Name,
-						URL:  fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, "1x.webp"),
+						ID:     emote.Value.ID,
+						Name:   emote.Value.Name,
+						URL:    fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, "1x.webp"),
+						Width:  emote.Value.Data.Host.Files[0].Width,
+						Height: emote.Value.Data.Host.Files[0].Height,
 					}
 				}
 
