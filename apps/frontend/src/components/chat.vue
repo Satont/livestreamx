@@ -8,6 +8,7 @@ import { useScroll } from "@vueuse/core";
 import ChatViewers from "@/components/chat-viewers.vue";
 import ChatMessageForm from "@/components/chat-message-form.vue";
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { Pause } from 'lucide-vue-next'
 
 const { messages } = useChat()
 
@@ -47,6 +48,11 @@ watch(messages, async () => {
 					:message="message"
 				/>
 			</div>
+				<div v-if="scrollPaused" class="sticky w-full bottom-0 bg-zinc-700 place-self-center flex items-center justify-center">
+					<Pause />
+					<span class="text-xl">Scroll paused</span>
+				</div>
+
 		</TooltipProvider>
     <ChatMessageForm />
   </div>

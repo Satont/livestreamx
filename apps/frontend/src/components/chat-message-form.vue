@@ -83,6 +83,7 @@ const mentionItems = computed(() => {
 				v-model="text"
 				placeholder="Send message..."
 				@keydown.enter="sendMessage"
+				@paste="console.log"
 			/>
 
 			<template #no-result>
