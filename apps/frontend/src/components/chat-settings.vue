@@ -88,6 +88,7 @@ function focusColorPicker() {
 					variant="ghost"
 					class="w-full flex justify-between"
 					@click="focusColorPicker"
+					:disabled="!profile"
 				>
 					<span>Change color</span>
 					<input
@@ -95,6 +96,7 @@ function focusColorPicker() {
 						type="color"
 						:value="profile?.userProfile.color"
 						class="size-6"
+						:disabled="!profile"
 						@change="handleColorChange"
 					/>
 				</Button>
