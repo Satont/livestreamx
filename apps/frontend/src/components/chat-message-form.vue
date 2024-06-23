@@ -1,24 +1,14 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
 import ChatSettings from "@/components/chat-settings.vue";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useProfile } from "@/api/profile.js";
 import { useChat } from "@/api/chat.ts";
 import { Textarea } from "@/components/ui/textarea";
 import { Smile } from 'lucide-vue-next'
-import { useVirtualList } from '@vueuse/core'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
 	Command,
 	CommandEmpty,
-	CommandGroup,
 	CommandInput,
 	CommandItem,
 	CommandList,
@@ -29,15 +19,17 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover'
 import { UseVirtualList } from '@vueuse/components'
-
-// @ts-ignore
 import Mention from "./mention.vue";
-import { SelectEvent } from "radix-vue/dist/Combobox/ComboboxItem";
 
 const { useSendMessage, emotes, messages } = useChat()
 const { data: profile } = useProfile();
 
 const messageSender = useSendMessage()
+
+const textElement = ref<HTMLTextAreaElement | null>(null)
+onMounted(() => {
+	textElement.value = document.getElementById('chat-messages-form-textarea') as HTMLTextAreaElement
+})
 
 const text = ref('')
 const sendRetries = ref(0)
@@ -104,10 +96,16 @@ function updateCarretPosition(e: KeyboardEvent | MouseEvent) {
 	const target = e.target as HTMLTextAreaElement
 	currentCarretPosition.value = target.selectionStart
 }
-function insertEmoteInText(event: SelectEvent<string>) {
-	const newText = text.value.slice(0, currentCarretPosition.value) + event.detail.value + text.value.slice(currentCarretPosition.value)
+function insertEmoteInText(value: unknown) {
+	if (typeof value !== 'string') return
+
+	const pos = currentCarretPosition.value
+
+	const newText = text.value.slice(0, pos) + value + text.value.slice(pos)
 	text.value = newText
 	emoteMenuOpened.value = false
+
+	textElement.value?.focus()
 }
 </script>
 
@@ -124,6 +122,7 @@ function insertEmoteInText(event: SelectEvent<string>) {
 			:map-insert="mapInsert"
 		>
 			<Textarea
+				id="chat-messages-form-textarea"
 				v-model="text"
 				placeholder="Send message..."
 				@keydown.enter="sendMessage"
@@ -155,7 +154,7 @@ function insertEmoteInText(event: SelectEvent<string>) {
 									<CommandItem
 										class="flex items-center justify-between pr-4"
 										:value="props.data.name"
-										@select="insertEmoteInText"
+										@select="(e) => insertEmoteInText(e.detail.value)"
 									>
 										<span>{{ props.data.name }}</span>
 										<img :src="props.data.url" class="h-8 max-w-12" />

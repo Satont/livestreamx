@@ -33,7 +33,7 @@ function copyText() {
 <template>
 	<div
 		:style="{ fontSize: `${chatFontSize}px` }"
-		class="relative group"
+		class="relative group hover:bg-accent hover:rounded p-0.5"
 	>
 		<p class="leading-7">
 			<span v-if="showTimestamps" class="mr-1 opacity-50">
@@ -53,14 +53,13 @@ function copyText() {
 			<span class="break-words">
 				<template v-for="segment of message.segments">
 					<template v-if="segment.type === MessageSegmentType.Text">{{ segment.content }}</template>
-					<span v-else-if="segment.type === MessageSegmentType.Mention && 'user' in segment">
-						<span
-							:style="{ color: correctColor(segment.user.color) }"
-							class="p-0.5 rounded"
-							:class="{ 'bg-zinc-400': segment.user.id === profile?.userProfile.id }"
-						>
-							@{{ segment.user.displayName }}
-						</span>
+					<span
+						v-else-if="segment.type === MessageSegmentType.Mention && 'user' in segment"
+						:style="{ color: correctColor(segment.user.color) }"
+						class="p-0.5 rounded"
+						:class="{ 'bg-zinc-400': segment.user.id === profile?.userProfile.id }"
+					>
+						@{{ segment.user.displayName }}
 					</span>
 					<a
 						v-else-if="segment.type === MessageSegmentType.Link"
