@@ -80,7 +80,7 @@ const autoplay = !import.meta.env.DEV
 
 <template>
   <iframe
-    :src="`https://streamx.satont.dev/stream/?autoplay=${autoplay.toString()}&muted=false&controls=true`"
+    :src="`https://streamx.satont.dev/stream/?autoplay=${autoplay.toString()}&muted=false&controls=true&playsinline=false`"
     scrolling="no"
     class="w-full h-full"
   />

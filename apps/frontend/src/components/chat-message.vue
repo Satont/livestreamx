@@ -37,7 +37,7 @@ const unwrappedMessages = computed(() =>
   useFragment(ChatMessage_Fragment, messages.value)
 )
 
-const { replyTo } = useChatMessageSend()
+const { replyTo, textElement } = useChatMessageSend()
 
 function correctColor(color: string) {
   return calculateColor(color, colorMode.value === 'dark')
@@ -51,6 +51,7 @@ function copyText() {
 
 function setReplyTo() {
   replyTo.value = unwrappedMessage.id
+  textElement.value?.focus()
 }
 
 defineEmits<{

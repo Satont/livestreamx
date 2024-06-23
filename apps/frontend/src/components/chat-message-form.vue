@@ -29,9 +29,9 @@ const unwrappedMessages = computed(() =>
   useFragment(ChatMessage_Fragment, messages.value)
 )
 
+const { textElement } = useChatMessageSend()
 const { data: profile } = useProfile()
 
-const textElement = ref<HTMLTextAreaElement | null>(null)
 onMounted(() => {
   textElement.value = document.getElementById(
     'chat-messages-form-textarea'

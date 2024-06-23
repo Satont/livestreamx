@@ -7,6 +7,7 @@ export const useChatMessageSend = createGlobalState(() => {
   const text = ref('')
   const sendRetries = ref(0)
   const replyTo = ref<string | null>(null)
+  const textElement = ref<HTMLTextAreaElement | null>(null)
 
   const { useSendMessage } = useChat()
   const messageSender = useSendMessage()
@@ -48,6 +49,7 @@ export const useChatMessageSend = createGlobalState(() => {
   return {
     text,
     replyTo,
+    textElement,
     sendMessage
   }
 })
