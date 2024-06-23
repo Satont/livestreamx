@@ -71,9 +71,12 @@ func (c *Converters) ChatMessageWithUser(
 
 				usersDbCache[text[1:]] = &userGql
 				mentionSegment.User = &userGql
+
+				segments = append(segments, mentionSegment)
 			} else {
 				segments = append(
-					segments, gqlmodel.MessageSegmentText{
+					segments,
+					gqlmodel.MessageSegmentText{
 						Content: text,
 						Type:    gqlmodel.MessageSegmentTypeText,
 					},
