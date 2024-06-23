@@ -29,10 +29,16 @@ watch(
     if (!messagesEl.value || scrollPaused.value) return
 
     await nextTick()
-    y.value = messagesEl.value?.scrollHeight
+    scrollToBottom()
   },
   { immediate: true }
 )
+
+function scrollToBottom() {
+  if (!messagesEl.value) return
+
+  y.value = messagesEl.value.scrollHeight
+}
 </script>
 
 <template>
@@ -64,7 +70,8 @@ watch(
       </div>
       <div
         v-if="scrollPaused"
-        class="sticky w-full bottom-0 bg-zinc-700 place-self-center flex items-center justify-center"
+        class="sticky w-full bottom-0 bg-zinc-700 place-self-center flex items-center justify-center cursor-pointer"
+        @click="scrollToBottom"
       >
         <Pause />
         <span class="text-xl">Scroll paused</span>
