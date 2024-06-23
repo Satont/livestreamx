@@ -139,6 +139,7 @@ function insertEmoteInText(value: unknown) {
 				@keyup="updateCarretPosition"
 				@click="updateCarretPosition"
 				@focus="updateCarretPosition"
+				:disabled="!profile"
 			/>
 
 			<Popover v-model:open="emoteMenuOpened">
