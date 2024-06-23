@@ -5,12 +5,12 @@ import Player from "@/components/player.vue";
 
 <template>
   <div class="w-full min-h-screen flex flex-col h-screen">
-    <div class="flex-1 flex flex-row overflow-y-hidden">
-      <main class="flex-1 overflow-y-auto">
+    <div class="flex flex-col xl:flex-row overflow-y-hidden">
+      <main class="h-[30vh] xl:h-full xl:flex-1 overflow-y-auto w-full">
         <Player />
       </main>
 
-      <aside class="w-96">
+      <aside class="h-[70vh] w-full xl:h-full xl:w-96">
         <Chat />
       </aside>
     </div>
