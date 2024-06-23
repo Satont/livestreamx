@@ -23,7 +23,7 @@ func (c *Auth) TwitchGetLink(ctx *gin.Context) {
 	authLink := twitchClient.GetAuthorizationURL(
 		&helix.AuthorizationURLParams{
 			ResponseType: "code",
-			Scopes:       []string{},
+			Scopes:       []string{"user:read:email"},
 			ForceVerify:  true,
 		},
 	)

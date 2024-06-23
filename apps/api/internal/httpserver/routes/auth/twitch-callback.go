@@ -74,6 +74,7 @@ func (c *Auth) TwitchCallback(ctx *gin.Context) {
 				ProviderUserName:        user.Login,
 				ProviderUserDisplayName: user.DisplayName,
 				ProviderAvatar:          user.ProfileImageURL,
+				Email:                   &user.Email,
 			},
 		)
 		if err != nil {
@@ -96,6 +97,7 @@ func (c *Auth) TwitchCallback(ctx *gin.Context) {
 					ProviderUserName:        user.Login,
 					ProviderUserDisplayName: user.DisplayName,
 					ProviderAvatar:          user.ProfileImageURL,
+					Email:                   &user.Email,
 				},
 			},
 		)

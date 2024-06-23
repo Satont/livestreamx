@@ -11,4 +11,5 @@ type Message struct {
 	SenderID  uuid.UUID
 	Text      string
 	CreatedAt time.Time
+	ReplyTo   *uuid.UUID
 }

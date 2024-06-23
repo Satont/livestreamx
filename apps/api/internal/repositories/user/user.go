@@ -45,6 +45,7 @@ type CreateOptsProvider struct {
 	ProviderUserName        string
 	ProviderUserDisplayName string
 	ProviderAvatar          string
+	Email                   *string
 }
 
 type UpdateOpts struct {
@@ -60,10 +61,12 @@ type AddProviderToUserOpts struct {
 	ProviderUserName        string
 	ProviderUserDisplayName string
 	ProviderUserAvatar      string
+	Email                   *string
 }
 
 type UpdateProviderByUserIdOpts struct {
 	ProviderUserName        string
 	ProviderUserDisplayName string
 	ProviderAvatar          string
+	Email                   *string
 }

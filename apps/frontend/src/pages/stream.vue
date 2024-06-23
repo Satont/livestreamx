@@ -5,7 +5,7 @@ import Player from '@/components/player.vue'
 
 <template>
   <div class="w-full min-h-screen flex flex-col h-screen">
-    <div class="flex flex-col xl:flex-row overflow-y-hidden">
+    <div class="h-full flex flex-col xl:flex-row overflow-y-hidden">
       <main class="h-[30vh] xl:h-full xl:flex-1 overflow-y-auto w-full">
         <Player />
       </main>

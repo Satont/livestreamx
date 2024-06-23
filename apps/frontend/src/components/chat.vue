@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useScroll } from '@vueuse/core'
 import { Pause } from 'lucide-vue-next'
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
 import ChatMessageForm from '@/components/chat-message-form.vue'
@@ -10,9 +10,14 @@ import ChatProfile from '@/components/chat-profile.vue'
 import ChatStreamInfo from '@/components/chat-stream-info.vue'
 import ThemeSwitcher from '@/components/theme-switcher.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useFragment } from '@/gql'
+import { useChatMessageSend } from '@/composables/use-chat-message-send.ts'
+import { FragmentType, useFragment } from '@/gql'
 
 const { messages } = useChat()
+const unwrappedMessages = computed(() =>
+  useFragment(ChatMessage_Fragment, messages.value)
+)
+const { replyTo } = useChatMessageSend()
 
 const messagesEl = ref<HTMLElement | null>(null)
 const { y, arrivedState } = useScroll(messagesEl)
@@ -28,21 +33,29 @@ watch(
   async () => {
     if (!messagesEl.value || scrollPaused.value) return
 
-    await nextTick()
-    scrollToBottom()
+    await scrollToBottom()
   },
   { immediate: true }
 )
 
-function scrollToBottom() {
+async function scrollToBottom() {
+  await nextTick()
   if (!messagesEl.value) return
 
   y.value = messagesEl.value.scrollHeight
 }
+
+const replyingTo = computed(() => {
+  if (!replyTo.value) return null
+
+  return unwrappedMessages.value.find((m) => m.id === replyTo.value) as
+    | FragmentType<typeof ChatMessage_Fragment>
+    | undefined
+})
 </script>
 
 <template>
-  <div class="flex h-full max-h-full flex-col">
+  <div class="relative flex h-full max-h-full flex-col">
     <div
       class="flex flex-row justify-between bg-secondary border-b-2 border-red-400 items-center px-4 min-w-48"
     >
@@ -66,15 +79,30 @@ function scrollToBottom() {
           v-for="message in messages"
           :key="useFragment(ChatMessage_Fragment, message).id"
           :msg="message"
+          @reply="scrollToBottom"
         />
       </div>
       <div
-        v-if="scrollPaused"
-        class="sticky w-full bottom-0 bg-zinc-700 place-self-center flex items-center justify-center cursor-pointer"
+        v-if="scrollPaused || replyingTo"
+        class="sticky w-full bottom-0"
         @click="scrollToBottom"
       >
-        <Pause />
-        <span class="text-xl">Scroll paused</span>
+        <div
+          v-if="scrollPaused"
+          class="bg-zinc-700 place-self-center flex items-center justify-center cursor-pointer"
+        >
+          <Pause />
+          <span class="text-xl">Scroll paused</span>
+        </div>
+        <div
+          v-if="replyingTo"
+          class="bg-zinc-600"
+        >
+          <ChatMessage
+            :msg="replyingTo"
+            is-reply
+          />
+        </div>
       </div>
     </TooltipProvider>
     <ChatMessageForm />

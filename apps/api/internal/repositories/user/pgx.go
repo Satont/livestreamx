@@ -172,6 +172,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			"provider_user_name",
 			"provider_user_display_name",
 			"provider_user_avatar_url",
+			"provider_email",
 		).
 		Values(
 			user.ID,
@@ -180,8 +181,9 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			opts.Provider.ProviderUserName,
 			opts.Provider.ProviderUserDisplayName,
 			opts.Provider.ProviderAvatar,
+			opts.Provider.Email,
 		).
-		Suffix("RETURNING id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url").
+		Suffix("RETURNING id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url, provider_email").
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -402,6 +404,7 @@ func (c *UserPgx) AddProviderToUser(
 			"provider_user_name",
 			"provider_user_display_name",
 			"provider_user_avatar_url",
+			"provider_email",
 		).
 		Values(
 			userID,
@@ -410,6 +413,7 @@ func (c *UserPgx) AddProviderToUser(
 			opts.ProviderUserName,
 			opts.ProviderUserDisplayName,
 			opts.ProviderUserAvatar,
+			opts.Email,
 		).
 		Suffix("RETURNING id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url").
 		ToSql()
@@ -436,6 +440,7 @@ func (c *UserPgx) UpdateProviderByUserID(
 		"provider_user_name":         opts.ProviderUserName,
 		"provider_user_display_name": opts.ProviderUserDisplayName,
 		"provider_user_avatar_url":   opts.ProviderAvatar,
+		"email":                      opts.Email,
 	}
 
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).

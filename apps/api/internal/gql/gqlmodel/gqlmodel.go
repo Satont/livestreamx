@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/google/uuid"
 )
 
 type ChatMessageReaction interface {
@@ -51,6 +52,7 @@ type ChatMessage struct {
 	Sender    *User                 `json:"sender"`
 	CreatedAt time.Time             `json:"createdAt"`
 	Reactions []ChatMessageReaction `json:"reactions"`
+	ReplyTo   *uuid.UUID            `json:"replyTo,omitempty"`
 }
 
 type ChatMessageReactionEmoji struct {
@@ -148,7 +150,8 @@ type Role struct {
 }
 
 type SendMessageInput struct {
-	Text string `json:"text"`
+	Text    string                        `json:"text"`
+	ReplyTo graphql.Omittable[*uuid.UUID] `json:"replyTo,omitempty"`
 }
 
 type Stream struct {

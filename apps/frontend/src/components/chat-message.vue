@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Copy } from 'lucide-vue-next'
+import { Copy, CornerLeftUp, X } from 'lucide-vue-next'
+import { computed } from 'vue'
 
-import { ChatMessage_Fragment } from '@/api/chat.ts'
+import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
 import { useProfile } from '@/api/profile.ts'
 import ChatMessageReactions from '@/components/chat-message-reactions.vue'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import { chatFontSize } from '@/composables/chat-font-size.js'
 import { colorMode } from '@/composables/color-mode.ts'
 import { showAvatars } from '@/composables/show-avatars.js'
 import { showTimestamps } from '@/composables/show-timestamps.js'
+import { useChatMessageSend } from '@/composables/use-chat-message-send.ts'
 import { FragmentType, useFragment } from '@/gql'
 import {
   ChatEmote_FragmentFragment,
@@ -23,11 +25,19 @@ import { calculateColor } from '@/lib/color.js'
 
 type Props = {
   msg: FragmentType<typeof ChatMessage_Fragment>
+  isReply?: boolean
 }
 const props = defineProps<Props>()
 const unwrappedMessage = useFragment(ChatMessage_Fragment, props.msg)
 
 const { data: profile } = useProfile()
+
+const { messages } = useChat()
+const unwrappedMessages = computed(() =>
+  useFragment(ChatMessage_Fragment, messages.value)
+)
+
+const { replyTo } = useChatMessageSend()
 
 function correctColor(color: string) {
   return calculateColor(color, colorMode.value === 'dark')
@@ -38,13 +48,40 @@ function copyText() {
     unwrappedMessage.segments.map((s) => s.content).join(' ')
   )
 }
+
+function setReplyTo() {
+  replyTo.value = unwrappedMessage.id
+}
+
+defineEmits<{
+  reply: []
+}>()
+
+const repliedMessage = computed(() => {
+  if (!unwrappedMessage.replyTo) return null
+
+  return unwrappedMessages.value.find((m) => m.id === unwrappedMessage.replyTo)
+})
 </script>
 
 <template>
   <div
     :style="{ fontSize: `${chatFontSize}px` }"
-    class="relative group hover:bg-accent hover:rounded p-0.5"
+    class="relative group p-0.5 flex flex-col"
+    :class="{
+      'hover:rounded hover:bg-accent': !isReply
+    }"
   >
+    <div
+      v-if="repliedMessage"
+      class="flex max-w-full gap-x-1 overflow-hidden text-ellipsis text-xs leading-3 text-white/40 items-center"
+    >
+      <CornerLeftUp class="size-4 shrink-0" />
+      <span class="truncate">
+        {{ repliedMessage.sender.displayName }}:
+        {{ repliedMessage.segments.map((s) => s.content).join(' ') }}
+      </span>
+    </div>
     <p class="leading-7">
       <span
         v-if="showTimestamps"
@@ -78,9 +115,9 @@ function copyText() {
       <span>: </span>
       <span class="break-words">
         <template v-for="segment of unwrappedMessage.segments">
-          <template v-if="segment.type === MessageSegmentType.Text">{{
-            segment.content
-          }}</template>
+          <template v-if="segment.type === MessageSegmentType.Text">
+            {{ segment.content }}
+          </template>
           <span
             v-else-if="
               segment.type === MessageSegmentType.Mention && 'user' in segment
@@ -144,18 +181,33 @@ function copyText() {
     </p>
 
     <div class="absolute right-0 top-[-10px] group">
-      <div class="flex gap-2">
+      <div
+        class="flex gap-2"
+        v-if="!isReply"
+      >
         <ChatMessageReactions :msg="msg" />
-        <div class="hidden group-hover:block">
+        <div class="hidden group-hover:flex gap-2">
           <Button
             @click="copyText"
             size="xs"
-            variant="secondary"
           >
             <Copy class="size-4" />
           </Button>
+          <Button
+            @click="setReplyTo"
+            size="xs"
+          >
+            <CornerLeftUp class="size-4" />
+          </Button>
         </div>
       </div>
+      <Button
+        v-else
+        size="xs"
+        @click="replyTo = null"
+      >
+        <X class="size-4" />
+      </Button>
     </div>
   </div>
 </template>

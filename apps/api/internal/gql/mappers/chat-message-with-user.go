@@ -118,5 +118,6 @@ func (c *Converters) ChatMessageWithUser(
 		Sender:    &sender,
 		CreatedAt: m.Message.CreatedAt,
 		Reactions: reactions,
+		ReplyTo:   m.Message.ReplyTo,
 	}
 }

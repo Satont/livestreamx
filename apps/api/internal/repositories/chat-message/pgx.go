@@ -33,9 +33,9 @@ func (c *ChatMessagePgx) Create(ctx context.Context, opts CreateChatMessageOpts)
 ) {
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Insert("chat_messages").
-		Columns("id", "sender_id", "text").
-		Values(uuid.New(), opts.SenderID, opts.Text).
-		Suffix("RETURNING id, sender_id, text, created_at").
+		Columns("id", "sender_id", "text", "reply_to").
+		Values(uuid.New(), opts.SenderID, opts.Text, opts.ReplyTo).
+		Suffix("RETURNING id, sender_id, text, created_at, reply_to").
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -47,6 +47,7 @@ func (c *ChatMessagePgx) Create(ctx context.Context, opts CreateChatMessageOpts)
 		&message.SenderID,
 		&message.Text,
 		&message.CreatedAt,
+		&message.ReplyTo,
 	); err != nil {
 		return nil, err
 	}

@@ -21,6 +21,7 @@ type ChatMessage {
     sender: User!
     createdAt: Time!
     reactions: [ChatMessageReaction!]!
+    replyTo: UUID
 }
 
 enum MessageSegmentType {
@@ -37,6 +38,7 @@ interface MessageSegment {
 
 input SendMessageInput {
     text: String!
+    replyTo: UUID
 }
 
 type MessageSegmentText implements MessageSegment {

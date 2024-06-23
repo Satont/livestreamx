@@ -134,7 +134,6 @@ async function handleAddReaction(name: string) {
     <DialogTrigger :disabled="!profile">
       <Button
         size="xs"
-        variant="secondary"
         class="hidden group-hover:block"
         :disabled="!profile"
       >

@@ -35,6 +35,7 @@ var selectFields = []string{
 	"chat_messages.sender_id",
 	"chat_messages.text",
 	"chat_messages.created_at",
+	"chat_messages.reply_to",
 	"users.id",
 	"users.name",
 	"users.display_name",
@@ -89,6 +90,7 @@ func (c *ChatMessageWithUserPgx) FindByID(ctx context.Context, id uuid.UUID) (
 			&row.Message.SenderID,
 			&row.Message.Text,
 			&row.Message.CreatedAt,
+			&row.Message.ReplyTo,
 
 			&row.User.ID,
 			&row.User.Name,
@@ -174,6 +176,7 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 			&message.Message.SenderID,
 			&message.Message.Text,
 			&message.Message.CreatedAt,
+			&message.Message.ReplyTo,
 
 			&message.User.ID,
 			&message.User.Name,

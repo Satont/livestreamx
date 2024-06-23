@@ -20,17 +20,16 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
+import { useChatMessageSend } from '@/composables/use-chat-message-send.ts'
 import { useFragment } from '@/gql'
 import Mention from './mention.vue'
 
-const { useSendMessage, emotes, messages } = useChat()
+const { emotes, messages } = useChat()
 const unwrappedMessages = computed(() =>
   useFragment(ChatMessage_Fragment, messages.value)
 )
 
 const { data: profile } = useProfile()
-
-const messageSender = useSendMessage()
 
 const textElement = ref<HTMLTextAreaElement | null>(null)
 onMounted(() => {
@@ -39,36 +38,7 @@ onMounted(() => {
   ) as HTMLTextAreaElement
 })
 
-const text = ref('')
-const sendRetries = ref(0)
-
-async function sendMessage() {
-  if (!text.value) return
-
-  const msg = text.value.replace(/\s+/g, ' ').trim()
-  if (!msg) return
-  if (msg.length > 700) {
-    return
-  }
-
-  while (sendRetries.value < 5) {
-    try {
-      const res = await messageSender.executeMutation({ opts: { text: msg } })
-      if (res.error) {
-        console.error(res.error)
-        sendRetries.value++
-        await new Promise((r) => setTimeout(r, 200))
-      } else {
-        text.value = ''
-        sendRetries.value = 0
-        break
-      }
-    } catch {
-      sendRetries.value++
-      await new Promise((r) => setTimeout(r, 200))
-    }
-  }
-}
+const { text, sendMessage } = useChatMessageSend()
 
 const emotesForMention = computed(() => {
   return emotes.value.map((e) => ({

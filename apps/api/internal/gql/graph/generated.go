@@ -15,6 +15,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/google/uuid"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -65,6 +66,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Reactions func(childComplexity int) int
+		ReplyTo   func(childComplexity int) int
 		Segments  func(childComplexity int) int
 		Sender    func(childComplexity int) int
 	}
@@ -285,6 +287,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatMessage.Reactions(childComplexity), true
+
+	case "ChatMessage.replyTo":
+		if e.complexity.ChatMessage.ReplyTo == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.ReplyTo(childComplexity), true
 
 	case "ChatMessage.segments":
 		if e.complexity.ChatMessage.Segments == nil {
@@ -920,6 +929,7 @@ type ChatMessage {
     sender: User!
     createdAt: Time!
     reactions: [ChatMessageReaction!]!
+    replyTo: UUID
 }
 
 enum MessageSegmentType {
@@ -936,6 +946,7 @@ interface MessageSegment {
 
 input SendMessageInput {
     text: String!
+    replyTo: UUID
 }
 
 type MessageSegmentText implements MessageSegment {
@@ -1048,7 +1059,8 @@ directive @hasFeature(features: [RoleFeature!]!) on FIELD_DEFINITION
 directive @notBanned on FIELD_DEFINITION
 
 scalar Upload
-scalar Time`, BuiltIn: false},
+scalar Time
+scalar UUID`, BuiltIn: false},
 	{Name: "../../../schema/stream.graphqls", Input: `extend type Query {
     stream: Stream
 }
@@ -1772,6 +1784,47 @@ func (ec *executionContext) fieldContext_ChatMessage_reactions(_ context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("FieldContext.Child cannot be called on type INTERFACE")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessage_replyTo(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_replyTo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReplyTo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_replyTo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UUID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3539,6 +3592,8 @@ func (ec *executionContext) fieldContext_Query_chatMessagesLatest(ctx context.Co
 				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
 			case "reactions":
 				return ec.fieldContext_ChatMessage_reactions(ctx, field)
+			case "replyTo":
+				return ec.fieldContext_ChatMessage_replyTo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
 		},
@@ -4296,6 +4351,8 @@ func (ec *executionContext) fieldContext_Subscription_chatMessages(_ context.Con
 				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
 			case "reactions":
 				return ec.fieldContext_ChatMessage_reactions(ctx, field)
+			case "replyTo":
+				return ec.fieldContext_ChatMessage_replyTo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
 		},
@@ -6946,7 +7003,7 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"text"}
+	fieldsInOrder := [...]string{"text", "replyTo"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6960,6 +7017,13 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 				return it, err
 			}
 			it.Text = data
+		case "replyTo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replyTo"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReplyTo = graphql.OmittableOf(data)
 		}
 	}
 
@@ -7205,6 +7269,8 @@ func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "replyTo":
+			out.Values[i] = ec._ChatMessage_replyTo(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9419,6 +9485,22 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 		return graphql.Null
 	}
 	res := graphql.MarshalTime(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUUID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUUID(*v)
 	return res
 }
 

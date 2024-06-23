@@ -75,12 +75,12 @@
 //   { immediate: true }
 // )
 //
-// const autoplay = !import.meta.env.DEV
+const autoplay = !import.meta.env.DEV
 </script>
 
 <template>
   <iframe
-    src="https://streamx.satont.dev/stream/?autoplay=true&muted=false&controls=true"
+    :src="`https://streamx.satont.dev/stream/?autoplay=${autoplay.toString()}&muted=false&controls=true`"
     scrolling="no"
     class="w-full h-full"
   />

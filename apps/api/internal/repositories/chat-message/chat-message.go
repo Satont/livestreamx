@@ -14,6 +14,7 @@ type Repository interface {
 type CreateChatMessageOpts struct {
 	SenderID uuid.UUID
 	Text     string
+	ReplyTo  *uuid.UUID
 }
 
 type FindManyOpts struct {

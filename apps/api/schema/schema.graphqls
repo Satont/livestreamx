@@ -13,3 +13,4 @@ directive @notBanned on FIELD_DEFINITION
 
 scalar Upload
 scalar Time
+scalar UUID

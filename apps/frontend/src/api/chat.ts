@@ -37,6 +37,7 @@ export const ChatMessage_Fragment = graphql(`
     reactions {
       ...ChatReaction_Fragment
     }
+    replyTo
   }
 `)
 
