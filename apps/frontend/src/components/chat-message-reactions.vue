@@ -100,7 +100,13 @@ async function handleAddReaction(name: string) {
       }"
       variant="secondary"
       @click="handleAddReaction(reaction.reaction)"
-      :disabled="reactions.some((r) => r.user.id === profile?.userProfile.id)"
+      :disabled="
+        reactions.some(
+          (r) =>
+            r.user.id === profile?.userProfile.id &&
+            r.reaction === reaction.reaction
+        )
+      "
     >
       <span
         v-if="reaction.type === ChatMessageReactionType.Emoji"
