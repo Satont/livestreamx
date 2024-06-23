@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"github.com/satont/stream/apps/api/internal/gql/mappers"
+	mtx_api "github.com/satont/stream/apps/api/internal/mtx-api"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 	"go.uber.org/atomic"
 
@@ -32,6 +33,7 @@ type Resolver struct {
 	s3             *minio.Client
 	config         config.Config
 	sevenTv        *seven_tv.SevenTV
+	mtxApi         *mtx_api.MtxApi
 
 	chatListenersChannels     map[string]chan *gqlmodel.ChatMessage
 	reactionListenersChannels map[string]chan gqlmodel.ChatMessageReaction
@@ -53,6 +55,7 @@ type Opts struct {
 	// S3             *minio.Client
 	Config  config.Config
 	SevenTv *seven_tv.SevenTV
+	MtxApi  *mtx_api.MtxApi
 }
 
 func New(opts Opts) *Resolver {
@@ -64,7 +67,8 @@ func New(opts Opts) *Resolver {
 
 		sessionStorage: opts.SessionStorage,
 		mapper:         opts.Converter,
-		config:         config.Config{},
+		config:         opts.Config,
+		mtxApi:         opts.MtxApi,
 		// userFilesRepo:            opts.UserFilesRepo,
 		sevenTv:                   opts.SevenTv,
 		chatListenersChannels:     make(map[string]chan *gqlmodel.ChatMessage),

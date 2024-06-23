@@ -144,8 +144,9 @@ type ComplexityRoot struct {
 	}
 
 	Stream struct {
-		Chatters func(childComplexity int) int
-		Viewers  func(childComplexity int) int
+		Chatters  func(childComplexity int) int
+		StartedAt func(childComplexity int) int
+		Viewers   func(childComplexity int) int
 	}
 
 	Subscription struct {
@@ -623,6 +624,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stream.Chatters(childComplexity), true
 
+	case "Stream.startedAt":
+		if e.complexity.Stream.StartedAt == nil {
+			break
+		}
+
+		return e.complexity.Stream.StartedAt(childComplexity), true
+
 	case "Stream.viewers":
 		if e.complexity.Stream.Viewers == nil {
 			break
@@ -1052,6 +1060,7 @@ extend type Subscription {
 type Stream {
     viewers: Int!
     chatters: [Chatter!]!
+    startedAt: Time
 }
 
 type Chatter {
@@ -3696,6 +3705,8 @@ func (ec *executionContext) fieldContext_Query_stream(_ context.Context, field g
 				return ec.fieldContext_Stream_viewers(ctx, field)
 			case "chatters":
 				return ec.fieldContext_Stream_chatters(ctx, field)
+			case "startedAt":
+				return ec.fieldContext_Stream_startedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
 		},
@@ -4179,6 +4190,47 @@ func (ec *executionContext) fieldContext_Stream_chatters(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Stream_startedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Stream) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stream_startedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stream_startedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stream",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_chatMessages(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	fc, err := ec.fieldContext_Subscription_chatMessages(ctx, field)
 	if err != nil {
@@ -4419,6 +4471,8 @@ func (ec *executionContext) fieldContext_Subscription_streamInfo(_ context.Conte
 				return ec.fieldContext_Stream_viewers(ctx, field)
 			case "chatters":
 				return ec.fieldContext_Stream_chatters(ctx, field)
+			case "startedAt":
+				return ec.fieldContext_Stream_startedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
 		},
@@ -7871,6 +7925,8 @@ func (ec *executionContext) _Stream(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "startedAt":
+			out.Values[i] = ec._Stream_startedAt(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9331,6 +9387,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalTime(*v)
 	return res
 }
 

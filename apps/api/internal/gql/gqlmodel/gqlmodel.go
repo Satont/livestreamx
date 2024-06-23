@@ -152,8 +152,9 @@ type SendMessageInput struct {
 }
 
 type Stream struct {
-	Viewers  int       `json:"viewers"`
-	Chatters []Chatter `json:"chatters"`
+	Viewers   int        `json:"viewers"`
+	Chatters  []Chatter  `json:"chatters"`
+	StartedAt *time.Time `json:"startedAt,omitempty"`
 }
 
 type Subscription struct {

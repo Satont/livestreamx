@@ -7,7 +7,7 @@ import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
 import ChatMessageForm from '@/components/chat-message-form.vue'
 import ChatMessage from '@/components/chat-message.vue'
 import ChatProfile from '@/components/chat-profile.vue'
-import ChatViewers from '@/components/chat-viewers.vue'
+import ChatStreamInfo from '@/components/chat-stream-info.vue'
 import ThemeSwitcher from '@/components/theme-switcher.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useFragment } from '@/gql'
@@ -41,7 +41,7 @@ watch(
       class="flex flex-row justify-between bg-secondary border-b-2 border-red-400 items-center px-4 min-w-48"
     >
       <div class="flex items-center">
-        <ChatViewers />
+        <ChatStreamInfo />
       </div>
       <div class="flex items-center">
         <ThemeSwitcher />

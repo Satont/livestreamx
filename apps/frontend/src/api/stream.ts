@@ -20,6 +20,7 @@ export const useStream = createGlobalState(() => {
               }
             }
             viewers
+            startedAt
           }
         }
       `),

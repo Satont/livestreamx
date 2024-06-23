@@ -9,6 +9,7 @@ extend type Subscription {
 type Stream {
     viewers: Int!
     chatters: [Chatter!]!
+    startedAt: Time
 }
 
 type Chatter {

@@ -80,10 +80,21 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 					},
 				)
 
-				chann <- &gqlmodel.Stream{
+				mtxInfo, err := r.mtxApi.GetStreamInfo()
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				streamInfo := &gqlmodel.Stream{
 					Viewers:  int(r.streamViewers.Load()),
 					Chatters: chatters,
 				}
+
+				if mtxInfo != nil {
+					streamInfo.StartedAt = mtxInfo.ReadyTime
+				}
+
+				chann <- streamInfo
 				time.Sleep(1 * time.Second)
 			}
 		}

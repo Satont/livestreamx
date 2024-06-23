@@ -19,6 +19,7 @@ import (
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	"github.com/satont/stream/apps/api/internal/httpserver/routes/auth"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
+	mtx_api "github.com/satont/stream/apps/api/internal/mtx-api"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
@@ -52,6 +53,7 @@ var App = fx.Options(
 
 	fx.Provide(
 		// s3.New,
+		mtx_api.New,
 		seven_tv.New,
 		mappers.New,
 		session_storage.New,

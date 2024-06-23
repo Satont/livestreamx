@@ -9,15 +9,16 @@ import (
 )
 
 type Config struct {
-	AppEnv            string `envconfig:"APP_ENV" default:"development"`
-	RedisURL          string `envconfig:"REDIS_URL"`
-	PostgresURL       string `envconfig:"POSTGRES_URL"`
-	TwitchClientID    string `envconfig:"TWITCH_CLIENT_ID"`
-	TwitchSecret      string `envconfig:"TWITCH_SECRET"`
-	TwitchRedirectURI string `envconfig:"TWITCH_REDIRECT_URI"`
-	ApiPort           int    `required:"false"  envconfig:"API_PORT" default:"1337"`
-	ApiSessionSecret  string `envconfig:"API_SESSION_SECRET"`
-	SevenTVEmoteSetID string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`
+	AppEnv             string `envconfig:"APP_ENV" default:"development"`
+	RedisURL           string `envconfig:"REDIS_URL"`
+	PostgresURL        string `envconfig:"POSTGRES_URL"`
+	TwitchClientID     string `envconfig:"TWITCH_CLIENT_ID"`
+	TwitchSecret       string `envconfig:"TWITCH_SECRET"`
+	TwitchRedirectURI  string `envconfig:"TWITCH_REDIRECT_URI"`
+	ApiPort            int    `required:"false"  envconfig:"API_PORT" default:"1337"`
+	ApiSessionSecret   string `envconfig:"API_SESSION_SECRET"`
+	SevenTVEmoteSetID  string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`
+	StreamPathInfoAddr string `envconfig:"STREAM_PATH_INFO_ADDR"`
 
 	S3Host        string `envconfig:"S3_HOST"`
 	S3AccessToken string `envconfig:"S3_ACCESS_TOKEN"`
