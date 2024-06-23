@@ -9,14 +9,24 @@ api: yes
 #  - user: satont
 #    pass: q
 #    path:
+#      - mystream
+#      - proxy
 #    permissions:
-#      # Available actions are: publish, read, playback, api, metrics, pprof.
 #      - action: publish
 #      - action: read
 #      - action: playback
 #      - action: api
 #      - action: metrics
 #      - action: pprof
+#  - user: any
+#    permissions:
+#      - action: publish
+#      - action: read
+#      - action: playback
+#      - action: api
+#      - action: metrics
+#      - action: pprof
+#    ips: [127.0.0.1]
 
 
 paths:
