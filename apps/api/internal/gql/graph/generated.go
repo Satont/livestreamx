@@ -1098,6 +1098,8 @@ enum RoleFeature {
 
 input UpdateUserProfileInput {
     color: String
+    name: String
+    displayName: String
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -6971,7 +6973,7 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"color"}
+	fieldsInOrder := [...]string{"color", "name", "displayName"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6985,6 +6987,20 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 				return it, err
 			}
 			it.Color = graphql.OmittableOf(data)
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = graphql.OmittableOf(data)
+		case "displayName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("displayName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisplayName = graphql.OmittableOf(data)
 		}
 	}
 

@@ -185,7 +185,9 @@ func (SystemMessageEmoteUpdated) IsSystemMessage()                {}
 func (this SystemMessageEmoteUpdated) GetType() SystemMessageType { return this.Type }
 
 type UpdateUserProfileInput struct {
-	Color graphql.Omittable[*string] `json:"color,omitempty"`
+	Color       graphql.Omittable[*string] `json:"color,omitempty"`
+	Name        graphql.Omittable[*string] `json:"name,omitempty"`
+	DisplayName graphql.Omittable[*string] `json:"displayName,omitempty"`
 }
 
 type User struct {

@@ -3,6 +3,7 @@ import { Settings } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import { useProfile, useProfileUpdate } from '@/api/profile.ts'
+import ChatSettingsUserName from '@/components/chat-settings-user-name.vue'
 import { Button } from '@/components/ui/button'
 import {
   NumberField,
@@ -106,6 +107,7 @@ function focusColorPicker() {
             @change="handleColorChange"
           />
         </Button>
+        <ChatSettingsUserName />
         <Separator class="my-4" />
         <div class="flex flex-col gap-2 px-3">
           <div class="flex justify-between items-center">

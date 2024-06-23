@@ -6,39 +6,75 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
+	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
 )
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
 func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error) {
-	userID, err := r.sessionStorage.GetUserID(ctx)
-	if err != nil {
-		return nil, err
+	currentUser := middlewares.GetUserFromContext(ctx)
+	if currentUser == nil {
+		return nil, fmt.Errorf("user not found")
 	}
 
-	user, err := r.userRepo.Update(
+	opts := user.UpdateOpts{}
+	if input.Color.IsSet() {
+		opts.Color = input.Color.Value()
+	}
+
+	if input.Name.IsSet() && input.DisplayName.IsSet() {
+		if strings.ToLower(*input.Name.Value()) != strings.ToLower(*input.DisplayName.Value()) {
+			return nil, fmt.Errorf("name and display does not match")
+		}
+
+		if !userNameRegexp.MatchString(*input.Name.Value()) {
+			return nil, fmt.Errorf("name does not match pattern: %s", userNameRegexp.String())
+		}
+
+		if utf8.RuneCountInString(*input.Name.Value()) < 3 || utf8.RuneCountInString(*input.Name.Value()) > 25 {
+			return nil, fmt.Errorf("name length must be between 3 and 25 characters")
+		}
+
+		if utf8.RuneCountInString(*input.DisplayName.Value()) < 3 || utf8.RuneCountInString(*input.DisplayName.Value()) > 25 {
+			return nil, fmt.Errorf("display name length must be between 3 and 25 characters")
+		}
+
+		if !userDisplayNameRegexp.MatchString(*input.DisplayName.Value()) {
+			return nil, fmt.Errorf(
+				"display name does not match pattern: %s",
+				userDisplayNameRegexp.String(),
+			)
+		}
+
+		opts.Name = lo.ToPtr(strings.ToLower(*input.Name.Value()))
+		opts.DisplayName = input.DisplayName.Value()
+	}
+
+	newUser, err := r.userRepo.Update(
 		ctx,
-		uuid.MustParse(userID),
-		user.UpdateOpts{
-			Color: input.Color.Value(),
-		},
+		currentUser.ID,
+		opts,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return &gqlmodel.User{
-		ID:          user.ID.String(),
-		Name:        user.Name,
-		DisplayName: user.DisplayName,
-		Color:       user.Color,
+		ID:          newUser.ID.String(),
+		Name:        newUser.Name,
+		DisplayName: newUser.DisplayName,
+		Color:       newUser.Color,
 		Roles:       nil,
-		IsBanned:    user.Banned,
-		CreatedAt:   user.CreatedAt,
-		AvatarURL:   user.AvatarUrl,
+		IsBanned:    newUser.Banned,
+		CreatedAt:   newUser.CreatedAt,
+		AvatarURL:   newUser.AvatarUrl,
 	}, nil
 }
 

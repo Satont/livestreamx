@@ -30,4 +30,6 @@ enum RoleFeature {
 
 input UpdateUserProfileInput {
     color: String
+    name: String
+    displayName: String
 }
