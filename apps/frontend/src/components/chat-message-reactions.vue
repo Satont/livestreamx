@@ -94,7 +94,7 @@ async function handleAddReaction(name: string) {
       v-for="(reaction, index) of mappedReactions"
       :key="index"
       size="xs"
-      class="relative rounded-full h-6"
+      class="relative rounded-full h-6 disabled:opacity-100"
       :class="{
         'p-0': reaction.type === ChatMessageReactionType.Emote
       }"
