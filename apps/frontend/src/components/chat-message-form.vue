@@ -44,14 +44,20 @@ async function sendMessage() {
 	}
 
 	while (sendRetries.value < 5) {
-		const res = await messageSender.executeMutation({ opts: { text: msg }})
-		if (res.error) {
-			console.error(res.error)
+		try {
+			const res = await messageSender.executeMutation({ opts: { text: msg }})
+			if (res.error) {
+				console.error(res.error)
+				sendRetries.value++
+				await new Promise(r => setTimeout(r, 200))
+			} else {
+				text.value = ''
+				sendRetries.value = 0
+				break;
+			}
+		} catch {
 			sendRetries.value++
-		} else {
-			text.value = ''
-			sendRetries.value = 0
-			break;
+			await new Promise(r => setTimeout(r, 200))
 		}
 	}
 }
