@@ -50,6 +50,7 @@ func New(opts Opts) *Gql {
 					return true
 				},
 			},
+			MissingPongOk: false,
 		},
 	)
 

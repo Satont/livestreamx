@@ -24,13 +24,7 @@ func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
 
 // StreamInfo is the resolver for the streamInfo field.
 func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error) {
-	r.streamViewers.Inc()
-
 	userID, userIdErr := r.sessionStorage.GetUserID(ctx)
-	if userIdErr != nil {
-		return nil, userIdErr
-	}
-
 	if userIdErr == nil {
 		user, err := r.userRepo.FindByID(ctx, uuid.MustParse(userID))
 		if err != nil {
@@ -54,6 +48,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 		chattersLock.Unlock()
 	}
 
+	r.streamViewers.Inc()
 	chann := make(chan *gqlmodel.Stream)
 
 	go func() {

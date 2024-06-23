@@ -32,46 +32,45 @@ const uptime = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-4">
-    <Popover
-      side="left"
-      prioritizePosition
-    >
-      <PopoverTrigger as-child>
+  <Popover
+    side="left"
+    prioritizePosition
+  >
+    <PopoverTrigger as-child>
+      <div class="flex flex-col justify-start gap-0.5 cursor-pointer">
         <Button
           size="xs"
           variant="ghost"
-          class="flex items-center gap-2"
+          class="flex justify-start items-center gap-2"
         >
           <Users />
           <span>
             {{ streamState?.streamInfo?.viewers }}
           </span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent v-if="streamState?.streamInfo?.chatters">
-        <ScrollArea class="h-[200px] rounded-md flex flex-col">
-          <a
-            v-for="chatter of streamState.streamInfo.chatters"
-            :key="chatter.user.id"
-            class="flex items-center gap-2"
-            :href="`https://twitch.tv/${chatter.user.name}`"
-            target="_blank"
-          >
-            <img
-              :src="chatter.user.avatarUrl"
-              class="size-7 rounded-full"
-            />
-            <span class="font-bold">{{ chatter.user.displayName }}</span>
-          </a>
-        </ScrollArea>
-      </PopoverContent>
-    </Popover>
-
-    <span class="ml-2">
-      {{ uptime }}
-    </span>
-  </div>
+        <span class="ml-2">
+          {{ uptime }}
+        </span>
+      </div>
+    </PopoverTrigger>
+    <PopoverContent v-if="streamState?.streamInfo?.chatters">
+      <ScrollArea class="h-[200px] rounded-md flex flex-col">
+        <a
+          v-for="chatter of streamState.streamInfo.chatters"
+          :key="chatter.user.id"
+          class="flex items-center gap-2"
+          :href="`https://twitch.tv/${chatter.user.name}`"
+          target="_blank"
+        >
+          <img
+            :src="chatter.user.avatarUrl"
+            class="size-7 rounded-full"
+          />
+          <span class="font-bold">{{ chatter.user.displayName }}</span>
+        </a>
+      </ScrollArea>
+    </PopoverContent>
+  </Popover>
 </template>
 
 <style scoped></style>
