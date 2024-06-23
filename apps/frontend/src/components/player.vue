@@ -80,7 +80,7 @@
 
 <template>
   <iframe
-    src="https:/streamx.satont.dev/stream/?autoplay=true&muted=false&controls=true"
+    src="https://streamx.satont.dev/stream/?autoplay=true&muted=false&controls=true"
     scrolling="no"
     class="w-full h-full"
   />
