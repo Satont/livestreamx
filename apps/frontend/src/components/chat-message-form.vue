@@ -93,6 +93,8 @@ const emotesMenuEmotes = computed(() => {
 const currentCarretPosition = ref(0)
 function updateCarretPosition(e: KeyboardEvent | MouseEvent) {
 	if (!e.target) return
+	if (e.type === 'focus') return;
+
 	const target = e.target as HTMLTextAreaElement
 	currentCarretPosition.value = target.selectionStart
 }
@@ -101,11 +103,11 @@ function insertEmoteInText(value: unknown) {
 
 	const pos = currentCarretPosition.value
 
-	const newText = text.value.slice(0, pos) + value + text.value.slice(pos)
+	const newText = text.value.slice(0, pos) + value + ' ' + text.value.slice(pos)
 	text.value = newText
 	emoteMenuOpened.value = false
-
 	textElement.value?.focus()
+	currentCarretPosition.value = pos + value.length + 1
 }
 </script>
 
@@ -130,6 +132,7 @@ function insertEmoteInText(value: unknown) {
 				class="pr-12"
 				@keyup="updateCarretPosition"
 				@click="updateCarretPosition"
+				@focus="updateCarretPosition"
 			/>
 
 			<Popover v-model:open="emoteMenuOpened">
