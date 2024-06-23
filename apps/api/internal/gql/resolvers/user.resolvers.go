@@ -18,10 +18,7 @@ import (
 )
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
-func (r *mutationResolver) UpdateUserProfile(
-	ctx context.Context,
-	input gqlmodel.UpdateUserProfileInput,
-) (*gqlmodel.User, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error) {
 	currentUser := middlewares.GetUserFromContext(ctx)
 	if currentUser == nil {
 		return nil, fmt.Errorf("user not found")

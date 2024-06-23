@@ -35,7 +35,11 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 	text = strings.ReplaceAll(text, "\n", "")
 	text = strings.ReplaceAll(text, "\r", "")
 
-	if utf8.RuneCountInString(text) > 500 {
+	if utf8.RuneCountInString(text) > 700 {
+		return false, nil
+	}
+
+	if badSymbolsRegexp.MatchString(text) {
 		return false, nil
 	}
 
