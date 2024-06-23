@@ -6,12 +6,13 @@ extend type Query {
 extend type Mutation {
     sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
     attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
+    addReaction(messageId: String!, content: String!): Boolean! @isAuthenticated @notBanned
 }
-
 
 extend type Subscription {
     chatMessages: ChatMessage!
     systemMessages: SystemMessage!
+    reactionAdd: ChatMessageReaction!
 }
 
 type ChatMessage {
@@ -19,6 +20,7 @@ type ChatMessage {
     segments: [MessageSegment!]!
     sender: User!
     createdAt: Time!
+    reactions: [ChatMessageReaction!]!
 }
 
 enum MessageSegmentType {
@@ -101,3 +103,32 @@ type SystemMessageEmoteUpdated implements SystemMessage {
     emote: Emote!
 }
 
+enum ChatMessageReactionType {
+    EMOJI
+    EMOTE
+}
+
+interface ChatMessageReaction {
+    id: String!
+    type: ChatMessageReactionType!
+    user: User!
+    reaction: String!
+    messageId: String!
+}
+
+type ChatMessageReactionEmoji implements ChatMessageReaction {
+    id: String!
+    type: ChatMessageReactionType!
+    user: User!
+    reaction: String!
+    messageId: String!
+}
+
+type ChatMessageReactionEmote implements ChatMessageReaction {
+    id: String!
+    type: ChatMessageReactionType!
+    user: User!
+    reaction: String!
+    emote: Emote!
+    messageId: String!
+}

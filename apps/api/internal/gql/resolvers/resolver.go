@@ -1,11 +1,12 @@
 package resolvers
 
 import (
+	"github.com/satont/stream/apps/api/internal/gql/mappers"
+	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 	"go.uber.org/atomic"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/satont/stream/apps/api/internal/config"
-	"github.com/satont/stream/apps/api/internal/gql/converters"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
@@ -23,17 +24,19 @@ type Resolver struct {
 	chatMessageRepo          chat_message.Repository
 	userRepo                 user.Repository
 	chatMessagesWithUserRepo chat_messages_with_user.Repository
+	messageReactionRepo      message_reaction.Repository
 	// userFilesRepo            user_file.Repository
 
 	sessionStorage *session_storage.SessionStorage
-	converter      *converters.Converters
+	mapper         *mappers.Converters
 	s3             *minio.Client
 	config         config.Config
 	sevenTv        *seven_tv.SevenTV
 
-	chatListenersChannels map[string]chan *gqlmodel.ChatMessage
-	streamViewers         *atomic.Int32
-	streamChatters        map[string]gqlmodel.Chatter
+	chatListenersChannels     map[string]chan *gqlmodel.ChatMessage
+	reactionListenersChannels map[string]chan gqlmodel.ChatMessageReaction
+	streamViewers             *atomic.Int32
+	streamChatters            map[string]gqlmodel.Chatter
 }
 
 type Opts struct {
@@ -42,10 +45,11 @@ type Opts struct {
 	ChatMessageRepo          chat_message.Repository
 	UserRepo                 user.Repository
 	ChatMessagesWithUserRepo chat_messages_with_user.Repository
+	MessageReactionRepo      message_reaction.Repository
 	// UserFilesRepo            user_file.Repository
 
 	SessionStorage *session_storage.SessionStorage
-	Converter      *converters.Converters
+	Converter      *mappers.Converters
 	// S3             *minio.Client
 	Config  config.Config
 	SevenTv *seven_tv.SevenTV
@@ -56,13 +60,16 @@ func New(opts Opts) *Resolver {
 		chatMessageRepo:          opts.ChatMessageRepo,
 		userRepo:                 opts.UserRepo,
 		chatMessagesWithUserRepo: opts.ChatMessagesWithUserRepo,
-		sessionStorage:           opts.SessionStorage,
-		converter:                opts.Converter,
-		config:                   config.Config{},
+		messageReactionRepo:      opts.MessageReactionRepo,
+
+		sessionStorage: opts.SessionStorage,
+		mapper:         opts.Converter,
+		config:         config.Config{},
 		// userFilesRepo:            opts.UserFilesRepo,
-		sevenTv:               opts.SevenTv,
-		chatListenersChannels: make(map[string]chan *gqlmodel.ChatMessage),
-		streamViewers:         atomic.NewInt32(0),
-		streamChatters:        make(map[string]gqlmodel.Chatter),
+		sevenTv:                   opts.SevenTv,
+		chatListenersChannels:     make(map[string]chan *gqlmodel.ChatMessage),
+		reactionListenersChannels: make(map[string]chan gqlmodel.ChatMessageReaction),
+		streamViewers:             atomic.NewInt32(0),
+		streamChatters:            make(map[string]gqlmodel.Chatter),
 	}
 }

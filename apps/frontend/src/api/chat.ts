@@ -1,9 +1,10 @@
 import { createGlobalState } from "@vueuse/core";
 import { ref } from "vue";
 import { useMutation, useQuery, useSubscription } from "@urql/vue";
-import { graphql, useFragment } from "@/gql";
+import { FragmentType, graphql } from "@/gql";
 import { watch } from "vue";
-import { ChatMessage_FragmentFragment , ChatEmote_FragmentFragment } from "@/gql/graphql.js";
+import { ChatEmote_FragmentFragment } from "@/gql/graphql.js";
+import { useFragment } from "@/gql/fragment-masking.ts";
 
 export const ChatMessage_Fragment = graphql(`
     fragment ChatMessage_Fragment on ChatMessage {
@@ -33,6 +34,9 @@ export const ChatMessage_Fragment = graphql(`
             displayName
         }
         createdAt
+				reactions {
+						...ChatReaction_Fragment
+        }
     }
 `)
 
@@ -46,8 +50,28 @@ export const ChatEmote_Fragment = graphql(`
 		}
 `)
 
+export const ChatReaction_Fragment = graphql(`
+		fragment ChatReaction_Fragment on ChatMessageReaction {
+				type
+				user {
+						id
+						displayName
+						color
+						avatarUrl
+				}
+				reaction
+				messageId
+				...on ChatMessageReactionEmote {
+						emote {
+								name
+								url
+						}
+				}
+		}
+`)
+
 export const useChat = createGlobalState(() => {
-	const messages = ref<ChatMessage_FragmentFragment[]>([])
+	const messages = ref<FragmentType<typeof ChatMessage_Fragment>[]>([])
 
 	const sub = useSubscription({
 		query: graphql(`
@@ -63,8 +87,7 @@ export const useChat = createGlobalState(() => {
 	watch(sub.data, (data) => {
 		if (!data) return
 
-		const fragment = useFragment(ChatMessage_Fragment, data.chatMessages)
-		messages.value = [...messages.value, fragment]
+		messages.value = [...messages.value, data.chatMessages]
 	})
 
 	const initialMessages = useQuery({
@@ -81,8 +104,7 @@ export const useChat = createGlobalState(() => {
 	watch(initialMessages.data, (data) => {
 		if (!data) return
 
-		const fragments = useFragment(ChatMessage_Fragment, data.chatMessagesLatest)
-		messages.value = fragments
+		messages.value = data.chatMessagesLatest
 	})
 
 	const useSendMessage = () => useMutation(graphql(`
@@ -111,9 +133,37 @@ export const useChat = createGlobalState(() => {
 		emotes.value = fragments
 	})
 
+	const useReactionAddMutation = () => useMutation(graphql(`
+			mutation AddReaction($messageId: String!, $content: String!) {
+				addReaction(messageId: $messageId, content: $content)
+			}
+	`))
+
+	const newReactionSub = useSubscription({
+		query: graphql(`
+			subscription NewMessageReaction {
+					reactionAdd {
+							...ChatReaction_Fragment
+          }
+			}
+		`),
+		variables: {}
+	})
+
+	watch(newReactionSub.data, (data) => {
+		if (!data) return
+
+		const fragment = useFragment(ChatReaction_Fragment, data.reactionAdd)
+		const message = messages.value.find((m) => useFragment(ChatMessage_Fragment, m).id === fragment.messageId)
+		if (!message) return
+
+		useFragment(ChatMessage_Fragment, message).reactions.push(fragment)
+	})
+
 	return {
 		messages,
 		useSendMessage,
 		emotes,
+		useReactionAddMutation,
 	}
 })

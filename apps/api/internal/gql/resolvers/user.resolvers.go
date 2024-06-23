@@ -13,10 +13,7 @@ import (
 )
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
-func (r *mutationResolver) UpdateUserProfile(
-	ctx context.Context,
-	input gqlmodel.UpdateUserProfileInput,
-) (*gqlmodel.User, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error) {
 	userID, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return nil, err

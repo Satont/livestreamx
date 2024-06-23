@@ -64,8 +64,26 @@ type ComplexityRoot struct {
 	ChatMessage struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
+		Reactions func(childComplexity int) int
 		Segments  func(childComplexity int) int
 		Sender    func(childComplexity int) int
+	}
+
+	ChatMessageReactionEmoji struct {
+		ID        func(childComplexity int) int
+		MessageID func(childComplexity int) int
+		Reaction  func(childComplexity int) int
+		Type      func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
+
+	ChatMessageReactionEmote struct {
+		Emote     func(childComplexity int) int
+		ID        func(childComplexity int) int
+		MessageID func(childComplexity int) int
+		Reaction  func(childComplexity int) int
+		Type      func(childComplexity int) int
+		User      func(childComplexity int) int
 	}
 
 	Chatter struct {
@@ -103,6 +121,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AddReaction       func(childComplexity int, messageID string, content string) int
 		AttachFile        func(childComplexity int, file graphql.Upload) int
 		ChatSwitchUserBan func(childComplexity int, input gqlmodel.BanUser) int
 		SendMessage       func(childComplexity int, input gqlmodel.SendMessageInput) int
@@ -131,6 +150,7 @@ type ComplexityRoot struct {
 
 	Subscription struct {
 		ChatMessages   func(childComplexity int) int
+		ReactionAdd    func(childComplexity int) int
 		StreamInfo     func(childComplexity int) int
 		SystemMessages func(childComplexity int) int
 	}
@@ -166,6 +186,7 @@ type MutationResolver interface {
 	ChatSwitchUserBan(ctx context.Context, input gqlmodel.BanUser) (bool, error)
 	SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error)
 	AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error)
+	AddReaction(ctx context.Context, messageID string, content string) (bool, error)
 	UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error)
 }
 type QueryResolver interface {
@@ -178,6 +199,7 @@ type QueryResolver interface {
 type SubscriptionResolver interface {
 	ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error)
 	SystemMessages(ctx context.Context) (<-chan gqlmodel.SystemMessage, error)
+	ReactionAdd(ctx context.Context) (<-chan gqlmodel.ChatMessageReaction, error)
 	StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error)
 }
 
@@ -256,6 +278,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatMessage.ID(childComplexity), true
 
+	case "ChatMessage.reactions":
+		if e.complexity.ChatMessage.Reactions == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.Reactions(childComplexity), true
+
 	case "ChatMessage.segments":
 		if e.complexity.ChatMessage.Segments == nil {
 			break
@@ -269,6 +298,83 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatMessage.Sender(childComplexity), true
+
+	case "ChatMessageReactionEmoji.id":
+		if e.complexity.ChatMessageReactionEmoji.ID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmoji.ID(childComplexity), true
+
+	case "ChatMessageReactionEmoji.messageId":
+		if e.complexity.ChatMessageReactionEmoji.MessageID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmoji.MessageID(childComplexity), true
+
+	case "ChatMessageReactionEmoji.reaction":
+		if e.complexity.ChatMessageReactionEmoji.Reaction == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmoji.Reaction(childComplexity), true
+
+	case "ChatMessageReactionEmoji.type":
+		if e.complexity.ChatMessageReactionEmoji.Type == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmoji.Type(childComplexity), true
+
+	case "ChatMessageReactionEmoji.user":
+		if e.complexity.ChatMessageReactionEmoji.User == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmoji.User(childComplexity), true
+
+	case "ChatMessageReactionEmote.emote":
+		if e.complexity.ChatMessageReactionEmote.Emote == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmote.Emote(childComplexity), true
+
+	case "ChatMessageReactionEmote.id":
+		if e.complexity.ChatMessageReactionEmote.ID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmote.ID(childComplexity), true
+
+	case "ChatMessageReactionEmote.messageId":
+		if e.complexity.ChatMessageReactionEmote.MessageID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmote.MessageID(childComplexity), true
+
+	case "ChatMessageReactionEmote.reaction":
+		if e.complexity.ChatMessageReactionEmote.Reaction == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmote.Reaction(childComplexity), true
+
+	case "ChatMessageReactionEmote.type":
+		if e.complexity.ChatMessageReactionEmote.Type == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmote.Type(childComplexity), true
+
+	case "ChatMessageReactionEmote.user":
+		if e.complexity.ChatMessageReactionEmote.User == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmote.User(childComplexity), true
 
 	case "Chatter.user":
 		if e.complexity.Chatter.User == nil {
@@ -381,6 +487,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageSegmentText.Type(childComplexity), true
+
+	case "Mutation.addReaction":
+		if e.complexity.Mutation.AddReaction == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addReaction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddReaction(childComplexity, args["messageId"].(string), args["content"].(string)), true
 
 	case "Mutation.attachFile":
 		if e.complexity.Mutation.AttachFile == nil {
@@ -518,6 +636,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.ChatMessages(childComplexity), true
+
+	case "Subscription.reactionAdd":
+		if e.complexity.Subscription.ReactionAdd == nil {
+			break
+		}
+
+		return e.complexity.Subscription.ReactionAdd(childComplexity), true
 
 	case "Subscription.streamInfo":
 		if e.complexity.Subscription.StreamInfo == nil {
@@ -772,12 +897,13 @@ input BanUser {
 extend type Mutation {
     sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
     attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
+    addReaction(messageId: String!, content: String!): Boolean! @isAuthenticated @notBanned
 }
-
 
 extend type Subscription {
     chatMessages: ChatMessage!
     systemMessages: SystemMessage!
+    reactionAdd: ChatMessageReaction!
 }
 
 type ChatMessage {
@@ -785,6 +911,7 @@ type ChatMessage {
     segments: [MessageSegment!]!
     sender: User!
     createdAt: Time!
+    reactions: [ChatMessageReaction!]!
 }
 
 enum MessageSegmentType {
@@ -867,7 +994,35 @@ type SystemMessageEmoteUpdated implements SystemMessage {
     emote: Emote!
 }
 
-`, BuiltIn: false},
+enum ChatMessageReactionType {
+    EMOJI
+    EMOTE
+}
+
+interface ChatMessageReaction {
+    id: String!
+    type: ChatMessageReactionType!
+    user: User!
+    reaction: String!
+    messageId: String!
+}
+
+type ChatMessageReactionEmoji implements ChatMessageReaction {
+    id: String!
+    type: ChatMessageReactionType!
+    user: User!
+    reaction: String!
+    messageId: String!
+}
+
+type ChatMessageReactionEmote implements ChatMessageReaction {
+    id: String!
+    type: ChatMessageReactionType!
+    user: User!
+    reaction: String!
+    emote: Emote!
+    messageId: String!
+}`, BuiltIn: false},
 	{Name: "../../../schema/dashboard.graphqls", Input: `extend type Query {
     roles: [Role!]!
 }`, BuiltIn: false},
@@ -954,6 +1109,30 @@ func (ec *executionContext) dir_hasFeature_args(ctx context.Context, rawArgs map
 		}
 	}
 	args["features"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addReaction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["messageId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("messageId"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["messageId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["content"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["content"] = arg1
 	return args, nil
 }
 
@@ -1538,6 +1717,582 @@ func (ec *executionContext) fieldContext_ChatMessage_createdAt(_ context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessage_reactions(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_reactions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Reactions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]gqlmodel.ChatMessageReaction)
+	fc.Result = res
+	return ec.marshalNChatMessageReaction2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReactionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_reactions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("FieldContext.Child cannot be called on type INTERFACE")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmoji_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmoji) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmoji_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmoji_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmoji",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmoji_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmoji) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmoji_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.ChatMessageReactionType)
+	fc.Result = res
+	return ec.marshalNChatMessageReactionType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReactionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmoji_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmoji",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ChatMessageReactionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmoji_user(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmoji) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmoji_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmoji_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmoji",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmoji_reaction(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmoji) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmoji_reaction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Reaction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmoji_reaction(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmoji",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmoji_messageId(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmoji) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmoji_messageId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MessageID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmoji_messageId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmoji",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmote_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmote_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmote_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmote_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmote_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.ChatMessageReactionType)
+	fc.Result = res
+	return ec.marshalNChatMessageReactionType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReactionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmote_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ChatMessageReactionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmote_user(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmote_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmote_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmote_reaction(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmote_reaction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Reaction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmote_reaction(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmote_emote(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmote_emote(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Emote, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.Emote)
+	fc.Result = res
+	return ec.marshalNEmote2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmote_emote(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Emote_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Emote_name(ctx, field)
+			case "url":
+				return ec.fieldContext_Emote_url(ctx, field)
+			case "width":
+				return ec.fieldContext_Emote_width(ctx, field)
+			case "height":
+				return ec.fieldContext_Emote_height(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmote_messageId(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmote_messageId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MessageID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmote_messageId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2550,6 +3305,87 @@ func (ec *executionContext) fieldContext_Mutation_attachFile(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addReaction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addReaction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddReaction(rctx, fc.Args["messageId"].(string), fc.Args["content"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAuthenticated == nil {
+				return nil, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.NotBanned == nil {
+				return nil, errors.New("directive notBanned is not implemented")
+			}
+			return ec.directives.NotBanned(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addReaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addReaction_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_updateUserProfile(ctx, field)
 	if err != nil {
@@ -2690,6 +3526,8 @@ func (ec *executionContext) fieldContext_Query_chatMessagesLatest(ctx context.Co
 				return ec.fieldContext_ChatMessage_sender(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
+			case "reactions":
+				return ec.fieldContext_ChatMessage_reactions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
 		},
@@ -3402,6 +4240,8 @@ func (ec *executionContext) fieldContext_Subscription_chatMessages(_ context.Con
 				return ec.fieldContext_ChatMessage_sender(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
+			case "reactions":
+				return ec.fieldContext_ChatMessage_reactions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
 		},
@@ -3455,6 +4295,64 @@ func (ec *executionContext) _Subscription_systemMessages(ctx context.Context, fi
 }
 
 func (ec *executionContext) fieldContext_Subscription_systemMessages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("FieldContext.Child cannot be called on type INTERFACE")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_reactionAdd(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_reactionAdd(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().ReactionAdd(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan gqlmodel.ChatMessageReaction):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalNChatMessageReaction2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReaction(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_reactionAdd(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -6043,6 +6941,29 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _ChatMessageReaction(ctx context.Context, sel ast.SelectionSet, obj gqlmodel.ChatMessageReaction) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case gqlmodel.ChatMessageReactionEmoji:
+		return ec._ChatMessageReactionEmoji(ctx, sel, &obj)
+	case *gqlmodel.ChatMessageReactionEmoji:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ChatMessageReactionEmoji(ctx, sel, obj)
+	case gqlmodel.ChatMessageReactionEmote:
+		return ec._ChatMessageReactionEmote(ctx, sel, &obj)
+	case *gqlmodel.ChatMessageReactionEmote:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ChatMessageReactionEmote(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _MessageSegment(ctx context.Context, sel ast.SelectionSet, obj gqlmodel.MessageSegment) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
@@ -6206,6 +7127,134 @@ func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionS
 			}
 		case "createdAt":
 			out.Values[i] = ec._ChatMessage_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reactions":
+			out.Values[i] = ec._ChatMessage_reactions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var chatMessageReactionEmojiImplementors = []string{"ChatMessageReactionEmoji", "ChatMessageReaction"}
+
+func (ec *executionContext) _ChatMessageReactionEmoji(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.ChatMessageReactionEmoji) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, chatMessageReactionEmojiImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ChatMessageReactionEmoji")
+		case "id":
+			out.Values[i] = ec._ChatMessageReactionEmoji_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._ChatMessageReactionEmoji_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._ChatMessageReactionEmoji_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reaction":
+			out.Values[i] = ec._ChatMessageReactionEmoji_reaction(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "messageId":
+			out.Values[i] = ec._ChatMessageReactionEmoji_messageId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var chatMessageReactionEmoteImplementors = []string{"ChatMessageReactionEmote", "ChatMessageReaction"}
+
+func (ec *executionContext) _ChatMessageReactionEmote(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.ChatMessageReactionEmote) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, chatMessageReactionEmoteImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ChatMessageReactionEmote")
+		case "id":
+			out.Values[i] = ec._ChatMessageReactionEmote_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._ChatMessageReactionEmote_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._ChatMessageReactionEmote_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reaction":
+			out.Values[i] = ec._ChatMessageReactionEmote_reaction(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "emote":
+			out.Values[i] = ec._ChatMessageReactionEmote_emote(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "messageId":
+			out.Values[i] = ec._ChatMessageReactionEmote_messageId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6556,6 +7605,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "addReaction":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addReaction(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "updateUserProfile":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateUserProfile(ctx, field)
@@ -6855,6 +7911,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_chatMessages(ctx, fields[0])
 	case "systemMessages":
 		return ec._Subscription_systemMessages(ctx, fields[0])
+	case "reactionAdd":
+		return ec._Subscription_reactionAdd(ctx, fields[0])
 	case "streamInfo":
 		return ec._Subscription_streamInfo(ctx, fields[0])
 	default:
@@ -7484,6 +8542,70 @@ func (ec *executionContext) marshalNChatMessage2ᚖgithubᚗcomᚋsatontᚋstrea
 		return graphql.Null
 	}
 	return ec._ChatMessage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNChatMessageReaction2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReaction(ctx context.Context, sel ast.SelectionSet, v gqlmodel.ChatMessageReaction) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ChatMessageReaction(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNChatMessageReaction2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReactionᚄ(ctx context.Context, sel ast.SelectionSet, v []gqlmodel.ChatMessageReaction) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNChatMessageReaction2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReaction(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNChatMessageReactionType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReactionType(ctx context.Context, v interface{}) (gqlmodel.ChatMessageReactionType, error) {
+	var res gqlmodel.ChatMessageReactionType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNChatMessageReactionType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatMessageReactionType(ctx context.Context, sel ast.SelectionSet, v gqlmodel.ChatMessageReactionType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNChatter2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐChatter(ctx context.Context, sel ast.SelectionSet, v gqlmodel.Chatter) graphql.Marshaler {

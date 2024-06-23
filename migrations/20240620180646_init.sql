@@ -1,31 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
 SELECT 'up SQL query';
--- type User struct {
--- 	ID          uuid.UUID
--- 	Name        string
--- 	DisplayName string
--- 	Color       string
--- 	Providers   []Provider
--- 	CreatedAt   time.Time
--- }
---
--- type UserConnectionProvider int
---
--- const (
--- 	UserConnectionProviderTwitch UserConnectionProvider = iota
--- )
---
--- type Provider struct {
--- 	ID                      uuid.UUID
--- 	UserID                  uuid.UUID
--- 	Provider                UserConnectionProvider
--- 	ProviderUserID          string
--- 	ProviderUserName        string
--- 	ProviderUserDisplayName string
--- 	ProviderAvatar          string
--- }
-
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE users (

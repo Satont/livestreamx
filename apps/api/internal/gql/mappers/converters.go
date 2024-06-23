@@ -1,4 +1,4 @@
-package converters
+package mappers
 
 import (
 	"github.com/satont/stream/apps/api/internal/repositories/user"

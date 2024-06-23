@@ -3,10 +3,12 @@ package chat_messages_with_user
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 	"go.uber.org/fx"
 )
 
@@ -40,6 +42,19 @@ var selectFields = []string{
 	"users.avatar_url",
 	"users.banned",
 	"users.created_at",
+	"mr.id AS reaction_id",
+	"mr.message_id AS reaction_message_id",
+	"mr.user_id AS reaction_user_id",
+	"mr.reaction",
+	"mr.created_at AS reaction_created_at",
+}
+
+type tempMessageReaction struct {
+	ID        *uuid.UUID
+	MessageID *uuid.UUID
+	UserID    *uuid.UUID
+	Reaction  *string
+	CreatedAt *time.Time
 }
 
 func (c *ChatMessageWithUserPgx) FindByID(ctx context.Context, id uuid.UUID) (
@@ -50,6 +65,7 @@ func (c *ChatMessageWithUserPgx) FindByID(ctx context.Context, id uuid.UUID) (
 		Select(selectFields...).
 		From("chat_messages chat_messages").
 		Join("users users ON chat_messages.sender_id = users.id").
+		LeftJoin("messages_reactions mr ON chat_messages.id = mr.message_id").
 		Where("chat_messages.id = ?", id).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
@@ -57,24 +73,57 @@ func (c *ChatMessageWithUserPgx) FindByID(ctx context.Context, id uuid.UUID) (
 		return nil, err
 	}
 
-	row := c.pgx.QueryRow(ctx, query, args...)
-	message := &MessageWithUser{}
-	err = row.Scan(
-		&message.Message.ID,
-		&message.Message.SenderID,
-		&message.Message.Text,
-		&message.Message.CreatedAt,
-
-		&message.User.ID,
-		&message.User.Name,
-		&message.User.DisplayName,
-		&message.User.Color,
-		&message.User.AvatarUrl,
-		&message.User.Banned,
-		&message.User.CreatedAt,
-	)
+	rows, err := c.pgx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
+	}
+	defer rows.Close()
+
+	var message *MessageWithUser
+	for rows.Next() {
+		row := &MessageWithUser{}
+		reaction := &tempMessageReaction{}
+
+		err = rows.Scan(
+			&row.Message.ID,
+			&row.Message.SenderID,
+			&row.Message.Text,
+			&row.Message.CreatedAt,
+
+			&row.User.ID,
+			&row.User.Name,
+			&row.User.DisplayName,
+			&row.User.Color,
+			&row.User.AvatarUrl,
+			&row.User.Banned,
+			&row.User.CreatedAt,
+
+			&reaction.ID,
+			&reaction.MessageID,
+			&reaction.UserID,
+			&reaction.Reaction,
+			&reaction.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if message == nil {
+			message = row
+		}
+
+		if reaction.ID != nil {
+			message.Reactions = append(
+				message.Reactions,
+				message_reaction.MessageReaction{
+					ID:        *reaction.ID,
+					MessageID: *reaction.MessageID,
+					UserID:    *reaction.UserID,
+					Reaction:  *reaction.Reaction,
+					CreatedAt: *reaction.CreatedAt,
+				},
+			)
+		}
 	}
 
 	return message, nil
@@ -101,6 +150,7 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 		Join("users users ON chat_messages.sender_id = users.id").
 		OrderBy("chat_messages.created_at DESC").
 		Where("users.banned IS FALSE").
+		LeftJoin("messages_reactions mr ON chat_messages.id = mr.message_id").
 		Limit(uint64(limit)).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
@@ -116,8 +166,10 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 
 	var messages []MessageWithUser
 	for rows.Next() {
-		var message MessageWithUser
-		err := rows.Scan(
+		message := MessageWithUser{}
+		reaction := &tempMessageReaction{}
+
+		err = rows.Scan(
 			&message.Message.ID,
 			&message.Message.SenderID,
 			&message.Message.Text,
@@ -130,11 +182,53 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 			&message.User.AvatarUrl,
 			&message.User.Banned,
 			&message.User.CreatedAt,
+
+			&reaction.ID,
+			&reaction.MessageID,
+			&reaction.UserID,
+			&reaction.Reaction,
+			&reaction.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
-		messages = append(messages, message)
+
+		foundMessageIndex := -1
+		for i, m := range messages {
+			if m.Message.ID == message.Message.ID {
+				foundMessageIndex = i
+				break
+			}
+		}
+
+		if foundMessageIndex == -1 {
+			if reaction.ID != nil {
+				message.Reactions = append(
+					message.Reactions,
+					message_reaction.MessageReaction{
+						ID:        *reaction.ID,
+						MessageID: *reaction.MessageID,
+						UserID:    *reaction.UserID,
+						Reaction:  *reaction.Reaction,
+						CreatedAt: *reaction.CreatedAt,
+					},
+				)
+			}
+			messages = append(messages, message)
+		} else {
+			if reaction.ID != nil {
+				messages[foundMessageIndex].Reactions = append(
+					messages[foundMessageIndex].Reactions,
+					message_reaction.MessageReaction{
+						ID:        *reaction.ID,
+						MessageID: *reaction.MessageID,
+						UserID:    *reaction.UserID,
+						Reaction:  *reaction.Reaction,
+						CreatedAt: *reaction.CreatedAt,
+					},
+				)
+			}
+		}
 	}
 
 	return messages, nil

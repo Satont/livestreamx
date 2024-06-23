@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import ChatSettings from "@/components/chat-settings.vue";
 import { computed, onMounted, ref } from "vue";
 import { useProfile } from "@/api/profile.js";
-import { useChat } from "@/api/chat.ts";
+import { ChatMessage_Fragment, useChat } from "@/api/chat.ts";
 import { Textarea } from "@/components/ui/textarea";
 import { Smile } from 'lucide-vue-next'
 import {
@@ -20,8 +20,11 @@ import {
 } from '@/components/ui/popover'
 import { UseVirtualList } from '@vueuse/components'
 import Mention from "./mention.vue";
+import { useFragment } from "@/gql";
 
 const { useSendMessage, emotes, messages } = useChat()
+const unwrappedMessages = computed(() => useFragment(ChatMessage_Fragment, messages.value))
+
 const { data: profile } = useProfile();
 
 const messageSender = useSendMessage()
@@ -71,7 +74,7 @@ const emotesForMention = computed(() => {
 })
 
 const usersForMention = computed(() => {
-	const mappedUsersFromMessages = messages.value
+	const mappedUsersFromMessages = unwrappedMessages.value
 		.map(m => ({ label: m.sender.displayName, color: m.sender.color, value: m.sender.displayName }))
 		.filter((v, i, a) => a.findIndex(t => (t.label === v.label)) === i)
 

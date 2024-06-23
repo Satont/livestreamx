@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ThemeSwitcher from "@/components/theme-switcher.vue";
 import ChatProfile from "@/components/chat-profile.vue";
-import { useChat } from "@/api/chat.ts";
+import { ChatMessage_Fragment, useChat } from "@/api/chat.ts";
 import ChatMessage from "@/components/chat-message.vue";
 import { nextTick, ref, watch } from "vue";
 import { useScroll } from "@vueuse/core";
@@ -9,6 +9,7 @@ import ChatViewers from "@/components/chat-viewers.vue";
 import ChatMessageForm from "@/components/chat-message-form.vue";
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Pause } from 'lucide-vue-next'
+import { useFragment } from "@/gql";
 
 const { messages } = useChat()
 
@@ -44,8 +45,8 @@ watch(messages, async () => {
 			<div ref="messagesEl" class="h-full relative flex flex-col overflow-y-auto px-2">
 				<ChatMessage
 					v-for="message in messages"
-					:key="message.id"
-					:message="message"
+					:key="useFragment(ChatMessage_Fragment, message).id"
+					:msg="message"
 				/>
 			</div>
 				<div v-if="scrollPaused" class="sticky w-full bottom-0 bg-zinc-700 place-self-center flex items-center justify-center">

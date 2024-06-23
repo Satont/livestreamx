@@ -1,4 +1,4 @@
-package converters
+package mappers
 
 import (
 	"context"
@@ -20,6 +20,7 @@ func (c *Converters) ChatMessageWithUser(
 ) gqlmodel.ChatMessage {
 	splittedText := strings.Fields(m.Message.Text)
 	var segments []gqlmodel.MessageSegment
+	usersDbCache := make(map[string]*gqlmodel.User)
 
 	emotesSlice := lo.Values(c.sevenTv.Emotes)
 
@@ -53,25 +54,23 @@ func (c *Converters) ChatMessageWithUser(
 				},
 			)
 		} else if mentionRegexp.MatchString(text) {
+			mentionSegment := gqlmodel.MessageSegmentMention{
+				Content: text,
+				Type:    gqlmodel.MessageSegmentTypeMention,
+			}
+
+			if cachedUser, ok := usersDbCache[text[1:]]; ok {
+				mentionSegment.User = cachedUser
+				segments = append(segments, mentionSegment)
+				continue
+			}
+
 			user, err := c.userRepo.FindByName(ctx, text[1:])
 			if err == nil && user != nil {
-				segments = append(
-					segments,
-					gqlmodel.MessageSegmentMention{
-						Content: text,
-						Type:    gqlmodel.MessageSegmentTypeMention,
-						User: &gqlmodel.User{
-							ID:          user.ID.String(),
-							Name:        user.Name,
-							DisplayName: user.DisplayName,
-							Color:       user.Color,
-							Roles:       nil,
-							IsBanned:    false,
-							CreatedAt:   user.CreatedAt,
-							AvatarURL:   user.AvatarUrl,
-						},
-					},
-				)
+				userGql := c.DbUserToGql(*user)
+
+				usersDbCache[text[1:]] = &userGql
+				mentionSegment.User = &userGql
 			} else {
 				segments = append(
 					segments, gqlmodel.MessageSegmentText{
@@ -90,19 +89,31 @@ func (c *Converters) ChatMessageWithUser(
 		}
 	}
 
+	reactions := make([]gqlmodel.ChatMessageReaction, 0, len(m.Reactions))
+	for _, r := range m.Reactions {
+		var user *gqlmodel.User
+		if u, ok := usersDbCache[r.UserID.String()]; ok {
+			user = u
+		} else {
+			u, err := c.userRepo.FindByID(ctx, r.UserID)
+			if err == nil && u != nil {
+				userGql := c.DbUserToGql(*u)
+
+				usersDbCache[r.UserID.String()] = &userGql
+				user = &userGql
+			}
+		}
+
+		reactions = append(reactions, c.DbReactionToGql(r, user))
+	}
+
+	sender := c.DbUserToGql(m.User)
+
 	return gqlmodel.ChatMessage{
-		ID:       m.Message.ID.String(),
-		Segments: segments,
-		Sender: &gqlmodel.User{
-			ID:          m.User.ID.String(),
-			Name:        m.User.Name,
-			DisplayName: m.User.DisplayName,
-			Color:       m.User.Color,
-			Roles:       nil,
-			IsBanned:    false,
-			CreatedAt:   m.User.CreatedAt,
-			AvatarURL:   m.User.AvatarUrl,
-		},
+		ID:        m.Message.ID.String(),
+		Segments:  segments,
+		Sender:    &sender,
 		CreatedAt: m.Message.CreatedAt,
+		Reactions: reactions,
 	}
 }

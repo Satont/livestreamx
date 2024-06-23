@@ -1,3 +1,24 @@
+api: true
+
+#authMethod: internal
+#authInternalUsers:
+#  - user: any
+#    permissions:
+#      - action: read
+#      - action: playback
+#  - user: satont
+#    pass: q
+#    path:
+#    permissions:
+#      # Available actions are: publish, read, playback, api, metrics, pprof.
+#      - action: publish
+#      - action: read
+#      - action: playback
+#      - action: api
+#      - action: metrics
+#      - action: pprof
+
+
 paths:
   mystream:
   proxy:

@@ -11,6 +11,15 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+type ChatMessageReaction interface {
+	IsChatMessageReaction()
+	GetID() string
+	GetType() ChatMessageReactionType
+	GetUser() *User
+	GetReaction() string
+	GetMessageID() string
+}
+
 type MessageSegment interface {
 	IsMessageSegment()
 	GetType() MessageSegmentType
@@ -37,11 +46,43 @@ type BanUser struct {
 }
 
 type ChatMessage struct {
-	ID        string           `json:"id"`
-	Segments  []MessageSegment `json:"segments"`
-	Sender    *User            `json:"sender"`
-	CreatedAt time.Time        `json:"createdAt"`
+	ID        string                `json:"id"`
+	Segments  []MessageSegment      `json:"segments"`
+	Sender    *User                 `json:"sender"`
+	CreatedAt time.Time             `json:"createdAt"`
+	Reactions []ChatMessageReaction `json:"reactions"`
 }
+
+type ChatMessageReactionEmoji struct {
+	ID        string                  `json:"id"`
+	Type      ChatMessageReactionType `json:"type"`
+	User      *User                   `json:"user"`
+	Reaction  string                  `json:"reaction"`
+	MessageID string                  `json:"messageId"`
+}
+
+func (ChatMessageReactionEmoji) IsChatMessageReaction()                {}
+func (this ChatMessageReactionEmoji) GetID() string                    { return this.ID }
+func (this ChatMessageReactionEmoji) GetType() ChatMessageReactionType { return this.Type }
+func (this ChatMessageReactionEmoji) GetUser() *User                   { return this.User }
+func (this ChatMessageReactionEmoji) GetReaction() string              { return this.Reaction }
+func (this ChatMessageReactionEmoji) GetMessageID() string             { return this.MessageID }
+
+type ChatMessageReactionEmote struct {
+	ID        string                  `json:"id"`
+	Type      ChatMessageReactionType `json:"type"`
+	User      *User                   `json:"user"`
+	Reaction  string                  `json:"reaction"`
+	Emote     *Emote                  `json:"emote"`
+	MessageID string                  `json:"messageId"`
+}
+
+func (ChatMessageReactionEmote) IsChatMessageReaction()                {}
+func (this ChatMessageReactionEmote) GetID() string                    { return this.ID }
+func (this ChatMessageReactionEmote) GetType() ChatMessageReactionType { return this.Type }
+func (this ChatMessageReactionEmote) GetUser() *User                   { return this.User }
+func (this ChatMessageReactionEmote) GetReaction() string              { return this.Reaction }
+func (this ChatMessageReactionEmote) GetMessageID() string             { return this.MessageID }
 
 type Chatter struct {
 	User *User `json:"user"`
@@ -155,6 +196,47 @@ type User struct {
 	IsBanned    bool      `json:"isBanned"`
 	CreatedAt   time.Time `json:"createdAt"`
 	AvatarURL   string    `json:"avatarUrl"`
+}
+
+type ChatMessageReactionType string
+
+const (
+	ChatMessageReactionTypeEmoji ChatMessageReactionType = "EMOJI"
+	ChatMessageReactionTypeEmote ChatMessageReactionType = "EMOTE"
+)
+
+var AllChatMessageReactionType = []ChatMessageReactionType{
+	ChatMessageReactionTypeEmoji,
+	ChatMessageReactionTypeEmote,
+}
+
+func (e ChatMessageReactionType) IsValid() bool {
+	switch e {
+	case ChatMessageReactionTypeEmoji, ChatMessageReactionTypeEmote:
+		return true
+	}
+	return false
+}
+
+func (e ChatMessageReactionType) String() string {
+	return string(e)
+}
+
+func (e *ChatMessageReactionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ChatMessageReactionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ChatMessageReactionType", str)
+	}
+	return nil
+}
+
+func (e ChatMessageReactionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type MessageSegmentType string

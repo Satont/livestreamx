@@ -12,8 +12,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/gql"
-	"github.com/satont/stream/apps/api/internal/gql/converters"
 	"github.com/satont/stream/apps/api/internal/gql/directives"
+	"github.com/satont/stream/apps/api/internal/gql/mappers"
 	"github.com/satont/stream/apps/api/internal/gql/resolvers"
 	"github.com/satont/stream/apps/api/internal/httpserver"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
@@ -21,6 +21,7 @@ import (
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
+	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
 	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 	"go.uber.org/fx"
@@ -46,12 +47,13 @@ var App = fx.Options(
 		fx.Annotate(chat_message.NewPgx, fx.As(new(chat_message.Repository))),
 		fx.Annotate(user.NewPgx, fx.As(new(user.Repository))),
 		fx.Annotate(chat_messages_with_user.NewPgx, fx.As(new(chat_messages_with_user.Repository))),
+		fx.Annotate(message_reaction.NewPgx, fx.As(new(message_reaction.Repository))),
 	),
 
 	fx.Provide(
 		// s3.New,
 		seven_tv.New,
-		converters.New,
+		mappers.New,
 		session_storage.New,
 		resolvers.New,
 		middlewares.New,

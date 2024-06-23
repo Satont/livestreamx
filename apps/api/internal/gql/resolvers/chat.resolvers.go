@@ -15,8 +15,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
+	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
+	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 )
 
 // SendMessage is the resolver for the sendMessage field.
@@ -53,7 +55,7 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 		return false, fmt.Errorf("failed to find chat message: %w", err)
 	}
 
-	gqlMessage := r.converter.ChatMessageWithUser(ctx, messageWithUser)
+	gqlMessage := r.mapper.ChatMessageWithUser(ctx, messageWithUser)
 
 	for _, ch := range r.chatListenersChannels {
 		ch <- &gqlMessage
@@ -93,6 +95,42 @@ func (r *mutationResolver) AttachFile(
 	panic(fmt.Errorf("not implemented: AttachFile - attachFile"))
 }
 
+// AddReaction is the resolver for the addReaction field.
+func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, content string) (
+	bool,
+	error,
+) {
+	userID, err := r.sessionStorage.GetUserID(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	user := middlewares.GetUserFromContext(ctx)
+	if user == nil {
+		return false, fmt.Errorf("user not found")
+	}
+
+	newReaction, err := r.messageReactionRepo.Create(
+		ctx, message_reaction.CreateMessageReactionOpts{
+			MessageID: uuid.MustParse(messageID),
+			UserID:    uuid.MustParse(userID),
+			Reaction:  content,
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+
+	gqlUser := r.mapper.DbUserToGql(*user)
+	gqlReaction := r.mapper.DbReactionToGql(*newReaction, &gqlUser)
+
+	for _, ch := range r.reactionListenersChannels {
+		ch <- gqlReaction
+	}
+
+	return true, nil
+}
+
 // ChatMessagesLatest is the resolver for the chatMessagesLatest field.
 func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) (
 	[]gqlmodel.ChatMessage,
@@ -116,7 +154,7 @@ func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) (
 	for _, m := range messages {
 		gqlMessages = append(
 			gqlMessages,
-			r.converter.ChatMessageWithUser(ctx, &m),
+			r.mapper.ChatMessageWithUser(ctx, &m),
 		)
 	}
 
@@ -191,4 +229,29 @@ func (r *subscriptionResolver) SystemMessages(ctx context.Context) (
 	error,
 ) {
 	panic(fmt.Errorf("not implemented: SystemMessages - systemMessages"))
+}
+
+// ReactionAdd is the resolver for the reactionAdd field.
+func (r *subscriptionResolver) ReactionAdd(ctx context.Context) (
+	<-chan gqlmodel.ChatMessageReaction,
+	error,
+) {
+	channel := make(chan gqlmodel.ChatMessageReaction, 1)
+
+	id := uuid.NewString()
+
+	r.reactionListenersChannels[id] = channel
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				close(channel)
+				delete(r.reactionListenersChannels, id)
+				return
+			}
+		}
+	}()
+
+	return channel, nil
 }
