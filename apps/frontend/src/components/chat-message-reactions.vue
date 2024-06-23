@@ -212,7 +212,7 @@ async function handleAddReaction(name: string) {
         >
           <div class="grid grid-cols-2 gap-4 grid-flow-row-dense w-full">
             <div
-              v-for="(reaction, index) of mappedReactions"
+              v-for="(reaction, index) of reactions"
               :key="index"
               class="flex justify-between bg-accent p-2 rounded items-center"
             >
