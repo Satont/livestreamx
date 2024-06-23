@@ -18,7 +18,10 @@ import (
 )
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
-func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error) {
+func (r *mutationResolver) UpdateUserProfile(
+	ctx context.Context,
+	input gqlmodel.UpdateUserProfileInput,
+) (*gqlmodel.User, error) {
 	currentUser := middlewares.GetUserFromContext(ctx)
 	if currentUser == nil {
 		return nil, fmt.Errorf("user not found")
@@ -46,10 +49,10 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel
 			return nil, fmt.Errorf("display name length must be between 3 and 25 characters")
 		}
 
-		if !userDisplayNameRegexp.MatchString(*input.DisplayName.Value()) {
+		if !userNameRegexp.MatchString(*input.DisplayName.Value()) {
 			return nil, fmt.Errorf(
 				"display name does not match pattern: %s",
-				userDisplayNameRegexp.String(),
+				userNameRegexp.String(),
 			)
 		}
 
