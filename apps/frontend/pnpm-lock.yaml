@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@eyevinn/webrtc-player':
+    specifier: 0.13.0
+    version: 0.13.0
   '@plugin-web-update-notification/vite':
     specifier: 1.7.1
     version: 1.7.1(vite@5.3.1)
@@ -815,6 +818,18 @@ packages:
       prettier-plugin-multiline-arrays: 3.0.3(prettier@3.2.5)
     dev: true
 
+  /@dailymotion/vast-client@4.0.1:
+    resolution: {integrity: sha512-oRUCc06bWdX/1f2Eha/od5WCj+MLHiD6rgyAudgjOUyWXhCcbkUTZeejBSQsLft0nFnd+5nrDqGkBD8mrEVd/Q==}
+    engines: {node: '>=12.22.1'}
+    dependencies:
+      '@xmldom/xmldom': 0.8.10
+    dev: false
+
+  /@dailymotion/vmap@3.3.1:
+    resolution: {integrity: sha512-0+JbHbK/ePKtQYAyrZWr7q/ec2hA355hOm5qwlNUt175ml6IBqKsSSjpz9cLe+0sYCKZGega7ED6gc+uoR5pbQ==}
+    engines: {node: '>=12.22.1'}
+    dev: false
+
   /@esbuild/aix-ppc64@0.21.5:
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
     engines: {node: '>=12'}
@@ -998,6 +1013,35 @@ packages:
     os: [win32]
     requiresBuild: true
     optional: true
+
+  /@eyevinn/csai-manager@0.1.2:
+    resolution: {integrity: sha512-ZehCxXlSIHF5Ej1n/WZEaLa6sLIH5zrE1ZB71yyT/KbFoeDsDDoo+jw61xzzT+pKBb4vNBtKQRgaVDGZdT2L/g==}
+    dependencies:
+      '@dailymotion/vast-client': 4.0.1
+      '@dailymotion/vmap': 3.3.1
+      '@eyevinn/video-event-filter': 2.0.0
+      mitt: 3.0.1
+    dev: false
+
+  /@eyevinn/video-event-filter@2.0.0:
+    resolution: {integrity: sha512-S5pECmymqg7WqlAeerhtPVEFxWhLY3cz3DTuhuljZreVDLnEBV6/DlWI6SWDnKdpDJMgD6VjPfaRJssmGatNBg==}
+    deprecated: Package no longer maintained, we recommend migrating to @eyevinn/media-event-filter
+    dependencies:
+      mitt: 2.1.0
+    dev: false
+
+  /@eyevinn/webrtc-player@0.13.0:
+    resolution: {integrity: sha512-X5Nzznbyw9PXj85HYV7nyHSbeC0tWpTTAFEYjilnlLLWfo9EARx1tCQk5tdhmImnDST8VN50SYt6uMDudoVnWw==}
+    engines: {node: '>=18.15.0'}
+    dependencies:
+      '@eyevinn/csai-manager': 0.1.2
+      '@eyevinn/whpp-client': 0.1.2
+      events: 3.3.0
+    dev: false
+
+  /@eyevinn/whpp-client@0.1.2:
+    resolution: {integrity: sha512-Mau11ykVIZudy+7Qz2tJZbV2cuj8Un7eT2QRBGFA42RPL8djfEi/RIZ+6b9C1Bc1EAppl26zoh28D8/KstFioQ==}
+    dev: false
 
   /@floating-ui/core@1.6.2:
     resolution: {integrity: sha512-+2XpQV9LLZeanU4ZevzRnGFg2neDeKHgFLjP6YLW+tly0IvrhqT4u8enLGjLH3qeh85g19xY5rsAusfwTdn5lg==}
@@ -2219,6 +2263,11 @@ packages:
       tslib: 2.6.3
     dev: true
 
+  /@xmldom/xmldom@0.8.10:
+    resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
+    engines: {node: '>=10.0.0'}
+    dev: false
+
   /acorn-walk@8.3.3:
     resolution: {integrity: sha512-MxXdReSRhGO7VlFe1bRG/oI7/mdLV9B9JJT0N8vZOhF7gFRR5l3M8W9G8JxmKV+JC5mGqJ0QvqfSOLsCPa4nUw==}
     engines: {node: '>=0.4.0'}
@@ -3029,6 +3078,11 @@ packages:
     dependencies:
       '@types/estree': 1.0.5
     dev: true
+
+  /events@3.3.0:
+    resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
+    engines: {node: '>=0.8.x'}
+    dev: false
 
   /execa@8.0.1:
     resolution: {integrity: sha512-VyhnebXciFV2DESc+p6B+y0LjSm0krU4OgJN44qFAhBY0TJ+1V61tYD2+wHusZ6F9n5K+vl8k0sTy7PEfV4qpg==}
@@ -3917,6 +3971,10 @@ packages:
 
   /mitt@2.1.0:
     resolution: {integrity: sha512-ILj2TpLiysu2wkBbWjAmww7TkZb65aiQO+DkVdUTBpBXq+MHYiETENkKFMtsJZX1Lf4pe4QOrTSjIfUwN5lRdg==}
+    dev: false
+
+  /mitt@3.0.1:
+    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
     dev: false
 
   /mkdirp@1.0.4:
