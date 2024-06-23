@@ -13,7 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
-	minio "github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
@@ -22,7 +22,10 @@ import (
 )
 
 // SendMessage is the resolver for the sendMessage field.
-func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error) {
+func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (
+	bool,
+	error,
+) {
 	userId, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return false, err
@@ -32,7 +35,7 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 	text = strings.ReplaceAll(text, "\n", "")
 	text = strings.ReplaceAll(text, "\r", "")
 
-	if utf8.RuneCountInString(text) > 700 {
+	if utf8.RuneCountInString(text) > 500 {
 		return false, nil
 	}
 
@@ -62,7 +65,10 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 }
 
 // AttachFile is the resolver for the attachFile field.
-func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error) {
+func (r *mutationResolver) AttachFile(
+	ctx context.Context,
+	file graphql.Upload,
+) (*gqlmodel.AttachedFile, error) {
 	_, err := r.s3.PutObject(
 		ctx,
 		r.config.S3Bucket,
@@ -90,7 +96,10 @@ func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) 
 }
 
 // AddReaction is the resolver for the addReaction field.
-func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, content string) (bool, error) {
+func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, content string) (
+	bool,
+	error,
+) {
 	userID, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return false, err
@@ -123,7 +132,10 @@ func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, co
 }
 
 // ChatMessagesLatest is the resolver for the chatMessagesLatest field.
-func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error) {
+func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) (
+	[]gqlmodel.ChatMessage,
+	error,
+) {
 	limitQuery := 100
 	if limit != nil {
 		limitQuery = *limit
@@ -189,7 +201,10 @@ func (r *queryResolver) GetEmotes(ctx context.Context) ([]gqlmodel.Emote, error)
 }
 
 // ChatMessages is the resolver for the chatMessages field.
-func (r *subscriptionResolver) ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error) {
+func (r *subscriptionResolver) ChatMessages(ctx context.Context) (
+	<-chan *gqlmodel.ChatMessage,
+	error,
+) {
 	id := uuid.NewString()
 
 	r.chatListenersChannels[id] = make(chan *gqlmodel.ChatMessage, 1)
@@ -209,12 +224,18 @@ func (r *subscriptionResolver) ChatMessages(ctx context.Context) (<-chan *gqlmod
 }
 
 // SystemMessages is the resolver for the systemMessages field.
-func (r *subscriptionResolver) SystemMessages(ctx context.Context) (<-chan gqlmodel.SystemMessage, error) {
+func (r *subscriptionResolver) SystemMessages(ctx context.Context) (
+	<-chan gqlmodel.SystemMessage,
+	error,
+) {
 	panic(fmt.Errorf("not implemented: SystemMessages - systemMessages"))
 }
 
 // ReactionAdd is the resolver for the reactionAdd field.
-func (r *subscriptionResolver) ReactionAdd(ctx context.Context) (<-chan gqlmodel.ChatMessageReaction, error) {
+func (r *subscriptionResolver) ReactionAdd(ctx context.Context) (
+	<-chan gqlmodel.ChatMessageReaction,
+	error,
+) {
 	channel := make(chan gqlmodel.ChatMessageReaction, 1)
 
 	id := uuid.NewString()
