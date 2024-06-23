@@ -74,6 +74,8 @@ watch(
   },
   { immediate: true }
 )
+
+const autoplay = !import.meta.env.DEV
 </script>
 
 <template>
@@ -82,7 +84,7 @@ watch(
     id="video"
     class="h-full w-full"
     controls
-    autoplay
+    :autoplay="autoplay"
     playsinline="true"
   />
 </template>
