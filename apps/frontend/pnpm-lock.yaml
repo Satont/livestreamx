@@ -17,9 +17,6 @@ dependencies:
   '@vueuse/core':
     specifier: 10.11.0
     version: 10.11.0(vue@3.4.29)
-  add:
-    specifier: 2.0.6
-    version: 2.0.6
   autoprefixer:
     specifier: 10.4.19
     version: 10.4.19(postcss@8.4.38)
@@ -67,6 +64,9 @@ dependencies:
     version: 2.0.0-beta.8(vue@3.4.29)
 
 devDependencies:
+  '@crashmax/prettier-config':
+    specifier: 5.0.2
+    version: 5.0.2(@ianvs/prettier-plugin-sort-imports@4.1.1)(prettier-plugin-multiline-arrays@3.0.3)(prettier@3.2.5)
   '@graphql-codegen/cli':
     specifier: 5.0.2
     version: 5.0.2(@types/node@20.14.7)(graphql@16.8.2)(typescript@5.5.2)
@@ -82,6 +82,12 @@ devDependencies:
   '@vitejs/plugin-vue':
     specifier: 5.0.5
     version: 5.0.5(vite@5.3.1)(vue@3.4.29)
+  add:
+    specifier: 2.0.6
+    version: 2.0.6
+  pnpm:
+    specifier: 9.4.0
+    version: 9.4.0
   shadcn-vue:
     specifier: 0.10.5
     version: 0.10.5(@vitest/ui@1.6.0)(vitest@1.6.0)(vue@3.4.29)
@@ -160,6 +166,14 @@ packages:
       node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
+    dev: true
+
+  /@augment-vir/common@22.4.0:
+    resolution: {integrity: sha512-7E0Qng7YN0nhqxtqzePTB6Mms5fR05OTexjlKOgjbNi+SWDCRt2zFGWfMhirEoDONa3BRpgXsQjqz/sEzIwHMg==}
+    dependencies:
+      browser-or-node: 2.1.1
+      run-time-assertions: 0.3.0
+      type-fest: 4.20.1
     dev: true
 
   /@babel/code-frame@7.24.7:
@@ -785,6 +799,18 @@ packages:
       '@babel/helper-string-parser': 7.24.7
       '@babel/helper-validator-identifier': 7.24.7
       to-fast-properties: 2.0.0
+
+  /@crashmax/prettier-config@5.0.2(@ianvs/prettier-plugin-sort-imports@4.1.1)(prettier-plugin-multiline-arrays@3.0.3)(prettier@3.2.5):
+    resolution: {integrity: sha512-TTzCCGD1pGl4+t1qG7HPjj44Uh64iGTVuc+aQgKKCFn/wheYkOx9cWUCN1Q8q2hy0Q1WTwXD+KeIG874DPi+9A==}
+    peerDependencies:
+      '@ianvs/prettier-plugin-sort-imports': 4.1.1
+      prettier: 3.2.5
+      prettier-plugin-multiline-arrays: 3.0.3
+    dependencies:
+      '@ianvs/prettier-plugin-sort-imports': 4.1.1(prettier@3.2.5)
+      prettier: 3.2.5
+      prettier-plugin-multiline-arrays: 3.0.3(prettier@3.2.5)
+    dev: true
 
   /@esbuild/aix-ppc64@0.21.5:
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -1599,6 +1625,26 @@ packages:
       graphql: 16.8.2
     dev: true
 
+  /@ianvs/prettier-plugin-sort-imports@4.1.1(prettier@3.2.5):
+    resolution: {integrity: sha512-kJhXq63ngpTQ2dxgf5GasbPJWsJA3LgoOdd7WGhpUSzLgLgI4IsIzYkbJf9kmpOHe7Vdm/o3PcRA3jmizXUuAQ==}
+    peerDependencies:
+      '@vue/compiler-sfc': '>=3.0.0'
+      prettier: 2 || 3
+    peerDependenciesMeta:
+      '@vue/compiler-sfc':
+        optional: true
+    dependencies:
+      '@babel/core': 7.24.7
+      '@babel/generator': 7.24.7
+      '@babel/parser': 7.24.7
+      '@babel/traverse': 7.24.7
+      '@babel/types': 7.24.7
+      prettier: 3.2.5
+      semver: 7.6.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@internationalized/date@3.5.4:
     resolution: {integrity: sha512-qoVJVro+O0rBaw+8HPjUB1iH8Ihf8oziEnqMnvhJUSuVIrHOuZ6eNLHNvzXJKUvAtaDiqMnRlg8Z2mgh09BlUw==}
     dependencies:
@@ -2185,7 +2231,7 @@ packages:
 
   /add@2.0.6:
     resolution: {integrity: sha512-j5QzrmsokwWWp6kUcJQySpbG+xfOBqqKnup3OIk1pz+kB/80SLorZ9V8zHFLO92Lcd+hbvq8bT+zOGoPkmBV0Q==}
-    dev: false
+    dev: true
 
   /agent-base@7.1.1:
     resolution: {integrity: sha512-H0TSyFNDMomMNJQBn8wFV5YC/2eJ+VXECwOadZJT554xP6cODZHPX3H9QMQECxvrgiSOP1pHjy1sMWQVYJOUOA==}
@@ -2392,6 +2438,10 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       fill-range: 7.1.1
+
+  /browser-or-node@2.1.1:
+    resolution: {integrity: sha512-8CVjaLJGuSKMVTxJ2DpBl5XnlNDiT4cQFeuCJJrvJmts9YrTZDizTX7PjC2s6W4x+MBGZeEY6dGMrF04/6Hgqg==}
+    dev: true
 
   /browserslist@4.23.1:
     resolution: {integrity: sha512-TUfofFo/KsK/bWZ9TWQ5O26tsWW4Uhmt8IYklbnUa70udB6P2wA7w7o4PY4muaEPBQaAX+CEnmmIA41NVHtPVw==}
@@ -2986,6 +3036,10 @@ packages:
       onetime: 6.0.0
       signal-exit: 4.1.0
       strip-final-newline: 3.0.0
+    dev: true
+
+  /expect-type@0.15.0:
+    resolution: {integrity: sha512-yWnriYB4e8G54M5/fAFj7rCIBiKs1HAACaY13kCz6Ku0dezjS9aMcfcdVK2X8Tv2tEV1BPz/wKfQ7WA4S/d8aA==}
     dev: true
 
   /external-editor@3.1.0:
@@ -4239,6 +4293,12 @@ packages:
       pathe: 1.1.2
     dev: true
 
+  /pnpm@9.4.0:
+    resolution: {integrity: sha512-9Um4pSydK4U2di+ZwHIiBe/Fr5E+d4NdvMw7CwssqefcgCK3gGLBcpHEjoh0nHDOiOtadPH6jEv14Yu0bIvYOg==}
+    engines: {node: '>=18.12'}
+    hasBin: true
+    dev: true
+
   /postcss-import@15.1.0(postcss@8.4.38):
     resolution: {integrity: sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==}
     engines: {node: '>=14.0.0'}
@@ -4308,6 +4368,22 @@ packages:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
+  /prettier-plugin-multiline-arrays@3.0.3(prettier@3.2.5):
+    resolution: {integrity: sha512-5/ccfqC9ibADfkv91Roe5EZJBbtlLXuG7bldlWJcuGDfYln44fybHb636/71HfcKUREP2fml+7S4wLrm4Pr1ow==}
+    peerDependencies:
+      prettier: ^3.0.0
+    dependencies:
+      '@augment-vir/common': 22.4.0
+      prettier: 3.2.5
+      proxy-vir: 0.0.2
+    dev: true
+
+  /prettier@3.2.5:
+    resolution: {integrity: sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: true
+
   /prettier@3.3.2:
     resolution: {integrity: sha512-rAVeHYMcv8ATV5d508CFdn+8/pHPpXeIid1DdrPwXnaAdH7cqjVbpJaT5eq4yRAFU/lsbwYwSF/n5iNrdJHPQA==}
     engines: {node: '>=14'}
@@ -4335,6 +4411,12 @@ packages:
     dependencies:
       kleur: 3.0.3
       sisteransi: 1.0.5
+    dev: true
+
+  /proxy-vir@0.0.2:
+    resolution: {integrity: sha512-4yP9ol7cFb1lUwYyj0B1+M+EpQz7tAu7PTgHCqOQenn0abXOJ3epfS3d2e+9zTgpBfYFzutL5tD2hyFz/smXyw==}
+    dependencies:
+      '@augment-vir/common': 22.4.0
     dev: true
 
   /punycode@1.4.1:
@@ -4518,6 +4600,14 @@ packages:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
       queue-microtask: 1.2.3
+
+  /run-time-assertions@0.3.0:
+    resolution: {integrity: sha512-XDSPemT0ppqLnlar4Nea7SoZdfImygVh5HtIwHdq3mefWtTZAXwKdtckAoVsgQQhrdxf2T8c4b8DktBvEWOqng==}
+    dependencies:
+      '@augment-vir/common': 22.4.0
+      expect-type: 0.15.0
+      type-fest: 4.20.1
+    dev: true
 
   /rxjs@7.8.1:
     resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
@@ -4964,6 +5054,11 @@ packages:
   /type-fest@0.21.3:
     resolution: {integrity: sha512-t0rzBq87m3fVcduHDUFhKmyyX+9eo6WQjZvf51Ea/M0Q7+T374Jp1aUiyUl0GKxp8M/OETVHSDvmkyPgvX+X2w==}
     engines: {node: '>=10'}
+    dev: true
+
+  /type-fest@4.20.1:
+    resolution: {integrity: sha512-R6wDsVsoS9xYOpy8vgeBlqpdOyzJ12HNfQhC/aAKWM3YoCV9TtunJzh/QpkMgeDhkoynDcw5f1y+qF9yc/HHyg==}
+    engines: {node: '>=16'}
     dev: true
 
   /typescript@5.5.2:

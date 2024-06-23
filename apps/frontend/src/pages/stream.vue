@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Chat from "@/components/chat.vue";
-import Player from "@/components/player.vue";
+import Chat from '@/components/chat.vue'
+import Player from '@/components/player.vue'
 </script>
 
 <template>
@@ -17,6 +17,4 @@ import Player from "@/components/player.vue";
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

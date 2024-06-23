@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from 'vue'
+import {
+  SliderRange,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+  useForwardPropsEmits
+} from 'radix-vue'
+import { computed } from 'vue'
 import type { SliderRootEmits, SliderRootProps } from 'radix-vue'
-import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from 'radix-vue'
+import type { HTMLAttributes } from 'vue'
+
 import { cn } from '@/lib/utils'
 
-const props = defineProps<SliderRootProps & { class?: HTMLAttributes['class'] }>()
+const props = defineProps<
+  SliderRootProps & { class?: HTMLAttributes['class'] }
+>()
 const emits = defineEmits<SliderRootEmits>()
 
 const delegatedProps = computed(() => {
@@ -18,13 +28,17 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 
 <template>
   <SliderRoot
-    :class="cn(
-      'relative flex w-full touch-none select-none items-center',
-      props.class,
-    )"
+    :class="
+      cn(
+        'relative flex w-full touch-none select-none items-center',
+        props.class
+      )
+    "
     v-bind="forwarded"
   >
-    <SliderTrack class="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
+    <SliderTrack
+      class="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary"
+    >
       <SliderRange class="absolute h-full bg-primary" />
     </SliderTrack>
     <SliderThumb
