@@ -154,7 +154,7 @@ function insertEmoteInText(value: unknown) {
                 :options="{
                   itemHeight: 44
                 }"
-                height="340px"
+                height="300px"
               >
                 <template #default="props">
                   <CommandItem

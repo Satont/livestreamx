@@ -27,6 +27,7 @@ import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 
 import { useProfile } from '@/api/profile.js'
+import { useShowReactionsOnMessage } from '@/composables/use-show-reactions-on-message.ts'
 import { FragmentType, useFragment } from '@/gql'
 
 type Props = {
@@ -36,6 +37,7 @@ type Props = {
 const props = defineProps<Props>()
 const unwrappedMessage = useFragment(ChatMessage_Fragment, props.msg)
 const reactions = useFragment(ChatReaction_Fragment, unwrappedMessage.reactions)
+const { showReactionsOnMessage } = useShowReactionsOnMessage()
 
 const { data: profile } = useProfile()
 const dialogOpen = ref(false)
@@ -89,7 +91,10 @@ async function handleAddReaction(name: string) {
 </script>
 
 <template>
-  <div class="gap-2 items-center flex">
+  <div
+    class="gap-2 items-center flex"
+    v-if="showReactionsOnMessage"
+  >
     <Button
       v-for="(reaction, index) of mappedReactions"
       :key="index"

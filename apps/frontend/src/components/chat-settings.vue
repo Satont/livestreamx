@@ -23,6 +23,7 @@ import { Switch } from '@/components/ui/switch'
 import { chatFontSize } from '@/composables/chat-font-size.ts'
 import { showAvatars } from '@/composables/show-avatars.js'
 import { showTimestamps } from '@/composables/show-timestamps.js'
+import { useShowReactionsOnMessage } from '@/composables/use-show-reactions-on-message.ts'
 
 const fontSize = computed({
   get() {
@@ -38,6 +39,7 @@ const max = 50
 
 const { data: profile } = useProfile()
 const updateUser = useProfileUpdate()
+const { showReactionsOnMessage } = useShowReactionsOnMessage()
 
 async function handleColorChange(e: Event) {
   const newValue = (e.target as HTMLInputElement).value
@@ -87,6 +89,19 @@ function focusColorPicker() {
           <span> Show time </span>
           <Switch
             :checked="showTimestamps"
+            class="data-[state=unchecked]:bg-zinc-600"
+          />
+        </Button>
+
+        <Button
+          @click="showReactionsOnMessage = !showReactionsOnMessage"
+          size="sm"
+          class="flex gap-2 justify-between"
+          variant="ghost"
+        >
+          <span>Show reactions on message</span>
+          <Switch
+            :checked="showReactionsOnMessage"
             class="data-[state=unchecked]:bg-zinc-600"
           />
         </Button>

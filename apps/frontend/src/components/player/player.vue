@@ -19,11 +19,14 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div v-bind="$attrs">
+  <div class="relative w-full h-full">
     <video
       ref="videoRef"
       class="w-full h-full"
     />
+    <div
+      ref="messageRef"
+      class="absolute top-[50%] left-[50%] transform translate-x-[-50%] translate-y-[-50%] bg-red-900 text-white rounded-md"
+    ></div>
   </div>
-  <div ref="messageRef"></div>
 </template>

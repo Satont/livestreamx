@@ -25,37 +25,37 @@ const uptime = computed(() => {
 
 <template>
   <span class="relative">
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      class="absolute top-[-12px] left-[-15px]"
-      :class="{
-        'text-green-400': !!uptime,
-        'text-red-400': !uptime
-      }"
-      aria-hidden
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="5"
-        fill="currentColor"
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="6"
-        fill="currentColor"
-        style="
-          animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-          transform-origin: center center;
-        "
-        v-if="!!uptime"
-      />
-    </svg>
+    <!--    <svg-->
+    <!--      width="24"-->
+    <!--      height="24"-->
+    <!--      viewBox="0 0 24 24"-->
+    <!--      fill="none"-->
+    <!--      xmlns="http://www.w3.org/2000/svg"-->
+    <!--      class="absolute top-[-12px] left-[-15px]"-->
+    <!--      :class="{-->
+    <!--        'text-green-400': !!uptime,-->
+    <!--        'text-red-400': !uptime-->
+    <!--      }"-->
+    <!--      aria-hidden-->
+    <!--    >-->
+    <!--      <circle-->
+    <!--        cx="12"-->
+    <!--        cy="12"-->
+    <!--        r="5"-->
+    <!--        fill="currentColor"-->
+    <!--      />-->
+    <!--      <circle-->
+    <!--        cx="12"-->
+    <!--        cy="12"-->
+    <!--        r="6"-->
+    <!--        fill="currentColor"-->
+    <!--        style="-->
+    <!--          animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;-->
+    <!--          transform-origin: center center;-->
+    <!--        "-->
+    <!--        v-if="!!uptime"-->
+    <!--      />-->
+    <!--    </svg>-->
     {{ uptime || 'Offline' }}
   </span>
 </template>
