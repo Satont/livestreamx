@@ -72,7 +72,7 @@ dependencies:
 devDependencies:
   '@crashmax/prettier-config':
     specifier: 5.0.2
-    version: 5.0.2(@ianvs/prettier-plugin-sort-imports@4.1.1)(prettier-plugin-multiline-arrays@3.0.3)(prettier@3.2.5)
+    version: 5.0.2(@ianvs/prettier-plugin-sort-imports@4.2.1)(prettier-plugin-multiline-arrays@3.0.3)(prettier@3.3.2)
   '@graphql-codegen/cli':
     specifier: 5.0.2
     version: 5.0.2(@types/node@20.14.7)(graphql@16.8.2)(typescript@5.5.2)
@@ -82,6 +82,9 @@ devDependencies:
   '@graphql-typed-document-node/core':
     specifier: 3.2.0
     version: 3.2.0(graphql@16.8.2)
+  '@ianvs/prettier-plugin-sort-imports':
+    specifier: 4.2.1
+    version: 4.2.1(prettier@3.3.2)
   '@types/node':
     specifier: 20.14.7
     version: 20.14.7
@@ -94,6 +97,9 @@ devDependencies:
   pnpm:
     specifier: 9.4.0
     version: 9.4.0
+  prettier:
+    specifier: 3.3.2
+    version: 3.3.2
   shadcn-vue:
     specifier: 0.10.5
     version: 0.10.5(@vitest/ui@1.6.0)(vitest@1.6.0)(vue@3.4.29)
@@ -806,16 +812,16 @@ packages:
       '@babel/helper-validator-identifier': 7.24.7
       to-fast-properties: 2.0.0
 
-  /@crashmax/prettier-config@5.0.2(@ianvs/prettier-plugin-sort-imports@4.1.1)(prettier-plugin-multiline-arrays@3.0.3)(prettier@3.2.5):
+  /@crashmax/prettier-config@5.0.2(@ianvs/prettier-plugin-sort-imports@4.2.1)(prettier-plugin-multiline-arrays@3.0.3)(prettier@3.3.2):
     resolution: {integrity: sha512-TTzCCGD1pGl4+t1qG7HPjj44Uh64iGTVuc+aQgKKCFn/wheYkOx9cWUCN1Q8q2hy0Q1WTwXD+KeIG874DPi+9A==}
     peerDependencies:
       '@ianvs/prettier-plugin-sort-imports': 4.1.1
       prettier: 3.2.5
       prettier-plugin-multiline-arrays: 3.0.3
     dependencies:
-      '@ianvs/prettier-plugin-sort-imports': 4.1.1(prettier@3.2.5)
-      prettier: 3.2.5
-      prettier-plugin-multiline-arrays: 3.0.3(prettier@3.2.5)
+      '@ianvs/prettier-plugin-sort-imports': 4.2.1(prettier@3.3.2)
+      prettier: 3.3.2
+      prettier-plugin-multiline-arrays: 3.0.3(prettier@3.3.2)
     dev: true
 
   /@dailymotion/vast-client@4.0.1:
@@ -1672,10 +1678,10 @@ packages:
       graphql: 16.8.2
     dev: true
 
-  /@ianvs/prettier-plugin-sort-imports@4.1.1(prettier@3.2.5):
-    resolution: {integrity: sha512-kJhXq63ngpTQ2dxgf5GasbPJWsJA3LgoOdd7WGhpUSzLgLgI4IsIzYkbJf9kmpOHe7Vdm/o3PcRA3jmizXUuAQ==}
+  /@ianvs/prettier-plugin-sort-imports@4.2.1(prettier@3.3.2):
+    resolution: {integrity: sha512-NKN1LVFWUDGDGr3vt+6Ey3qPeN/163uR1pOPAlkWpgvAqgxQ6kSdUf1F0it8aHUtKRUzEGcK38Wxd07O61d7+Q==}
     peerDependencies:
-      '@vue/compiler-sfc': '>=3.0.0'
+      '@vue/compiler-sfc': 2.7.x || 3.x
       prettier: 2 || 3
     peerDependenciesMeta:
       '@vue/compiler-sfc':
@@ -1686,7 +1692,7 @@ packages:
       '@babel/parser': 7.24.7
       '@babel/traverse': 7.24.7
       '@babel/types': 7.24.7
-      prettier: 3.2.5
+      prettier: 3.3.2
       semver: 7.6.2
     transitivePeerDependencies:
       - supports-color
@@ -4433,20 +4439,14 @@ packages:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
-  /prettier-plugin-multiline-arrays@3.0.3(prettier@3.2.5):
+  /prettier-plugin-multiline-arrays@3.0.3(prettier@3.3.2):
     resolution: {integrity: sha512-5/ccfqC9ibADfkv91Roe5EZJBbtlLXuG7bldlWJcuGDfYln44fybHb636/71HfcKUREP2fml+7S4wLrm4Pr1ow==}
     peerDependencies:
       prettier: ^3.0.0
     dependencies:
       '@augment-vir/common': 22.4.0
-      prettier: 3.2.5
+      prettier: 3.3.2
       proxy-vir: 0.0.2
-    dev: true
-
-  /prettier@3.2.5:
-    resolution: {integrity: sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==}
-    engines: {node: '>=14'}
-    hasBin: true
     dev: true
 
   /prettier@3.3.2:
