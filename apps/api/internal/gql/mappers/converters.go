@@ -13,14 +13,14 @@ type Opts struct {
 	SevenTv  *seven_tv.SevenTV
 }
 
-func New(opts Opts) *Converters {
-	return &Converters{
+func New(opts Opts) *Mapper {
+	return &Mapper{
 		userRepo: opts.UserRepo,
 		sevenTv:  opts.SevenTv,
 	}
 }
 
-type Converters struct {
+type Mapper struct {
 	userRepo user.Repository
 	sevenTv  *seven_tv.SevenTV
 }

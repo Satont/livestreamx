@@ -99,5 +99,6 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*gqlmodel.User, error)
 		IsBanned:    user.Banned,
 		CreatedAt:   user.CreatedAt,
 		AvatarURL:   user.AvatarUrl,
+		IsAdmin:     user.IsAdmin,
 	}, nil
 }

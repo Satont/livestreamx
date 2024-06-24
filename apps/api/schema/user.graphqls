@@ -15,17 +15,7 @@ type User {
     isBanned: Boolean!
     createdAt: Time!
     avatarUrl: String!
-}
-
-type Role {
-    id: ID!
-    name: String!
-    imageUrl: String
-    features: [RoleFeature!]!
-}
-
-enum RoleFeature {
-    BAN_USERS
+    isAdmin: Boolean!
 }
 
 input UpdateUserProfileInput {

@@ -15,6 +15,7 @@ type User struct {
 	Providers   []Provider
 	CreatedAt   time.Time
 	Banned      bool
+	IsAdmin     bool
 }
 
 type UserConnectionProvider int

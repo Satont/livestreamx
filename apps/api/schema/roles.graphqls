@@ -1,0 +1,33 @@
+extend type Query {
+    roles: [Role!]! @isAuthenticated @isAdmin
+}
+
+extend type Mutation {
+    createRole(input: CreateRoleInput!): Role! @isAuthenticated @isAdmin
+    updateRole(id: UUID!, input: UpdateRoleInput!): Role! @isAuthenticated @isAdmin
+    deleteRole(id: UUID!): Boolean! @isAuthenticated @isAdmin
+}
+
+type Role {
+    id: UUID!
+    channelID: UUID!
+    name: String!
+    imageUrl: String
+    features: [RoleFeature!]!
+}
+
+enum RoleFeature {
+    BAN_USERS
+}
+
+input CreateRoleInput {
+    name: String!
+    imageUrl: String
+    features: [RoleFeature!]!
+}
+
+input UpdateRoleInput {
+    name: String
+    imageUrl: String
+    features: [RoleFeature!]
+}

@@ -43,6 +43,7 @@ var selectFields = []string{
 	"users.avatar_url",
 	"users.banned",
 	"users.created_at",
+	"users.is_admin",
 	"mr.id AS reaction_id",
 	"mr.message_id AS reaction_message_id",
 	"mr.user_id AS reaction_user_id",
@@ -99,6 +100,7 @@ func (c *ChatMessageWithUserPgx) FindByID(ctx context.Context, id uuid.UUID) (
 			&row.User.AvatarUrl,
 			&row.User.Banned,
 			&row.User.CreatedAt,
+			&row.User.IsAdmin,
 
 			&reaction.ID,
 			&reaction.MessageID,
@@ -185,6 +187,7 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 			&message.User.AvatarUrl,
 			&message.User.Banned,
 			&message.User.CreatedAt,
+			&message.User.IsAdmin,
 
 			&reaction.ID,
 			&reaction.MessageID,

@@ -39,6 +39,7 @@ var selectUserFields = []string{
 	"avatar_url",
 	"created_at",
 	"banned",
+	"is_admin",
 }
 
 func (c *UserPgx) FindByName(ctx context.Context, name string) (*User, error) {
@@ -132,7 +133,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			opts.AvatarUrl,
 			opts.Color,
 		).
-		Suffix("RETURNING id, name, display_name, color, avatar_url, created_at").
+		Suffix("RETURNING id, name, display_name, color, avatar_url, created_at, is_admin").
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -158,6 +159,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 		&user.Color,
 		&user.AvatarUrl,
 		&user.CreatedAt,
+		&user.IsAdmin,
 	)
 	if err != nil {
 		return nil, err
@@ -241,6 +243,7 @@ func (c *UserPgx) FindByProviderUserID(
 		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.Banned,
+		&user.IsAdmin,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -314,6 +317,7 @@ func (c *UserPgx) FindByID(ctx context.Context, userID uuid.UUID) (*User, error)
 		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.Banned,
+		&user.IsAdmin,
 	)
 	if err != nil {
 		return nil, err

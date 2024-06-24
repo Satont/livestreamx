@@ -4,6 +4,7 @@ import (
 	"github.com/satont/stream/apps/api/internal/gql/mappers"
 	mtx_api "github.com/satont/stream/apps/api/internal/mtx-api"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
+	"github.com/satont/stream/apps/api/internal/repositories/role"
 	"go.uber.org/atomic"
 
 	"github.com/minio/minio-go/v7"
@@ -26,10 +27,11 @@ type Resolver struct {
 	userRepo                 user.Repository
 	chatMessagesWithUserRepo chat_messages_with_user.Repository
 	messageReactionRepo      message_reaction.Repository
+	rolesRepo                role.Repository
 	// userFilesRepo            user_file.Repository
 
 	sessionStorage *session_storage.SessionStorage
-	mapper         *mappers.Converters
+	mapper         *mappers.Mapper
 	s3             *minio.Client
 	config         config.Config
 	sevenTv        *seven_tv.SevenTV
@@ -48,10 +50,11 @@ type Opts struct {
 	UserRepo                 user.Repository
 	ChatMessagesWithUserRepo chat_messages_with_user.Repository
 	MessageReactionRepo      message_reaction.Repository
+	RolesRepo                role.Repository
 	// UserFilesRepo            user_file.Repository
 
 	SessionStorage *session_storage.SessionStorage
-	Converter      *mappers.Converters
+	Converter      *mappers.Mapper
 	// S3             *minio.Client
 	Config  config.Config
 	SevenTv *seven_tv.SevenTV
@@ -64,6 +67,7 @@ func New(opts Opts) *Resolver {
 		userRepo:                 opts.UserRepo,
 		chatMessagesWithUserRepo: opts.ChatMessagesWithUserRepo,
 		messageReactionRepo:      opts.MessageReactionRepo,
+		rolesRepo:                opts.RolesRepo,
 
 		sessionStorage: opts.SessionStorage,
 		mapper:         opts.Converter,

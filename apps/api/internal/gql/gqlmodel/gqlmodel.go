@@ -90,6 +90,12 @@ type Chatter struct {
 	User *User `json:"user"`
 }
 
+type CreateRoleInput struct {
+	Name     string                     `json:"name"`
+	ImageURL graphql.Omittable[*string] `json:"imageUrl,omitempty"`
+	Features []RoleFeature              `json:"features"`
+}
+
 type Emote struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
@@ -143,10 +149,11 @@ type Query struct {
 }
 
 type Role struct {
-	ID       string        `json:"id"`
-	Name     string        `json:"name"`
-	ImageURL *string       `json:"imageUrl,omitempty"`
-	Features []RoleFeature `json:"features"`
+	ID        uuid.UUID     `json:"id"`
+	ChannelID uuid.UUID     `json:"channelID"`
+	Name      string        `json:"name"`
+	ImageURL  *string       `json:"imageUrl,omitempty"`
+	Features  []RoleFeature `json:"features"`
 }
 
 type SendMessageInput struct {
@@ -187,6 +194,12 @@ type SystemMessageEmoteUpdated struct {
 func (SystemMessageEmoteUpdated) IsSystemMessage()                {}
 func (this SystemMessageEmoteUpdated) GetType() SystemMessageType { return this.Type }
 
+type UpdateRoleInput struct {
+	Name     graphql.Omittable[*string]       `json:"name,omitempty"`
+	ImageURL graphql.Omittable[*string]       `json:"imageUrl,omitempty"`
+	Features graphql.Omittable[[]RoleFeature] `json:"features,omitempty"`
+}
+
 type UpdateUserProfileInput struct {
 	Color       graphql.Omittable[*string] `json:"color,omitempty"`
 	Name        graphql.Omittable[*string] `json:"name,omitempty"`
@@ -202,6 +215,7 @@ type User struct {
 	IsBanned    bool      `json:"isBanned"`
 	CreatedAt   time.Time `json:"createdAt"`
 	AvatarURL   string    `json:"avatarUrl"`
+	IsAdmin     bool      `json:"isAdmin"`
 }
 
 type ChatMessageReactionType string

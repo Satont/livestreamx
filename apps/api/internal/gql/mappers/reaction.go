@@ -7,7 +7,7 @@ import (
 	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 )
 
-func (c *Converters) DbReactionToGql(
+func (c *Mapper) DbReactionToGql(
 	r message_reaction.MessageReaction,
 	user *gqlmodel.User,
 ) gqlmodel.ChatMessageReaction {

@@ -11,6 +11,8 @@ directive @hasFeature(features: [RoleFeature!]!) on FIELD_DEFINITION
 
 directive @notBanned on FIELD_DEFINITION
 
+directive @isAdmin on FIELD_DEFINITION
+
 scalar Upload
 scalar Time
 scalar UUID

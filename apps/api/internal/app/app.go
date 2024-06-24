@@ -23,6 +23,7 @@ import (
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
+	"github.com/satont/stream/apps/api/internal/repositories/role"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
 	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 	"go.uber.org/fx"
@@ -49,6 +50,7 @@ var App = fx.Options(
 		fx.Annotate(user.NewPgx, fx.As(new(user.Repository))),
 		fx.Annotate(chat_messages_with_user.NewPgx, fx.As(new(chat_messages_with_user.Repository))),
 		fx.Annotate(message_reaction.NewPgx, fx.As(new(message_reaction.Repository))),
+		fx.Annotate(role.NewPgx, fx.As(new(role.Repository))),
 	),
 
 	fx.Provide(

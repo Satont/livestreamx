@@ -34,6 +34,7 @@ func New(opts Opts) *Gql {
 	graphConfig.Directives.IsAuthenticated = opts.Directives.IsAuthenticated
 	graphConfig.Directives.NotBanned = opts.Directives.NotBanned
 	graphConfig.Directives.HasFeature = opts.Directives.HasFeature
+	graphConfig.Directives.IsAdmin = opts.Directives.IsAdmin
 
 	schema := graph.NewExecutableSchema(graphConfig)
 

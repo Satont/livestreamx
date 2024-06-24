@@ -152,7 +152,8 @@ func (r *queryResolver) ChatMessagesLatest(ctx context.Context, limit *int) ([]g
 	}
 
 	slices.SortFunc(
-		gqlMessages, func(a, b gqlmodel.ChatMessage) int {
+		gqlMessages,
+		func(a, b gqlmodel.ChatMessage) int {
 			if a.CreatedAt.UnixMilli() > b.CreatedAt.UnixMilli() {
 				return 1
 			} else {

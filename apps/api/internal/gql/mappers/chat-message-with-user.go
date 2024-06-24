@@ -14,7 +14,7 @@ import (
 var linkRegexp = regexp.MustCompile(`(https?://[^\s]+)`)
 var mentionRegexp = regexp.MustCompile(`@([a-zA-Z0-9_]+)`)
 
-func (c *Converters) ChatMessageWithUser(
+func (c *Mapper) ChatMessageWithUser(
 	ctx context.Context,
 	m *chat_messages_with_user.MessageWithUser,
 ) gqlmodel.ChatMessage {
