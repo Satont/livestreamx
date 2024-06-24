@@ -32,4 +32,5 @@ type Provider struct {
 	ProviderUserName        string
 	ProviderUserDisplayName string
 	ProviderAvatarUrl       string
+	Email                   string
 }

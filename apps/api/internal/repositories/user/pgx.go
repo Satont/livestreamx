@@ -174,7 +174,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			"provider_user_name",
 			"provider_user_display_name",
 			"provider_user_avatar_url",
-			"",
+			"email",
 		).
 		Values(
 			user.ID,
@@ -200,6 +200,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 		&provider.ProviderUserName,
 		&provider.ProviderUserDisplayName,
 		&provider.ProviderAvatarUrl,
+		&provider.Email,
 	)
 	if err != nil {
 		return nil, err
