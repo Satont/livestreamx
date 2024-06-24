@@ -174,7 +174,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			"provider_user_name",
 			"provider_user_display_name",
 			"provider_user_avatar_url",
-			"provider_email",
+			"",
 		).
 		Values(
 			user.ID,
@@ -185,7 +185,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			opts.Provider.ProviderAvatar,
 			opts.Provider.Email,
 		).
-		Suffix("RETURNING id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url, provider_email").
+		Suffix("RETURNING id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url, email").
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -408,7 +408,7 @@ func (c *UserPgx) AddProviderToUser(
 			"provider_user_name",
 			"provider_user_display_name",
 			"provider_user_avatar_url",
-			"provider_email",
+			"email",
 		).
 		Values(
 			userID,
