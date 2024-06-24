@@ -15,6 +15,7 @@ export const useProfile = createGlobalState(() => {
           createdAt
           color
           avatarUrl
+          isAdmin
           __typename
         }
       }

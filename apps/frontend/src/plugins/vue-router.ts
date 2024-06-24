@@ -5,7 +5,17 @@ export const router = createRouter({
   routes: [
     {
       path: '/',
-      component: () => import('../pages/stream.vue')
+      component: () => import('../components/layout/layout.vue'),
+      children: [
+        {
+          path: '/',
+          component: () => import('../pages/stream.vue')
+        },
+        {
+          path: '/dashboard',
+          component: () => import('../pages/dashboard.vue')
+        }
+      ]
     }
   ]
 })

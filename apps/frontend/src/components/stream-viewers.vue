@@ -13,22 +13,6 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 const { data: streamState } = useStream().useStreamState()
-
-const uptime = computed(() => {
-  if (!streamState.value?.streamInfo?.startedAt) {
-    return ''
-  }
-
-  const startedAt = new Date(streamState.value.streamInfo.startedAt)
-  const now = new Date()
-
-  const duration = intervalToDuration({
-    start: startedAt,
-    end: now
-  })
-
-  return formatDuration(duration)
-})
 </script>
 
 <template>
@@ -37,34 +21,32 @@ const uptime = computed(() => {
     prioritizePosition
   >
     <PopoverTrigger as-child>
-      <div class="flex flex-col justify-start gap-0.5 cursor-pointer">
-        <Button
-          size="xs"
-          variant="ghost"
-          class="flex justify-start items-center gap-2"
-        >
-          <Users />
-          <span>
-            {{ streamState?.streamInfo?.viewers }}
-          </span>
-        </Button>
-        <span class="ml-2">
-          {{ uptime }}
+      <Button
+        size="xs"
+        variant="ghost"
+        class="flex justify-start items-center gap-2"
+      >
+        <Users />
+        <span>
+          {{ streamState?.streamInfo?.viewers }}
         </span>
-      </div>
+      </Button>
     </PopoverTrigger>
-    <PopoverContent v-if="streamState?.streamInfo?.chatters">
+    <PopoverContent
+      v-if="streamState?.streamInfo?.chatters"
+      class="p-0.5"
+    >
       <ScrollArea class="h-[200px] rounded-md flex flex-col">
         <a
           v-for="chatter of streamState.streamInfo.chatters"
           :key="chatter.user.id"
-          class="flex items-center gap-2"
+          class="flex items-center gap-2 hover:bg-accent p-2 rounded"
           :href="`https://twitch.tv/${chatter.user.name}`"
           target="_blank"
         >
           <img
             :src="chatter.user.avatarUrl"
-            class="size-7 rounded-full"
+            class="size-6 rounded-full"
           />
           <span class="font-bold">{{ chatter.user.displayName }}</span>
         </a>

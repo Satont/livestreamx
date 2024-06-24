@@ -16,11 +16,18 @@ const loginUri = `/api/auth/twitch?redirectUri=${window.location.origin}`
       :href="loginUri"
       >Login</Button
     >
-    <img
+    <Button
       v-else
-      :src="profile.userProfile.avatarUrl"
-      alt="avatar"
-      class="size-8 rounded-full"
-    />
+      class="flex items-center gap-2 text-md"
+      size="sm"
+      variant="ghost"
+    >
+      {{ profile.userProfile.displayName }}
+      <img
+        :src="profile.userProfile.avatarUrl"
+        alt="avatar"
+        class="size-7 rounded-full"
+      />
+    </Button>
   </div>
 </template>

@@ -6,9 +6,8 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
 import ChatMessageForm from '@/components/chat-message-form.vue'
 import ChatMessage from '@/components/chat-message.vue'
-import ChatProfile from '@/components/chat-profile.vue'
-import ChatStreamInfo from '@/components/chat-stream-info.vue'
-import ThemeSwitcher from '@/components/theme-switcher.vue'
+import StreamUptime from '@/components/stream-uptime.vue'
+import StreamViewers from '@/components/stream-viewers.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useChatMessageSend } from '@/composables/use-chat-message-send.ts'
 import { FragmentType, useFragment } from '@/gql'
@@ -55,17 +54,14 @@ const replyingTo = computed(() => {
 </script>
 
 <template>
-  <div class="relative flex h-full max-h-full flex-col">
+  <div
+    class="relative flex h-full max-h-full flex-col lg:border-l-2 border-t-2 lg:border-t-0 border-border"
+  >
     <div
-      class="flex flex-row justify-between bg-secondary border-b-2 border-red-400 items-center px-4 min-w-48"
+      class="flex flex-row justify-between bg-background border-b-2 border-border items-center px-4 py-2 min-w-48"
     >
-      <div class="flex items-center">
-        <ChatStreamInfo />
-      </div>
-      <div class="flex items-center">
-        <ThemeSwitcher />
-        <ChatProfile />
-      </div>
+      <StreamUptime class="text-md font-semibold" />
+      <StreamViewers />
     </div>
     <TooltipProvider
       :delay-duration="150"
@@ -89,14 +85,14 @@ const replyingTo = computed(() => {
       >
         <div
           v-if="scrollPaused"
-          class="bg-zinc-700 place-self-center flex items-center justify-center cursor-pointer"
+          class="bg-accent place-self-center flex items-center justify-center cursor-pointer"
         >
           <Pause />
           <span class="text-xl">Scroll paused</span>
         </div>
         <div
           v-if="replyingTo"
-          class="bg-zinc-600"
+          class="bg-accent"
         >
           <ChatMessage
             :msg="replyingTo"
