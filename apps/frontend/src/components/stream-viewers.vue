@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { formatDuration, intervalToDuration } from 'date-fns'
 import { Users } from 'lucide-vue-next'
-import { computed } from 'vue'
 
 import { useStream } from '@/api/stream.ts'
 import { Button } from '@/components/ui/button'
