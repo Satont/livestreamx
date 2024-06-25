@@ -6,13 +6,17 @@ import { init } from './player.js'
 const videoRef = ref<HTMLVideoElement | null>(null)
 const messageRef = ref<HTMLDivElement | null>(null)
 
+const isDev = import.meta.env.DEV
+
 watchEffect(() => {
   if (!videoRef.value || !messageRef.value) return
 
   init({
     videoEl: videoRef.value,
     messageEl: messageRef.value,
-    streamSrc: 'https://streamx.satont.dev/stream/',
+    streamSrc: isDev
+      ? 'http://localhost:8889/mystream/'
+      : 'https://streamx.satont.dev/stream/',
     controls: true
   })
 })
