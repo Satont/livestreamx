@@ -36,6 +36,8 @@ func New(opts Opts) (*Auth, error) {
 
 	group.GET("/twitch", a.TwitchGetLink)
 	group.GET("/twitch/callback", a.TwitchCallback)
+	group.GET("/github", a.GithubGetLink)
+	group.GET("/github/callback", a.GithubCallback)
 
 	return a, nil
 }

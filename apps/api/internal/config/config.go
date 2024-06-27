@@ -12,9 +12,6 @@ type Config struct {
 	AppEnv             string `envconfig:"APP_ENV" default:"development"`
 	RedisURL           string `envconfig:"REDIS_URL"`
 	PostgresURL        string `envconfig:"POSTGRES_URL"`
-	TwitchClientID     string `envconfig:"TWITCH_CLIENT_ID"`
-	TwitchSecret       string `envconfig:"TWITCH_SECRET"`
-	TwitchRedirectURI  string `envconfig:"TWITCH_REDIRECT_URI"`
 	ApiPort            int    `required:"false"  envconfig:"API_PORT" default:"1337"`
 	ApiSessionSecret   string `envconfig:"API_SESSION_SECRET"`
 	SevenTVEmoteSetID  string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`
@@ -25,6 +22,14 @@ type Config struct {
 	S3SecretToken string `envconfig:"S3_SECRET_TOKEN"`
 	S3Region      string `envconfig:"S3_REGION"`
 	S3Bucket      string `envconfig:"S3_BUCKET"`
+
+	TwitchClientID    string `envconfig:"TWITCH_CLIENT_ID"`
+	TwitchSecret      string `envconfig:"TWITCH_SECRET"`
+	TwitchRedirectURI string `envconfig:"TWITCH_REDIRECT_URI"`
+
+	GithubClientID     string `required:"false" envconfig:"GITHUB_CLIENT_ID"`
+	GithubClientSecret string `required:"false" envconfig:"GITHUB_CLIENT_SECRET"`
+	GithubRedirectURI  string `required:"false" envconfig:"GITHUB_REDIRECT_URI"`
 }
 
 func New() (Config, error) {

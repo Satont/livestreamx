@@ -3,7 +3,7 @@ import { useProfile } from '@/api/profile.ts'
 import NavbarProfile from '@/components/navbar-profile.vue'
 import ThemeSwitcher from '@/components/theme-switcher.vue'
 
-const { data: profile } = useProfile()
+const { data: profile } = useProfile().useData()
 </script>
 
 <template>
@@ -21,7 +21,7 @@ const { data: profile } = useProfile()
           >Stream</router-link
         >
         <router-link
-          v-if="profile?.userProfile.isAdmin"
+          v-if="profile?.userProfile.user.isAdmin"
           class="transition-colors hover:text-foreground/80 text-foreground/60"
           to="/dashboard"
         >

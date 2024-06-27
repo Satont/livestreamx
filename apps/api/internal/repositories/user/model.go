@@ -22,6 +22,7 @@ type UserConnectionProvider int
 
 const (
 	UserConnectionProviderTwitch UserConnectionProvider = iota
+	UserConnectionProviderGithub
 )
 
 type Provider struct {

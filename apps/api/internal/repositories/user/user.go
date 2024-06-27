@@ -29,6 +29,7 @@ type Repository interface {
 		opts UpdateProviderByUserIdOpts,
 	) error
 	FindByName(ctx context.Context, name string) (*User, error)
+	DeleteAccount(ctx context.Context, userID uuid.UUID) error
 }
 
 type CreateOpts struct {

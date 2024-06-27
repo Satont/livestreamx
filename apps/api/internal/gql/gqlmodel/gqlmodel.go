@@ -41,6 +41,19 @@ type AttachedFile struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+type AuthedUser struct {
+	User      *User                `json:"user"`
+	Providers []AuthedUserProvider `json:"providers"`
+}
+
+type AuthedUserProvider struct {
+	Provider    AuthedUserProviderType `json:"provider"`
+	UserID      string                 `json:"userId"`
+	Name        string                 `json:"name"`
+	DisplayName string                 `json:"displayName"`
+	AvatarURL   string                 `json:"avatarUrl"`
+}
+
 type BanUser struct {
 	UserID   string `json:"userId"`
 	NewValue bool   `json:"newValue"`
@@ -216,6 +229,47 @@ type User struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	AvatarURL   string    `json:"avatarUrl"`
 	IsAdmin     bool      `json:"isAdmin"`
+}
+
+type AuthedUserProviderType string
+
+const (
+	AuthedUserProviderTypeTwitch AuthedUserProviderType = "TWITCH"
+	AuthedUserProviderTypeGithub AuthedUserProviderType = "GITHUB"
+)
+
+var AllAuthedUserProviderType = []AuthedUserProviderType{
+	AuthedUserProviderTypeTwitch,
+	AuthedUserProviderTypeGithub,
+}
+
+func (e AuthedUserProviderType) IsValid() bool {
+	switch e {
+	case AuthedUserProviderTypeTwitch, AuthedUserProviderTypeGithub:
+		return true
+	}
+	return false
+}
+
+func (e AuthedUserProviderType) String() string {
+	return string(e)
+}
+
+func (e *AuthedUserProviderType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthedUserProviderType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AuthedUserProviderType", str)
+	}
+	return nil
+}
+
+func (e AuthedUserProviderType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type ChatMessageReactionType string

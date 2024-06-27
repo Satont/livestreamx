@@ -39,7 +39,7 @@ const unwrappedMessage = useFragment(ChatMessage_Fragment, props.msg)
 const reactions = useFragment(ChatReaction_Fragment, unwrappedMessage.reactions)
 const { showReactionsOnMessage } = useShowReactionsOnMessage()
 
-const { data: profile } = useProfile()
+const { data: profile } = useProfile().useData()
 const dialogOpen = ref(false)
 const { emotes, useReactionAddMutation } = useChat()
 
@@ -108,7 +108,7 @@ async function handleAddReaction(name: string) {
       :disabled="
         reactions.some(
           (r) =>
-            r.user.id === profile?.userProfile.id &&
+            r.user.id === profile?.userProfile.user.id &&
             r.reaction === reaction.reaction
         )
       "

@@ -30,7 +30,7 @@ type Props = {
 const props = defineProps<Props>()
 const unwrappedMessage = useFragment(ChatMessage_Fragment, props.msg)
 
-const { data: profile } = useProfile()
+const { data: profile } = useProfile().useData()
 
 const { messages } = useChat()
 const unwrappedMessages = computed(() =>
@@ -126,7 +126,7 @@ const repliedMessage = computed(() => {
             :style="{ color: correctColor(segment.user.color) }"
             class="p-0.5 rounded"
             :class="{
-              'bg-zinc-400': segment.user.id === profile?.userProfile.id
+              'bg-zinc-400': segment.user.id === profile?.userProfile.user.id
             }"
           >
             @{{ segment.user.displayName }}

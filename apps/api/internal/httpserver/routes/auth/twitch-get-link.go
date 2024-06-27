@@ -30,7 +30,7 @@ func (c *Auth) TwitchGetLink(ctx *gin.Context) {
 
 	session := c.sessionStore.GetSession(ctx.Request.Context())
 
-	session.Set("twitchRedirectUri", redirectUri)
+	session.Set("redirectUri", redirectUri)
 	session.Save()
 
 	ctx.Redirect(302, authLink)

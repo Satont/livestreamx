@@ -63,6 +63,19 @@ type ComplexityRoot struct {
 		URL       func(childComplexity int) int
 	}
 
+	AuthedUser struct {
+		Providers func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
+
+	AuthedUserProvider struct {
+		AvatarURL   func(childComplexity int) int
+		DisplayName func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Provider    func(childComplexity int) int
+		UserID      func(childComplexity int) int
+	}
+
 	ChatMessage struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -128,7 +141,9 @@ type ComplexityRoot struct {
 		AttachFile        func(childComplexity int, file graphql.Upload) int
 		ChatSwitchUserBan func(childComplexity int, input gqlmodel.BanUser) int
 		CreateRole        func(childComplexity int, input gqlmodel.CreateRoleInput) int
+		DeleteAccount     func(childComplexity int) int
 		DeleteRole        func(childComplexity int, id uuid.UUID) int
+		Logout            func(childComplexity int) int
 		SendMessage       func(childComplexity int, input gqlmodel.SendMessageInput) int
 		UpdateRole        func(childComplexity int, id uuid.UUID, input gqlmodel.UpdateRoleInput) int
 		UpdateUserProfile func(childComplexity int, input gqlmodel.UpdateUserProfileInput) int
@@ -199,14 +214,16 @@ type MutationResolver interface {
 	CreateRole(ctx context.Context, input gqlmodel.CreateRoleInput) (*gqlmodel.Role, error)
 	UpdateRole(ctx context.Context, id uuid.UUID, input gqlmodel.UpdateRoleInput) (*gqlmodel.Role, error)
 	DeleteRole(ctx context.Context, id uuid.UUID) (bool, error)
-	UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error)
+	UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.AuthedUser, error)
+	DeleteAccount(ctx context.Context) (bool, error)
+	Logout(ctx context.Context) (bool, error)
 }
 type QueryResolver interface {
 	ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error)
 	GetEmotes(ctx context.Context) ([]gqlmodel.Emote, error)
 	Roles(ctx context.Context) ([]gqlmodel.Role, error)
 	Stream(ctx context.Context) (*gqlmodel.Stream, error)
-	UserProfile(ctx context.Context) (*gqlmodel.User, error)
+	UserProfile(ctx context.Context) (*gqlmodel.AuthedUser, error)
 }
 type SubscriptionResolver interface {
 	ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error)
@@ -275,6 +292,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AttachedFile.URL(childComplexity), true
+
+	case "AuthedUser.providers":
+		if e.complexity.AuthedUser.Providers == nil {
+			break
+		}
+
+		return e.complexity.AuthedUser.Providers(childComplexity), true
+
+	case "AuthedUser.user":
+		if e.complexity.AuthedUser.User == nil {
+			break
+		}
+
+		return e.complexity.AuthedUser.User(childComplexity), true
+
+	case "AuthedUserProvider.avatarUrl":
+		if e.complexity.AuthedUserProvider.AvatarURL == nil {
+			break
+		}
+
+		return e.complexity.AuthedUserProvider.AvatarURL(childComplexity), true
+
+	case "AuthedUserProvider.displayName":
+		if e.complexity.AuthedUserProvider.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.AuthedUserProvider.DisplayName(childComplexity), true
+
+	case "AuthedUserProvider.name":
+		if e.complexity.AuthedUserProvider.Name == nil {
+			break
+		}
+
+		return e.complexity.AuthedUserProvider.Name(childComplexity), true
+
+	case "AuthedUserProvider.provider":
+		if e.complexity.AuthedUserProvider.Provider == nil {
+			break
+		}
+
+		return e.complexity.AuthedUserProvider.Provider(childComplexity), true
+
+	case "AuthedUserProvider.userId":
+		if e.complexity.AuthedUserProvider.UserID == nil {
+			break
+		}
+
+		return e.complexity.AuthedUserProvider.UserID(childComplexity), true
 
 	case "ChatMessage.createdAt":
 		if e.complexity.ChatMessage.CreatedAt == nil {
@@ -555,6 +621,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateRole(childComplexity, args["input"].(gqlmodel.CreateRoleInput)), true
 
+	case "Mutation.deleteAccount":
+		if e.complexity.Mutation.DeleteAccount == nil {
+			break
+		}
+
+		return e.complexity.Mutation.DeleteAccount(childComplexity), true
+
 	case "Mutation.deleteRole":
 		if e.complexity.Mutation.DeleteRole == nil {
 			break
@@ -566,6 +639,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteRole(childComplexity, args["id"].(uuid.UUID)), true
+
+	case "Mutation.logout":
+		if e.complexity.Mutation.Logout == nil {
+			break
+		}
+
+		return e.complexity.Mutation.Logout(childComplexity), true
 
 	case "Mutation.sendMessage":
 		if e.complexity.Mutation.SendMessage == nil {
@@ -1172,11 +1252,13 @@ type Chatter {
     user: User!
 }`, BuiltIn: false},
 	{Name: "../../../schema/user.graphqls", Input: `extend type Query {
-    userProfile: User! @isAuthenticated
+    userProfile: AuthedUser! @isAuthenticated
 }
 
 extend type Mutation {
-    updateUserProfile(input: UpdateUserProfileInput!): User! @isAuthenticated
+    updateUserProfile(input: UpdateUserProfileInput!): AuthedUser! @isAuthenticated
+    deleteAccount: Boolean! @isAuthenticated
+    logout: Boolean! @isAuthenticated
 }
 
 type User {
@@ -1189,6 +1271,24 @@ type User {
     createdAt: Time!
     avatarUrl: String!
     isAdmin: Boolean!
+}
+
+type AuthedUser {
+    user: User!
+    providers: [AuthedUserProvider!]!
+}
+
+enum AuthedUserProviderType {
+    TWITCH
+    GITHUB
+}
+
+type AuthedUserProvider {
+    provider: AuthedUserProviderType!
+    userId: String!
+    name: String!
+    displayName: String!
+    avatarUrl: String!
 }
 
 input UpdateUserProfileInput {
@@ -1683,6 +1783,346 @@ func (ec *executionContext) fieldContext_AttachedFile_createdAt(_ context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUser_user(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUser_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUser_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			case "isAdmin":
+				return ec.fieldContext_User_isAdmin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUser_providers(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUser_providers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Providers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]gqlmodel.AuthedUserProvider)
+	fc.Result = res
+	return ec.marshalNAuthedUserProvider2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUserProviderᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUser_providers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "provider":
+				return ec.fieldContext_AuthedUserProvider_provider(ctx, field)
+			case "userId":
+				return ec.fieldContext_AuthedUserProvider_userId(ctx, field)
+			case "name":
+				return ec.fieldContext_AuthedUserProvider_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_AuthedUserProvider_displayName(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_AuthedUserProvider_avatarUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthedUserProvider", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUserProvider_provider(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUserProvider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUserProvider_provider(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Provider, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.AuthedUserProviderType)
+	fc.Result = res
+	return ec.marshalNAuthedUserProviderType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUserProviderType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUserProvider_provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUserProvider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AuthedUserProviderType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUserProvider_userId(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUserProvider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUserProvider_userId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUserProvider_userId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUserProvider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUserProvider_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUserProvider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUserProvider_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUserProvider_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUserProvider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUserProvider_displayName(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUserProvider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUserProvider_displayName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisplayName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUserProvider_displayName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUserProvider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUserProvider_avatarUrl(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUserProvider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUserProvider_avatarUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvatarURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUserProvider_avatarUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUserProvider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3895,10 +4335,10 @@ func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, fie
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*gqlmodel.User); ok {
+		if data, ok := tmp.(*gqlmodel.AuthedUser); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/satont/stream/apps/api/internal/gql/gqlmodel.User`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/satont/stream/apps/api/internal/gql/gqlmodel.AuthedUser`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3910,9 +4350,9 @@ func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodel.User)
+	res := resTmp.(*gqlmodel.AuthedUser)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNAuthedUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3923,26 +4363,12 @@ func (ec *executionContext) fieldContext_Mutation_updateUserProfile(ctx context.
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "displayName":
-				return ec.fieldContext_User_displayName(ctx, field)
-			case "color":
-				return ec.fieldContext_User_color(ctx, field)
-			case "roles":
-				return ec.fieldContext_User_roles(ctx, field)
-			case "isBanned":
-				return ec.fieldContext_User_isBanned(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "avatarUrl":
-				return ec.fieldContext_User_avatarUrl(ctx, field)
-			case "isAdmin":
-				return ec.fieldContext_User_isAdmin(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthedUser_user(ctx, field)
+			case "providers":
+				return ec.fieldContext_AuthedUser_providers(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type AuthedUser", field.Name)
 		},
 	}
 	defer func() {
@@ -3955,6 +4381,134 @@ func (ec *executionContext) fieldContext_Mutation_updateUserProfile(ctx context.
 	if fc.Args, err = ec.field_Mutation_updateUserProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteAccount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteAccount(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAuthenticated == nil {
+				return nil, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteAccount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_logout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_logout(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().Logout(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAuthenticated == nil {
+				return nil, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_logout(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -4246,10 +4800,10 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*gqlmodel.User); ok {
+		if data, ok := tmp.(*gqlmodel.AuthedUser); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/satont/stream/apps/api/internal/gql/gqlmodel.User`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/satont/stream/apps/api/internal/gql/gqlmodel.AuthedUser`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4261,9 +4815,9 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodel.User)
+	res := resTmp.(*gqlmodel.AuthedUser)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNAuthedUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_userProfile(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4274,26 +4828,12 @@ func (ec *executionContext) fieldContext_Query_userProfile(_ context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "displayName":
-				return ec.fieldContext_User_displayName(ctx, field)
-			case "color":
-				return ec.fieldContext_User_color(ctx, field)
-			case "roles":
-				return ec.fieldContext_User_roles(ctx, field)
-			case "isBanned":
-				return ec.fieldContext_User_isBanned(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "avatarUrl":
-				return ec.fieldContext_User_avatarUrl(ctx, field)
-			case "isAdmin":
-				return ec.fieldContext_User_isAdmin(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthedUser_user(ctx, field)
+			case "providers":
+				return ec.fieldContext_AuthedUser_providers(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type AuthedUser", field.Name)
 		},
 	}
 	return fc, nil
@@ -7851,6 +8391,109 @@ func (ec *executionContext) _AttachedFile(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var authedUserImplementors = []string{"AuthedUser"}
+
+func (ec *executionContext) _AuthedUser(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.AuthedUser) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authedUserImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthedUser")
+		case "user":
+			out.Values[i] = ec._AuthedUser_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "providers":
+			out.Values[i] = ec._AuthedUser_providers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var authedUserProviderImplementors = []string{"AuthedUserProvider"}
+
+func (ec *executionContext) _AuthedUserProvider(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.AuthedUserProvider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authedUserProviderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthedUserProvider")
+		case "provider":
+			out.Values[i] = ec._AuthedUserProvider_provider(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "userId":
+			out.Values[i] = ec._AuthedUserProvider_userId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._AuthedUserProvider_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "displayName":
+			out.Values[i] = ec._AuthedUserProvider_displayName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "avatarUrl":
+			out.Values[i] = ec._AuthedUserProvider_avatarUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var chatMessageImplementors = []string{"ChatMessage"}
 
 func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.ChatMessage) graphql.Marshaler {
@@ -8390,6 +9033,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateUserProfile":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateUserProfile(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteAccount":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteAccount(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "logout":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_logout(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -9253,6 +9910,78 @@ func (ec *executionContext) marshalNAttachedFile2ᚖgithubᚗcomᚋsatontᚋstre
 	return ec._AttachedFile(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNAuthedUser2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUser(ctx context.Context, sel ast.SelectionSet, v gqlmodel.AuthedUser) graphql.Marshaler {
+	return ec._AuthedUser(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthedUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUser(ctx context.Context, sel ast.SelectionSet, v *gqlmodel.AuthedUser) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuthedUser(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAuthedUserProvider2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUserProvider(ctx context.Context, sel ast.SelectionSet, v gqlmodel.AuthedUserProvider) graphql.Marshaler {
+	return ec._AuthedUserProvider(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthedUserProvider2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUserProviderᚄ(ctx context.Context, sel ast.SelectionSet, v []gqlmodel.AuthedUserProvider) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAuthedUserProvider2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUserProvider(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNAuthedUserProviderType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUserProviderType(ctx context.Context, v interface{}) (gqlmodel.AuthedUserProviderType, error) {
+	var res gqlmodel.AuthedUserProviderType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAuthedUserProviderType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐAuthedUserProviderType(ctx context.Context, sel ast.SelectionSet, v gqlmodel.AuthedUserProviderType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNBanUser2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐBanUser(ctx context.Context, v interface{}) (gqlmodel.BanUser, error) {
 	res, err := ec.unmarshalInputBanUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9822,10 +10551,6 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNUser2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v gqlmodel.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *gqlmodel.User) graphql.Marshaler {

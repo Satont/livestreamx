@@ -18,7 +18,7 @@ import (
 )
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
-func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.User, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.AuthedUser, error) {
 	currentUser := middlewares.GetUserFromContext(ctx)
 	if currentUser == nil {
 		return nil, fmt.Errorf("user not found")
@@ -66,20 +66,68 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel
 		return nil, err
 	}
 
-	return &gqlmodel.User{
-		ID:          newUser.ID.String(),
-		Name:        newUser.Name,
-		DisplayName: newUser.DisplayName,
-		Color:       newUser.Color,
-		Roles:       nil,
-		IsBanned:    newUser.Banned,
-		CreatedAt:   newUser.CreatedAt,
-		AvatarURL:   newUser.AvatarUrl,
+	providers := make([]gqlmodel.AuthedUserProvider, 0, len(newUser.Providers))
+	for _, provider := range newUser.Providers {
+		providers = append(
+			providers, gqlmodel.AuthedUserProvider{
+				Provider:    r.mapper.DbProviderToGql(provider.Provider),
+				UserID:      provider.ProviderUserID,
+				Name:        provider.ProviderUserName,
+				DisplayName: provider.ProviderUserDisplayName,
+				AvatarURL:   provider.ProviderAvatarUrl,
+			},
+		)
+	}
+
+	return &gqlmodel.AuthedUser{
+		User: &gqlmodel.User{
+			ID:          newUser.ID.String(),
+			Name:        newUser.Name,
+			DisplayName: newUser.DisplayName,
+			Color:       newUser.Color,
+			Roles:       nil,
+			IsBanned:    newUser.Banned,
+			CreatedAt:   newUser.CreatedAt,
+			AvatarURL:   newUser.AvatarUrl,
+		},
+		Providers: providers,
 	}, nil
 }
 
+// DeleteAccount is the resolver for the deleteAccount field.
+func (r *mutationResolver) DeleteAccount(ctx context.Context) (bool, error) {
+	userID, err := r.sessionStorage.GetUserID(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	if _, err = r.Logout(ctx); err != nil {
+		return false, err
+	}
+
+	err = r.userRepo.DeleteAccount(ctx, uuid.MustParse(userID))
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// Logout is the resolver for the logout field.
+func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
+	session := r.sessionStorage.GetSession(ctx)
+	if session == nil {
+		return false, nil
+	}
+
+	session.Clear()
+	session.Save()
+
+	return true, nil
+}
+
 // UserProfile is the resolver for the userProfile field.
-func (r *queryResolver) UserProfile(ctx context.Context) (*gqlmodel.User, error) {
+func (r *queryResolver) UserProfile(ctx context.Context) (*gqlmodel.AuthedUser, error) {
 	userID, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -90,15 +138,31 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*gqlmodel.User, error)
 		return nil, err
 	}
 
-	return &gqlmodel.User{
-		ID:          user.ID.String(),
-		Name:        user.Name,
-		DisplayName: user.DisplayName,
-		Color:       user.Color,
-		Roles:       nil,
-		IsBanned:    user.Banned,
-		CreatedAt:   user.CreatedAt,
-		AvatarURL:   user.AvatarUrl,
-		IsAdmin:     user.IsAdmin,
+	providers := make([]gqlmodel.AuthedUserProvider, 0, len(user.Providers))
+	for _, provider := range user.Providers {
+		providers = append(
+			providers, gqlmodel.AuthedUserProvider{
+				Provider:    r.mapper.DbProviderToGql(provider.Provider),
+				UserID:      provider.ProviderUserID,
+				Name:        provider.ProviderUserName,
+				DisplayName: provider.ProviderUserDisplayName,
+				AvatarURL:   provider.ProviderAvatarUrl,
+			},
+		)
+	}
+
+	return &gqlmodel.AuthedUser{
+		User: &gqlmodel.User{
+			ID:          user.ID.String(),
+			Name:        user.Name,
+			DisplayName: user.DisplayName,
+			Color:       user.Color,
+			Roles:       nil,
+			IsBanned:    user.Banned,
+			CreatedAt:   user.CreatedAt,
+			AvatarURL:   user.AvatarUrl,
+			IsAdmin:     user.IsAdmin,
+		},
+		Providers: providers,
 	}, nil
 }

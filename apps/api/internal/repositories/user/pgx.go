@@ -19,16 +19,38 @@ type Opts struct {
 	Pgx *pgxpool.Pool
 }
 
-func NewPgx(opts Opts) (*UserPgx, error) {
-	return &UserPgx{
+func NewPgx(opts Opts) (*Pgx, error) {
+	return &Pgx{
 		pgx: opts.Pgx,
 	}, nil
 }
 
-var _ Repository = &UserPgx{}
+var _ Repository = &Pgx{}
 
-type UserPgx struct {
+type Pgx struct {
 	pgx *pgxpool.Pool
+}
+
+func (c *Pgx) DeleteAccount(ctx context.Context, userID uuid.UUID) error {
+	query, args, err := squirrel.
+		Delete("users").
+		Where(squirrel.Eq{"id": userID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	rows, err := c.pgx.Exec(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	if rows.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }
 
 var selectUserFields = []string{
@@ -42,7 +64,7 @@ var selectUserFields = []string{
 	"is_admin",
 }
 
-func (c *UserPgx) FindByName(ctx context.Context, name string) (*User, error) {
+func (c *Pgx) FindByName(ctx context.Context, name string) (*User, error) {
 	name = strings.ToLower(name)
 
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
@@ -118,7 +140,7 @@ func (c *UserPgx) FindByName(ctx context.Context, name string) (*User, error) {
 	return user, nil
 }
 
-func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
+func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Insert("users").
 		Columns(
@@ -211,7 +233,7 @@ func (c *UserPgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 	return user, nil
 }
 
-func (c *UserPgx) FindByProviderUserID(
+func (c *Pgx) FindByProviderUserID(
 	ctx context.Context,
 	providerUserID string,
 	provider UserConnectionProvider,
@@ -289,7 +311,7 @@ func (c *UserPgx) FindByProviderUserID(
 	return user, nil
 }
 
-func (c *UserPgx) FindByID(ctx context.Context, userID uuid.UUID) (*User, error) {
+func (c *Pgx) FindByID(ctx context.Context, userID uuid.UUID) (*User, error) {
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Select(selectUserFields...).
 		From("users").
@@ -359,7 +381,7 @@ func (c *UserPgx) FindByID(ctx context.Context, userID uuid.UUID) (*User, error)
 	return user, nil
 }
 
-func (c *UserPgx) Update(ctx context.Context, userID uuid.UUID, opts UpdateOpts) (*User, error) {
+func (c *Pgx) Update(ctx context.Context, userID uuid.UUID, opts UpdateOpts) (*User, error) {
 	var updateMap = map[string]interface{}{}
 
 	if opts.Name != nil {
@@ -395,7 +417,7 @@ func (c *UserPgx) Update(ctx context.Context, userID uuid.UUID, opts UpdateOpts)
 	return c.FindByID(ctx, userID)
 }
 
-func (c *UserPgx) AddProviderToUser(
+func (c *Pgx) AddProviderToUser(
 	ctx context.Context,
 	userID uuid.UUID,
 	opts AddProviderToUserOpts,
@@ -420,14 +442,12 @@ func (c *UserPgx) AddProviderToUser(
 			opts.ProviderUserAvatar,
 			opts.Email,
 		).
-		Suffix("RETURNING id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url").
 		ToSql()
-
 	if err != nil {
 		return nil, err
 	}
 
-	err = c.pgx.QueryRow(ctx, query, args...).Scan()
+	_, err = c.pgx.Exec(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +455,7 @@ func (c *UserPgx) AddProviderToUser(
 	return c.FindByID(ctx, userID)
 }
 
-func (c *UserPgx) UpdateProviderByUserID(
+func (c *Pgx) UpdateProviderByUserID(
 	ctx context.Context,
 	userID uuid.UUID,
 	provider UserConnectionProvider,

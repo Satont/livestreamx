@@ -1,9 +1,11 @@
 extend type Query {
-    userProfile: User! @isAuthenticated
+    userProfile: AuthedUser! @isAuthenticated
 }
 
 extend type Mutation {
-    updateUserProfile(input: UpdateUserProfileInput!): User! @isAuthenticated
+    updateUserProfile(input: UpdateUserProfileInput!): AuthedUser! @isAuthenticated
+    deleteAccount: Boolean! @isAuthenticated
+    logout: Boolean! @isAuthenticated
 }
 
 type User {
@@ -16,6 +18,24 @@ type User {
     createdAt: Time!
     avatarUrl: String!
     isAdmin: Boolean!
+}
+
+type AuthedUser {
+    user: User!
+    providers: [AuthedUserProvider!]!
+}
+
+enum AuthedUserProviderType {
+    TWITCH
+    GITHUB
+}
+
+type AuthedUserProvider {
+    provider: AuthedUserProviderType!
+    userId: String!
+    name: String!
+    displayName: String!
+    avatarUrl: String!
 }
 
 input UpdateUserProfileInput {

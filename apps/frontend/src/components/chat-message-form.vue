@@ -30,7 +30,7 @@ const unwrappedMessages = computed(() =>
 )
 
 const { textElement } = useChatMessageSend()
-const { data: profile } = useProfile()
+const { data: profile } = useProfile().useData()
 
 onMounted(() => {
   textElement.value = document.getElementById(
