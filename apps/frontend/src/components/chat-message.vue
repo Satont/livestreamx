@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Copy, CornerLeftUp, X } from 'lucide-vue-next'
+import { Copy, CornerUpLeft, X } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
@@ -77,7 +77,7 @@ const repliedMessage = computed(() => {
       v-if="repliedMessage"
       class="flex max-w-full gap-x-1 overflow-hidden text-ellipsis text-xs leading-3 text-white/40 items-center"
     >
-      <CornerLeftUp class="size-4 shrink-0" />
+      <CornerUpLeft class="size-4 shrink-0" />
       <span class="truncate">
         {{ repliedMessage.sender.displayName }}:
         {{ repliedMessage.segments.map((s) => s.content).join(' ') }}
@@ -198,7 +198,7 @@ const repliedMessage = computed(() => {
             @click="setReplyTo"
             size="xs"
           >
-            <CornerLeftUp class="size-4" />
+            <CornerUpLeft class="size-4" />
           </Button>
         </div>
       </div>
