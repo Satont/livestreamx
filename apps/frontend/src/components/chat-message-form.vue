@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { UseVirtualList } from '@vueuse/components'
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { Smile } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 
@@ -101,11 +102,14 @@ function insertEmoteInText(value: unknown) {
   textElement.value?.focus()
   currentCarretPosition.value = pos + value.length + 1
 }
+
+const breakPoints = useBreakpoints(breakpointsTailwind)
+const isSmall = breakPoints.smallerOrEqual('sm')
 </script>
 
 <template>
   <div
-    class="flex flex-col gap-2 bg-accent border-t-2 border-red-400 min-h-36 p-2 relative"
+    class="flex flex-col gap-2 bg-accent border-t-2 border-red-400 min-h-auto max-h-36 p-2 relative"
   >
     <Mention
       :keys="mentionKeys"
@@ -123,7 +127,8 @@ function insertEmoteInText(value: unknown) {
         placeholder="Send message..."
         @keydown.enter="sendMessage"
         @paste="console.log"
-        class="pr-12"
+        class="pr-12 min-h-8 max-h-20"
+        :rows="isSmall ? 1 : 3"
         @keyup="updateCarretPosition"
         @click="updateCarretPosition"
         @focus="updateCarretPosition"
@@ -134,9 +139,9 @@ function insertEmoteInText(value: unknown) {
       <Popover v-model:open="emoteMenuOpened">
         <PopoverTrigger as-child>
           <Button
-            class="absolute right-2 top-2"
+            class="absolute right-1 top-1 md:right-2 md:top-2"
             variant="ghost"
-            size="sm"
+            size="xs"
           >
             <Smile />
           </Button>

@@ -173,7 +173,7 @@ const deleteConfirmationOpened = ref(false)
             <PopoverTrigger as-child>
               <Button
                 variant="destructive"
-                class="place-self-start"
+                class="place-self-start w-full md:w-auto"
               >
                 Delete account
               </Button>
