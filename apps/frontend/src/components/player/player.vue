@@ -22,6 +22,8 @@ watchEffect(() => {
     controls: false,
     muted: false
   })
+
+  videoRef.value.play()
 })
 
 const paused = ref(false)
