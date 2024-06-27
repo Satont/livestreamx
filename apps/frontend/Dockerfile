@@ -11,6 +11,10 @@ COPY apps/api/schema /app/apps/api/schema/
 RUN cd /app/apps/frontend && pnpm install --frozen-lockfile
 
 COPY apps/frontend /app/apps/frontend
+
+ARG VITE_STREAM_URL
+ENV VITE_STREAM_URL=$VITE_STREAM_URL
+
 RUN cd /app/apps/frontend && pnpm build
 
 FROM devforth/spa-to-http:latest

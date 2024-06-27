@@ -45,3 +45,5 @@ jobs:
             ${{ env.DOCKER_IMAGE }}:${{ matrix.app }}-latest
             ${{ env.DOCKER_IMAGE }}:${{ matrix.app }}-${{ github.sha }}
           builder: ${{ steps.buildx.outputs.name }}
+          build-args: |
+            VITE_STREAM_URL=https://streamx.satont.dev/stream/

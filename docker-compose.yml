@@ -4,6 +4,8 @@ services:
     build:
         context: .
         dockerfile: apps/api/Dockerfile
+        args:
+          - VITE_STREAM_URL=http://localhost:8889/mystream/
     env_file: .env
     networks:
       - default
