@@ -14,7 +14,7 @@ watchEffect(() => {
   init({
     videoEl: videoRef.value,
     messageEl: messageRef.value,
-    streamSrc: streamUrl,
+    streamSrc: streamUrl ?? 'http://localhost:8889/mystream/',
     controls: true
   })
 })
