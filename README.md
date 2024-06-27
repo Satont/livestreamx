@@ -18,7 +18,7 @@ docker compose -f docker-compose.dev.yml up -d
 
 * Install dependencies
 ```bash
-cd apps/fronend
+cd apps/frontend
 pnpm install --frozen-lockfile
 ```
 
