@@ -181,14 +181,13 @@ const deleteConfirmationOpened = ref(false)
             <PopoverContent class="flex flex-col gap-0.5">
               <span>Are you sure you wanna delete your account?</span>
               <div class="flex gap-2 justify-end">
-                <Button @click="deleteConfirmationOpened = false">
+                <Button
+                  @click="deleteConfirmationOpened = false"
+                  variant="secondary"
+                >
                   Cancel
                 </Button>
-                <Button
-                  variant="secondary"
-                  @click="deleteAccount"
-                  >Confirm</Button
-                >
+                <Button @click="deleteAccount">Confirm</Button>
               </div>
             </PopoverContent>
           </Popover>
