@@ -26,21 +26,6 @@ services:
       timeout: 5s
       retries: 5
 
-  logto:
-    depends_on:
-      postgres:
-        condition: service_healthy
-    image: svhd/logto:latest
-    entrypoint: [ "sh", "-c", "npm run cli db seed -- --swe && npm start" ]
-    ports:
-      - 3001:3001
-      - 3002:3002
-    environment:
-      - TRUST_PROXY_HEADER=1
-      - DB_URL=postgres://stream:stream@postgres:5432/logto
-      - ENDPOINT
-      - ADMIN_ENDPOINT
-
   minio:
     image: minio/minio:latest
     ports:
@@ -50,6 +35,13 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio-password
     command: server /data
+
+  nats:
+    image: nats:2.10.11-scratch
+    command: -js -m 8222
+    restart: always
+    ports:
+      - '8223:4222'
 
 volumes:
   postgres:

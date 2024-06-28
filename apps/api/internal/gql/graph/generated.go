@@ -65,6 +65,7 @@ type ComplexityRoot struct {
 
 	AuthedUser struct {
 		Providers func(childComplexity int) int
+		StreamKey func(childComplexity int) int
 		User      func(childComplexity int) int
 	}
 
@@ -77,6 +78,7 @@ type ComplexityRoot struct {
 	}
 
 	ChatMessage struct {
+		ChannelID func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Reactions func(childComplexity int) int
@@ -150,8 +152,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ChatMessagesLatest func(childComplexity int, limit *int) int
-		GetEmotes          func(childComplexity int) int
+		ChatMessagesLatest func(childComplexity int, channelID uuid.UUID, limit *int) int
+		FetchUserByID      func(childComplexity int, id uuid.UUID) int
+		FetchUserByName    func(childComplexity int, name string) int
+		GetEmotes          func(childComplexity int, channelID uuid.UUID) int
 		Roles              func(childComplexity int) int
 		Stream             func(childComplexity int) int
 		UserProfile        func(childComplexity int) int
@@ -172,10 +176,10 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		ChatMessages   func(childComplexity int) int
-		ReactionAdd    func(childComplexity int) int
-		StreamInfo     func(childComplexity int) int
-		SystemMessages func(childComplexity int) int
+		ChatMessages   func(childComplexity int, channelID uuid.UUID) int
+		ReactionAdd    func(childComplexity int, channelID uuid.UUID) int
+		StreamInfo     func(childComplexity int, channelID uuid.UUID) int
+		SystemMessages func(childComplexity int, channelID uuid.UUID) int
 	}
 
 	SystemMessageEmoteAdded struct {
@@ -219,17 +223,19 @@ type MutationResolver interface {
 	Logout(ctx context.Context) (bool, error)
 }
 type QueryResolver interface {
-	ChatMessagesLatest(ctx context.Context, limit *int) ([]gqlmodel.ChatMessage, error)
-	GetEmotes(ctx context.Context) ([]gqlmodel.Emote, error)
+	ChatMessagesLatest(ctx context.Context, channelID uuid.UUID, limit *int) ([]gqlmodel.ChatMessage, error)
+	GetEmotes(ctx context.Context, channelID uuid.UUID) ([]gqlmodel.Emote, error)
 	Roles(ctx context.Context) ([]gqlmodel.Role, error)
 	Stream(ctx context.Context) (*gqlmodel.Stream, error)
 	UserProfile(ctx context.Context) (*gqlmodel.AuthedUser, error)
+	FetchUserByName(ctx context.Context, name string) (*gqlmodel.User, error)
+	FetchUserByID(ctx context.Context, id uuid.UUID) (*gqlmodel.User, error)
 }
 type SubscriptionResolver interface {
-	ChatMessages(ctx context.Context) (<-chan *gqlmodel.ChatMessage, error)
-	SystemMessages(ctx context.Context) (<-chan gqlmodel.SystemMessage, error)
-	ReactionAdd(ctx context.Context) (<-chan gqlmodel.ChatMessageReaction, error)
-	StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error)
+	ChatMessages(ctx context.Context, channelID uuid.UUID) (<-chan *gqlmodel.ChatMessage, error)
+	SystemMessages(ctx context.Context, channelID uuid.UUID) (<-chan gqlmodel.SystemMessage, error)
+	ReactionAdd(ctx context.Context, channelID uuid.UUID) (<-chan gqlmodel.ChatMessageReaction, error)
+	StreamInfo(ctx context.Context, channelID uuid.UUID) (<-chan *gqlmodel.Stream, error)
 }
 
 type executableSchema struct {
@@ -300,6 +306,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuthedUser.Providers(childComplexity), true
 
+	case "AuthedUser.streamKey":
+		if e.complexity.AuthedUser.StreamKey == nil {
+			break
+		}
+
+		return e.complexity.AuthedUser.StreamKey(childComplexity), true
+
 	case "AuthedUser.user":
 		if e.complexity.AuthedUser.User == nil {
 			break
@@ -341,6 +354,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthedUserProvider.UserID(childComplexity), true
+
+	case "ChatMessage.channelId":
+		if e.complexity.ChatMessage.ChannelID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.ChannelID(childComplexity), true
 
 	case "ChatMessage.createdAt":
 		if e.complexity.ChatMessage.CreatedAt == nil {
@@ -693,14 +713,43 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ChatMessagesLatest(childComplexity, args["limit"].(*int)), true
+		return e.complexity.Query.ChatMessagesLatest(childComplexity, args["channelID"].(uuid.UUID), args["limit"].(*int)), true
+
+	case "Query.fetchUserById":
+		if e.complexity.Query.FetchUserByID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_fetchUserById_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FetchUserByID(childComplexity, args["id"].(uuid.UUID)), true
+
+	case "Query.fetchUserByName":
+		if e.complexity.Query.FetchUserByName == nil {
+			break
+		}
+
+		args, err := ec.field_Query_fetchUserByName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FetchUserByName(childComplexity, args["name"].(string)), true
 
 	case "Query.getEmotes":
 		if e.complexity.Query.GetEmotes == nil {
 			break
 		}
 
-		return e.complexity.Query.GetEmotes(childComplexity), true
+		args, err := ec.field_Query_getEmotes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetEmotes(childComplexity, args["channelID"].(uuid.UUID)), true
 
 	case "Query.roles":
 		if e.complexity.Query.Roles == nil {
@@ -784,28 +833,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Subscription.ChatMessages(childComplexity), true
+		args, err := ec.field_Subscription_chatMessages_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.ChatMessages(childComplexity, args["channelID"].(uuid.UUID)), true
 
 	case "Subscription.reactionAdd":
 		if e.complexity.Subscription.ReactionAdd == nil {
 			break
 		}
 
-		return e.complexity.Subscription.ReactionAdd(childComplexity), true
+		args, err := ec.field_Subscription_reactionAdd_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.ReactionAdd(childComplexity, args["channelID"].(uuid.UUID)), true
 
 	case "Subscription.streamInfo":
 		if e.complexity.Subscription.StreamInfo == nil {
 			break
 		}
 
-		return e.complexity.Subscription.StreamInfo(childComplexity), true
+		args, err := ec.field_Subscription_streamInfo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.StreamInfo(childComplexity, args["channelID"].(uuid.UUID)), true
 
 	case "Subscription.systemMessages":
 		if e.complexity.Subscription.SystemMessages == nil {
 			break
 		}
 
-		return e.complexity.Subscription.SystemMessages(childComplexity), true
+		args, err := ec.field_Subscription_systemMessages_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.SystemMessages(childComplexity, args["channelID"].(uuid.UUID)), true
 
 	case "SystemMessageEmoteAdded.emote":
 		if e.complexity.SystemMessageEmoteAdded.Emote == nil {
@@ -1048,8 +1117,8 @@ input BanUser {
     newValue: Boolean!
 }`, BuiltIn: false},
 	{Name: "../../../schema/chat.graphqls", Input: `extend type Query {
-    chatMessagesLatest(limit: Int): [ChatMessage!]!
-    getEmotes: [Emote!]!
+    chatMessagesLatest(channelID: UUID!, limit: Int): [ChatMessage!]!
+    getEmotes(channelID: UUID!): [Emote!]!
 }
 
 extend type Mutation {
@@ -1059,13 +1128,14 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    chatMessages: ChatMessage!
-    systemMessages: SystemMessage!
-    reactionAdd: ChatMessageReaction!
+    chatMessages(channelID: UUID!): ChatMessage!
+    systemMessages(channelID: UUID!): SystemMessage!
+    reactionAdd(channelID: UUID!): ChatMessageReaction!
 }
 
 type ChatMessage {
     id: ID!
+    channelId: UUID!
     segments: [MessageSegment!]!
     sender: User!
     createdAt: Time!
@@ -1086,6 +1156,7 @@ interface MessageSegment {
 }
 
 input SendMessageInput {
+    channelId: UUID!
     text: String!
     replyTo: UUID
 }
@@ -1239,7 +1310,7 @@ scalar UUID`, BuiltIn: false},
 }
 
 extend type Subscription {
-    streamInfo: Stream
+    streamInfo(channelID: UUID!): Stream
 }
 
 type Stream {
@@ -1253,6 +1324,8 @@ type Chatter {
 }`, BuiltIn: false},
 	{Name: "../../../schema/user.graphqls", Input: `extend type Query {
     userProfile: AuthedUser! @isAuthenticated
+    fetchUserByName(name: String!): User!
+    fetchUserById(id: UUID!): User!
 }
 
 extend type Mutation {
@@ -1276,6 +1349,7 @@ type User {
 type AuthedUser {
     user: User!
     providers: [AuthedUserProvider!]!
+    streamKey: UUID!
 }
 
 enum AuthedUserProviderType {
@@ -1474,15 +1548,129 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_chatMessagesLatest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["channelID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg0
+	args["channelID"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_fetchUserById_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_fetchUserByName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getEmotes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["channelID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channelID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_chatMessages_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["channelID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channelID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_reactionAdd_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["channelID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channelID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_streamInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["channelID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channelID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_systemMessages_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["channelID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channelID"] = arg0
 	return args, nil
 }
 
@@ -1908,6 +2096,50 @@ func (ec *executionContext) fieldContext_AuthedUser_providers(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _AuthedUser_streamKey(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUser_streamKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StreamKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUser_streamKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UUID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AuthedUserProvider_provider(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUserProvider) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AuthedUserProvider_provider(ctx, field)
 	if err != nil {
@@ -2167,6 +2399,50 @@ func (ec *executionContext) fieldContext_ChatMessage_id(_ context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessage_channelId(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_channelId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChannelID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_channelId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UUID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4367,6 +4643,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserProfile(ctx context.
 				return ec.fieldContext_AuthedUser_user(ctx, field)
 			case "providers":
 				return ec.fieldContext_AuthedUser_providers(ctx, field)
+			case "streamKey":
+				return ec.fieldContext_AuthedUser_streamKey(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthedUser", field.Name)
 		},
@@ -4527,7 +4805,7 @@ func (ec *executionContext) _Query_chatMessagesLatest(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ChatMessagesLatest(rctx, fc.Args["limit"].(*int))
+		return ec.resolvers.Query().ChatMessagesLatest(rctx, fc.Args["channelID"].(uuid.UUID), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4554,6 +4832,8 @@ func (ec *executionContext) fieldContext_Query_chatMessagesLatest(ctx context.Co
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ChatMessage_id(ctx, field)
+			case "channelId":
+				return ec.fieldContext_ChatMessage_channelId(ctx, field)
 			case "segments":
 				return ec.fieldContext_ChatMessage_segments(ctx, field)
 			case "sender":
@@ -4596,7 +4876,7 @@ func (ec *executionContext) _Query_getEmotes(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetEmotes(rctx)
+		return ec.resolvers.Query().GetEmotes(rctx, fc.Args["channelID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4613,7 +4893,7 @@ func (ec *executionContext) _Query_getEmotes(ctx context.Context, field graphql.
 	return ec.marshalNEmote2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmoteᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_getEmotes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_getEmotes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -4634,6 +4914,17 @@ func (ec *executionContext) fieldContext_Query_getEmotes(_ context.Context, fiel
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getEmotes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4832,9 +5123,161 @@ func (ec *executionContext) fieldContext_Query_userProfile(_ context.Context, fi
 				return ec.fieldContext_AuthedUser_user(ctx, field)
 			case "providers":
 				return ec.fieldContext_AuthedUser_providers(ctx, field)
+			case "streamKey":
+				return ec.fieldContext_AuthedUser_streamKey(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthedUser", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_fetchUserByName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_fetchUserByName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FetchUserByName(rctx, fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_fetchUserByName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			case "isAdmin":
+				return ec.fieldContext_User_isAdmin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_fetchUserByName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_fetchUserById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_fetchUserById(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FetchUserByID(rctx, fc.Args["id"].(uuid.UUID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_fetchUserById(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			case "isAdmin":
+				return ec.fieldContext_User_isAdmin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_fetchUserById_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -5332,7 +5775,7 @@ func (ec *executionContext) _Subscription_chatMessages(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().ChatMessages(rctx)
+		return ec.resolvers.Subscription().ChatMessages(rctx, fc.Args["channelID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5363,7 +5806,7 @@ func (ec *executionContext) _Subscription_chatMessages(ctx context.Context, fiel
 	}
 }
 
-func (ec *executionContext) fieldContext_Subscription_chatMessages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_chatMessages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -5373,6 +5816,8 @@ func (ec *executionContext) fieldContext_Subscription_chatMessages(_ context.Con
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ChatMessage_id(ctx, field)
+			case "channelId":
+				return ec.fieldContext_ChatMessage_channelId(ctx, field)
 			case "segments":
 				return ec.fieldContext_ChatMessage_segments(ctx, field)
 			case "sender":
@@ -5386,6 +5831,17 @@ func (ec *executionContext) fieldContext_Subscription_chatMessages(_ context.Con
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_chatMessages_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -5404,7 +5860,7 @@ func (ec *executionContext) _Subscription_systemMessages(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().SystemMessages(rctx)
+		return ec.resolvers.Subscription().SystemMessages(rctx, fc.Args["channelID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5435,7 +5891,7 @@ func (ec *executionContext) _Subscription_systemMessages(ctx context.Context, fi
 	}
 }
 
-func (ec *executionContext) fieldContext_Subscription_systemMessages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_systemMessages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -5444,6 +5900,17 @@ func (ec *executionContext) fieldContext_Subscription_systemMessages(_ context.C
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("FieldContext.Child cannot be called on type INTERFACE")
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_systemMessages_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -5462,7 +5929,7 @@ func (ec *executionContext) _Subscription_reactionAdd(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().ReactionAdd(rctx)
+		return ec.resolvers.Subscription().ReactionAdd(rctx, fc.Args["channelID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5493,7 +5960,7 @@ func (ec *executionContext) _Subscription_reactionAdd(ctx context.Context, field
 	}
 }
 
-func (ec *executionContext) fieldContext_Subscription_reactionAdd(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_reactionAdd(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -5502,6 +5969,17 @@ func (ec *executionContext) fieldContext_Subscription_reactionAdd(_ context.Cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("FieldContext.Child cannot be called on type INTERFACE")
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_reactionAdd_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -5520,7 +5998,7 @@ func (ec *executionContext) _Subscription_streamInfo(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().StreamInfo(rctx)
+		return ec.resolvers.Subscription().StreamInfo(rctx, fc.Args["channelID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5548,7 +6026,7 @@ func (ec *executionContext) _Subscription_streamInfo(ctx context.Context, field 
 	}
 }
 
-func (ec *executionContext) fieldContext_Subscription_streamInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_streamInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -5565,6 +6043,17 @@ func (ec *executionContext) fieldContext_Subscription_streamInfo(_ context.Conte
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_streamInfo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -8120,13 +8609,20 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"text", "replyTo"}
+	fieldsInOrder := [...]string{"channelId", "text", "replyTo"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "channelId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelId"))
+			data, err := ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelID = data
 		case "text":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -8412,6 +8908,11 @@ func (ec *executionContext) _AuthedUser(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "streamKey":
+			out.Values[i] = ec._AuthedUser_streamKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8507,6 +9008,11 @@ func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = graphql.MarshalString("ChatMessage")
 		case "id":
 			out.Values[i] = ec._ChatMessage_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "channelId":
+			out.Values[i] = ec._ChatMessage_channelId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -9188,6 +9694,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_userProfile(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "fetchUserByName":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fetchUserByName(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "fetchUserById":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fetchUserById(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -10551,6 +11101,10 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUser2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v gqlmodel.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *gqlmodel.User) graphql.Marshaler {

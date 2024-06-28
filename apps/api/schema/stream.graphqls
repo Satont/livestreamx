@@ -3,7 +3,7 @@ extend type Query {
 }
 
 extend type Subscription {
-    streamInfo: Stream
+    streamInfo(channelID: UUID!): Stream
 }
 
 type Stream {

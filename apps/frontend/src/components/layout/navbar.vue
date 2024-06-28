@@ -18,7 +18,7 @@ const { data: profile } = useProfile().useData()
         <router-link
           class="transition-colors hover:text-foreground/80 text-foreground/60"
           to="/"
-          >Stream</router-link
+          >Streams</router-link
         >
         <router-link
           v-if="profile?.userProfile.user.isAdmin"

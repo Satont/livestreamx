@@ -7,13 +7,9 @@ package resolvers
 import (
 	"context"
 	"fmt"
-	"slices"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 )
 
@@ -23,85 +19,52 @@ func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
 }
 
 // StreamInfo is the resolver for the streamInfo field.
-func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error) {
-	userID, userIdErr := r.sessionStorage.GetUserID(ctx)
-	if userIdErr == nil {
-		user, err := r.userRepo.FindByID(ctx, uuid.MustParse(userID))
-		if err != nil {
-			return nil, err
-		}
+func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UUID) (<-chan *gqlmodel.Stream, error) {
+	// userID, userIdErr := r.sessionStorage.GetUserID(ctx)
+	// if userIdErr == nil {
+	// 	user, err := r.userRepo.FindByID(ctx, uuid.MustParse(userID))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	//
+	// 	chattersLock.Lock()
+	// 	r.streamChatters[user.ID.String()] = gqlmodel.Chatter{
+	// 		User: &gqlmodel.User{
+	// 			ID:          user.ID.String(),
+	// 			Name:        user.Name,
+	// 			DisplayName: user.DisplayName,
+	// 			Color:       user.Color,
+	// 			Roles:       nil,
+	// 			IsBanned:    user.Banned,
+	// 			CreatedAt:   user.CreatedAt,
+	// 			AvatarURL:   user.AvatarUrl,
+	// 		},
+	// 	}
+	//
+	// 	chattersLock.Unlock()
+	// }
 
-		chattersLock.Lock()
-		r.streamChatters[user.ID.String()] = gqlmodel.Chatter{
-			User: &gqlmodel.User{
-				ID:          user.ID.String(),
-				Name:        user.Name,
-				DisplayName: user.DisplayName,
-				Color:       user.Color,
-				Roles:       nil,
-				IsBanned:    user.Banned,
-				CreatedAt:   user.CreatedAt,
-				AvatarURL:   user.AvatarUrl,
-			},
-		}
-
-		chattersLock.Unlock()
-	}
-
-	r.streamViewers.Inc()
-	chann := make(chan *gqlmodel.Stream)
+	channel := make(chan *gqlmodel.Stream, 1)
 
 	go func() {
+		defer close(channel)
+
 		for {
 			select {
 			case <-ctx.Done():
-				chattersLock.Lock()
-				defer chattersLock.Unlock()
-
-				r.streamViewers.Dec()
-
-				if userIdErr == nil {
-					delete(r.streamChatters, userID)
-				}
-
-				close(chann)
 				return
 			default:
-				chatters := lo.Values(r.streamChatters)
-				slices.SortFunc(
-					chatters,
-					func(a, b gqlmodel.Chatter) int {
-						return strings.Compare(a.User.Name, b.User.Name)
-					},
-				)
-
-				mtxInfo, err := r.mtxApi.GetStreamInfo()
-				if err != nil {
-					fmt.Println(err)
-				}
-
 				streamInfo := &gqlmodel.Stream{
-					Viewers:  int(r.streamViewers.Load()),
-					Chatters: chatters,
+					Viewers:   0,
+					Chatters:  nil,
+					StartedAt: nil,
 				}
 
-				if mtxInfo != nil {
-					streamInfo.StartedAt = mtxInfo.ReadyTime
-				}
-
-				chann <- streamInfo
+				channel <- streamInfo
 				time.Sleep(1 * time.Second)
 			}
 		}
 	}()
 
-	return chann, nil
+	return channel, nil
 }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-var chattersLock = sync.Mutex{}

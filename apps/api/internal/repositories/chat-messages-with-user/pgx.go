@@ -36,6 +36,7 @@ var selectFields = []string{
 	"chat_messages.text",
 	"chat_messages.created_at",
 	"chat_messages.reply_to",
+	"chat_messages.channel_id",
 	"users.id",
 	"users.name",
 	"users.display_name",
@@ -92,6 +93,7 @@ func (c *ChatMessageWithUserPgx) FindByID(ctx context.Context, id uuid.UUID) (
 			&row.Message.Text,
 			&row.Message.CreatedAt,
 			&row.Message.ReplyTo,
+			&row.Message.ChannelID,
 
 			&row.User.ID,
 			&row.User.Name,
@@ -153,7 +155,11 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 		From("chat_messages chat_messages").
 		Join("users users ON chat_messages.sender_id = users.id").
 		OrderBy("chat_messages.created_at DESC").
-		Where("users.banned IS FALSE").
+		Where(
+			squirrel.Eq{
+				"chat_messages.channel_id": opts.ChannelID,
+			},
+		).
 		LeftJoin("messages_reactions mr ON chat_messages.id = mr.message_id").
 		Limit(uint64(limit)).
 		PlaceholderFormat(squirrel.Dollar).
@@ -179,6 +185,7 @@ func (c *ChatMessageWithUserPgx) FindLatest(
 			&message.Message.Text,
 			&message.Message.CreatedAt,
 			&message.Message.ReplyTo,
+			&message.Message.ChannelID,
 
 			&message.User.ID,
 			&message.User.Name,

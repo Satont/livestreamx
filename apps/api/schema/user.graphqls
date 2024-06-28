@@ -1,5 +1,7 @@
 extend type Query {
     userProfile: AuthedUser! @isAuthenticated
+    fetchUserByName(name: String!): User!
+    fetchUserById(id: UUID!): User!
 }
 
 extend type Mutation {
@@ -23,6 +25,7 @@ type User {
 type AuthedUser {
     user: User!
     providers: [AuthedUserProvider!]!
+    streamKey: UUID!
 }
 
 enum AuthedUserProviderType {

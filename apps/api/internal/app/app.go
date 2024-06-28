@@ -18,6 +18,7 @@ import (
 	"github.com/satont/stream/apps/api/internal/httpserver"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	"github.com/satont/stream/apps/api/internal/httpserver/routes/auth"
+	"github.com/satont/stream/apps/api/internal/httpserver/routes/streams"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
 	mtx_api "github.com/satont/stream/apps/api/internal/mtx-api"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
@@ -26,7 +27,10 @@ import (
 	"github.com/satont/stream/apps/api/internal/repositories/role"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
 	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
+	subscriptions_router "github.com/satont/stream/apps/api/internal/subscriptions-router"
 	"go.uber.org/fx"
+
+	"github.com/nats-io/nats.go"
 )
 
 var App = fx.Options(
@@ -43,6 +47,14 @@ var App = fx.Options(
 		func(c config.Config) (*pgxpool.Pool, error) {
 			return pgxpool.New(context.Background(), c.PostgresURL)
 		},
+		func(c config.Config) (*nats.Conn, error) {
+			nc, err := nats.Connect(c.NatsURL)
+			if err != nil {
+				return nil, err
+			}
+
+			return nc, nil
+		},
 	),
 
 	fx.Provide(
@@ -55,6 +67,10 @@ var App = fx.Options(
 
 	fx.Provide(
 		// s3.New,
+		fx.Annotate(
+			subscriptions_router.NewNatsSubscription,
+			fx.As(new(subscriptions_router.Router)),
+		),
 		mtx_api.New,
 		seven_tv.New,
 		mappers.New,
@@ -84,5 +100,6 @@ var App = fx.Options(
 			return goose.Up(db, filepath.Join(wd, "migrations"))
 		},
 		auth.New,
+		streams.New,
 	),
 )

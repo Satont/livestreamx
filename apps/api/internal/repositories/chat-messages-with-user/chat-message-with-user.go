@@ -12,5 +12,6 @@ type Repository interface {
 }
 
 type FindLatestOpts struct {
-	Limit int
+	Limit     int
+	ChannelID uuid.UUID
 }

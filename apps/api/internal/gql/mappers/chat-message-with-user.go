@@ -114,6 +114,7 @@ func (c *Mapper) ChatMessageWithUser(
 
 	return gqlmodel.ChatMessage{
 		ID:        m.Message.ID.String(),
+		ChannelID: m.Message.ChannelID,
 		Segments:  segments,
 		Sender:    &sender,
 		CreatedAt: m.Message.CreatedAt,

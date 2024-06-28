@@ -33,9 +33,9 @@ func (c *ChatMessagePgx) Create(ctx context.Context, opts CreateChatMessageOpts)
 ) {
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Insert("chat_messages").
-		Columns("id", "sender_id", "text", "reply_to").
-		Values(uuid.New(), opts.SenderID, opts.Text, opts.ReplyTo).
-		Suffix("RETURNING id, sender_id, text, created_at, reply_to").
+		Columns("id", "sender_id", "text", "reply_to", "channel_id").
+		Values(uuid.New(), opts.SenderID, opts.Text, opts.ReplyTo, opts.ChannelID).
+		Suffix("RETURNING id, sender_id, text, created_at, reply_to, channel_id").
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -48,6 +48,7 @@ func (c *ChatMessagePgx) Create(ctx context.Context, opts CreateChatMessageOpts)
 		&message.Text,
 		&message.CreatedAt,
 		&message.ReplyTo,
+		&message.ChannelID,
 	); err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func (c *ChatMessagePgx) FindLatest(ctx context.Context, opts FindManyOpts) ([]M
 	}
 
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
-		Select("id", "sender_id", "text", "created_at").
+		Select("id", "sender_id", "text", "created_at", "channel_id").
 		From("chat_messages").
 		OrderBy("created_at DESC").
 		Limit(uint64(limit)).
@@ -85,6 +86,7 @@ func (c *ChatMessagePgx) FindLatest(ctx context.Context, opts FindManyOpts) ([]M
 			&message.SenderID,
 			&message.Text,
 			&message.CreatedAt,
+			&message.ChannelID,
 		); err != nil {
 			return nil, err
 		}

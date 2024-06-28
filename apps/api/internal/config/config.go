@@ -9,9 +9,12 @@ import (
 )
 
 type Config struct {
-	AppEnv             string `envconfig:"APP_ENV" default:"development"`
-	RedisURL           string `envconfig:"REDIS_URL"`
-	PostgresURL        string `envconfig:"POSTGRES_URL"`
+	AppEnv string `envconfig:"APP_ENV" default:"development"`
+
+	RedisURL    string `envconfig:"REDIS_URL"`
+	PostgresURL string `envconfig:"POSTGRES_URL"`
+	NatsURL     string `envconfig:"NATS_URL" default:"nats://localhost:8223" required:"true"`
+
 	ApiPort            int    `required:"false"  envconfig:"API_PORT" default:"1337"`
 	ApiSessionSecret   string `envconfig:"API_SESSION_SECRET"`
 	SevenTVEmoteSetID  string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`

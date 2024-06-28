@@ -9,11 +9,11 @@ export const useChatMessageSend = createGlobalState(() => {
   const replyTo = ref<string | null>(null)
   const textElement = ref<HTMLTextAreaElement | null>(null)
 
-  const { useSendMessage } = useChat()
+  const { useSendMessage, channelData } = useChat()
   const messageSender = useSendMessage()
 
   async function sendMessage() {
-    if (!text.value) return
+    if (!text.value || !channelData.value?.fetchUserByName) return
 
     const msg = text.value.replace(/\s+/g, ' ').trim()
     if (!msg) return
@@ -26,7 +26,8 @@ export const useChatMessageSend = createGlobalState(() => {
         const res = await messageSender.executeMutation({
           opts: {
             text: msg,
-            replyTo: replyTo.value
+            replyTo: replyTo.value,
+            channelId: channelData.value.fetchUserByName.id
           }
         })
         if (res.error) {

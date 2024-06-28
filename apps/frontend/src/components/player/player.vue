@@ -3,6 +3,7 @@ import { useLocalStorage } from '@vueuse/core'
 import { Fullscreen, Pause, Play } from 'lucide-vue-next'
 import { ref, watchEffect } from 'vue'
 
+import { useChat } from '@/api/chat.ts'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { init } from './player.js'
@@ -10,20 +11,23 @@ import { init } from './player.js'
 const videoRef = ref<HTMLVideoElement | null>(null)
 const messageRef = ref<HTMLDivElement | null>(null)
 
-const streamUrl = import.meta.env.VITE_STREAM_URL
+const { channelData } = useChat()
 
 watchEffect(() => {
-  if (!videoRef.value || !messageRef.value) return
+  if (
+    !videoRef.value ||
+    !messageRef.value ||
+    !channelData.value?.fetchUserByName.id
+  )
+    return
 
   init({
     videoEl: videoRef.value,
     messageEl: messageRef.value,
-    streamSrc: streamUrl ?? 'http://localhost:8889/mystream/',
+    streamSrc: `${window.location.origin}/api/streams/${channelData.value.fetchUserByName.id}/`,
     controls: false,
     muted: false
   })
-
-  videoRef.value.play()
 })
 
 const paused = ref(false)

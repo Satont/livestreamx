@@ -1,6 +1,6 @@
 extend type Query {
-    chatMessagesLatest(limit: Int): [ChatMessage!]!
-    getEmotes: [Emote!]!
+    chatMessagesLatest(channelID: UUID!, limit: Int): [ChatMessage!]!
+    getEmotes(channelID: UUID!): [Emote!]!
 }
 
 extend type Mutation {
@@ -10,13 +10,14 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    chatMessages: ChatMessage!
-    systemMessages: SystemMessage!
-    reactionAdd: ChatMessageReaction!
+    chatMessages(channelID: UUID!): ChatMessage!
+    systemMessages(channelID: UUID!): SystemMessage!
+    reactionAdd(channelID: UUID!): ChatMessageReaction!
 }
 
 type ChatMessage {
     id: ID!
+    channelId: UUID!
     segments: [MessageSegment!]!
     sender: User!
     createdAt: Time!
@@ -37,6 +38,7 @@ interface MessageSegment {
 }
 
 input SendMessageInput {
+    channelId: UUID!
     text: String!
     replyTo: UUID
 }
