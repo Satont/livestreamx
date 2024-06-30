@@ -33,6 +33,13 @@ export const ChatMessage_Fragment = graphql(`
       createdAt
       name
       displayName
+      roles {
+        id
+        name
+        features
+        channelId
+        imageUrl
+      }
     }
     createdAt
     reactions {

@@ -42,8 +42,8 @@ watch(
   profile,
   (v) => {
     if (!v) return
-    form.value.name = v.userProfile.user.name
-    form.value.displayName = v.userProfile.user.displayName
+    form.value.name = v.userProfile.name
+    form.value.displayName = v.userProfile.displayName
   },
   { immediate: true }
 )
@@ -100,9 +100,9 @@ function copyText(text: string) {
         size="sm"
         variant="ghost"
       >
-        {{ profile.userProfile.user.displayName }}
+        {{ profile.userProfile.displayName }}
         <img
-          :src="profile.userProfile.user.avatarUrl"
+          :src="profile.userProfile.avatarUrl"
           alt="avatar"
           class="size-7 rounded-full"
         />

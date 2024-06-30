@@ -12,7 +12,9 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	data_loader "github.com/satont/stream/apps/api/internal/gql/data-loader"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
+	"github.com/satont/stream/apps/api/internal/gql/graph"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	userrepo "github.com/satont/stream/apps/api/internal/repositories/user"
 	"golang.org/x/sync/errgroup"
@@ -46,15 +48,13 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 				streamsMu.Lock()
 				defer streamsMu.Unlock()
 
-				c := r.mapper.DbUserToGql(*dbChannel)
-
 				streams = append(
 					streams,
 					gqlmodel.Stream{
 						Viewers:      len(path.Readers),
 						Chatters:     []gqlmodel.Chatter{},
 						StartedAt:    path.ReadyTime,
-						Channel:      &c,
+						ChannelID:    dbChannel.ID,
 						ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.ID),
 					},
 				)
@@ -69,6 +69,11 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 	}
 
 	return streams, nil
+}
+
+// Channel is the resolver for the channel field.
+func (r *streamResolver) Channel(ctx context.Context, obj *gqlmodel.Stream) (*gqlmodel.BaseUser, error) {
+	return data_loader.GetBaseUserByID(ctx, obj.ChannelID)
 }
 
 // StreamInfo is the resolver for the streamInfo field.
@@ -131,7 +136,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 						continue
 					}
 
-					gqlUser := r.mapper.DbUserToGql(u)
+					gqlUser := r.mapper.DbUserToBaseUserGql(u)
 
 					chatters = append(
 						chatters,
@@ -146,7 +151,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 					continue
 				}
 
-				gqlChannel := r.mapper.DbUserToGql(*dbChannel)
+				gqlChannel := r.mapper.DbUserToBaseUserGql(*dbChannel)
 
 				streamInfo := &gqlmodel.Stream{
 					Viewers:      len(mtxInfo.Readers),
@@ -165,12 +170,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 	return channel, nil
 }
 
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
-	panic(fmt.Errorf("not implemented: Stream - stream"))
-}
+// Stream returns graph.StreamResolver implementation.
+func (r *Resolver) Stream() graph.StreamResolver { return &streamResolver{r} }
+
+type streamResolver struct{ *Resolver }

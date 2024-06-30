@@ -9,7 +9,6 @@ import (
 
 func (c *Mapper) DbReactionToGql(
 	r message_reaction.MessageReaction,
-	user *gqlmodel.User,
 ) gqlmodel.ChatMessageReaction {
 	emotesSlice := lo.Values(c.sevenTv.Emotes)
 
@@ -23,7 +22,7 @@ func (c *Mapper) DbReactionToGql(
 		return gqlmodel.ChatMessageReactionEmote{
 			ID:       r.ID.String(),
 			Type:     gqlmodel.ChatMessageReactionTypeEmote,
-			User:     user,
+			UserID:   r.UserID,
 			Reaction: r.Reaction,
 			Emote: &gqlmodel.Emote{
 				ID:     emote.ID,
@@ -38,7 +37,7 @@ func (c *Mapper) DbReactionToGql(
 		return gqlmodel.ChatMessageReactionEmoji{
 			ID:        r.ID.String(),
 			Type:      gqlmodel.ChatMessageReactionTypeEmoji,
-			User:      user,
+			UserID:    r.UserID,
 			Reaction:  r.Reaction,
 			MessageID: r.MessageID.String(),
 		}

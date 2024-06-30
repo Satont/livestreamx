@@ -118,7 +118,7 @@ function focusColorPicker() {
           <input
             id="user-profile-color-picker"
             type="color"
-            :value="profile?.userProfile.user.color"
+            :value="profile?.userProfile.color"
             class="size-6"
             :disabled="!profile"
             @change="handleColorChange"

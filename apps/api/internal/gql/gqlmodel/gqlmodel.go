@@ -16,7 +16,8 @@ type ChatMessageReaction interface {
 	IsChatMessageReaction()
 	GetID() string
 	GetType() ChatMessageReactionType
-	GetUser() *User
+	GetUserID() uuid.UUID
+	GetUser() *ChatUser
 	GetReaction() string
 	GetMessageID() string
 }
@@ -32,6 +33,18 @@ type SystemMessage interface {
 	GetType() SystemMessageType
 }
 
+type User interface {
+	IsUser()
+	GetID() uuid.UUID
+	GetName() string
+	GetDisplayName() string
+	GetColor() string
+	GetIsBanned() bool
+	GetCreatedAt() time.Time
+	GetAvatarURL() string
+	GetIsAdmin() bool
+}
+
 type AttachedFile struct {
 	ID        string    `json:"id"`
 	URL       string    `json:"url"`
@@ -42,10 +55,27 @@ type AttachedFile struct {
 }
 
 type AuthedUser struct {
-	User      *User                `json:"user"`
-	Providers []AuthedUserProvider `json:"providers"`
-	StreamKey uuid.UUID            `json:"streamKey"`
+	ID          uuid.UUID            `json:"id"`
+	Name        string               `json:"name"`
+	DisplayName string               `json:"displayName"`
+	Color       string               `json:"color"`
+	IsBanned    bool                 `json:"isBanned"`
+	CreatedAt   time.Time            `json:"createdAt"`
+	AvatarURL   string               `json:"avatarUrl"`
+	IsAdmin     bool                 `json:"isAdmin"`
+	Providers   []AuthedUserProvider `json:"providers"`
+	StreamKey   uuid.UUID            `json:"streamKey"`
 }
+
+func (AuthedUser) IsUser()                      {}
+func (this AuthedUser) GetID() uuid.UUID        { return this.ID }
+func (this AuthedUser) GetName() string         { return this.Name }
+func (this AuthedUser) GetDisplayName() string  { return this.DisplayName }
+func (this AuthedUser) GetColor() string        { return this.Color }
+func (this AuthedUser) GetIsBanned() bool       { return this.IsBanned }
+func (this AuthedUser) GetCreatedAt() time.Time { return this.CreatedAt }
+func (this AuthedUser) GetAvatarURL() string    { return this.AvatarURL }
+func (this AuthedUser) GetIsAdmin() bool        { return this.IsAdmin }
 
 type AuthedUserProvider struct {
 	Provider    AuthedUserProviderType `json:"provider"`
@@ -60,11 +90,33 @@ type BanUser struct {
 	NewValue bool   `json:"newValue"`
 }
 
+type BaseUser struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	DisplayName string    `json:"displayName"`
+	Color       string    `json:"color"`
+	IsBanned    bool      `json:"isBanned"`
+	CreatedAt   time.Time `json:"createdAt"`
+	AvatarURL   string    `json:"avatarUrl"`
+	IsAdmin     bool      `json:"isAdmin"`
+}
+
+func (BaseUser) IsUser()                      {}
+func (this BaseUser) GetID() uuid.UUID        { return this.ID }
+func (this BaseUser) GetName() string         { return this.Name }
+func (this BaseUser) GetDisplayName() string  { return this.DisplayName }
+func (this BaseUser) GetColor() string        { return this.Color }
+func (this BaseUser) GetIsBanned() bool       { return this.IsBanned }
+func (this BaseUser) GetCreatedAt() time.Time { return this.CreatedAt }
+func (this BaseUser) GetAvatarURL() string    { return this.AvatarURL }
+func (this BaseUser) GetIsAdmin() bool        { return this.IsAdmin }
+
 type ChatMessage struct {
 	ID        string                `json:"id"`
 	ChannelID uuid.UUID             `json:"channelId"`
 	Segments  []MessageSegment      `json:"segments"`
-	Sender    *User                 `json:"sender"`
+	SenderID  uuid.UUID             `json:"senderId"`
+	Sender    *ChatUser             `json:"sender"`
 	CreatedAt time.Time             `json:"createdAt"`
 	Reactions []ChatMessageReaction `json:"reactions"`
 	ReplyTo   *uuid.UUID            `json:"replyTo,omitempty"`
@@ -73,7 +125,8 @@ type ChatMessage struct {
 type ChatMessageReactionEmoji struct {
 	ID        string                  `json:"id"`
 	Type      ChatMessageReactionType `json:"type"`
-	User      *User                   `json:"user"`
+	UserID    uuid.UUID               `json:"userId"`
+	User      *ChatUser               `json:"user"`
 	Reaction  string                  `json:"reaction"`
 	MessageID string                  `json:"messageId"`
 }
@@ -81,14 +134,16 @@ type ChatMessageReactionEmoji struct {
 func (ChatMessageReactionEmoji) IsChatMessageReaction()                {}
 func (this ChatMessageReactionEmoji) GetID() string                    { return this.ID }
 func (this ChatMessageReactionEmoji) GetType() ChatMessageReactionType { return this.Type }
-func (this ChatMessageReactionEmoji) GetUser() *User                   { return this.User }
+func (this ChatMessageReactionEmoji) GetUserID() uuid.UUID             { return this.UserID }
+func (this ChatMessageReactionEmoji) GetUser() *ChatUser               { return this.User }
 func (this ChatMessageReactionEmoji) GetReaction() string              { return this.Reaction }
 func (this ChatMessageReactionEmoji) GetMessageID() string             { return this.MessageID }
 
 type ChatMessageReactionEmote struct {
 	ID        string                  `json:"id"`
 	Type      ChatMessageReactionType `json:"type"`
-	User      *User                   `json:"user"`
+	UserID    uuid.UUID               `json:"userId"`
+	User      *ChatUser               `json:"user"`
 	Reaction  string                  `json:"reaction"`
 	Emote     *Emote                  `json:"emote"`
 	MessageID string                  `json:"messageId"`
@@ -97,12 +152,36 @@ type ChatMessageReactionEmote struct {
 func (ChatMessageReactionEmote) IsChatMessageReaction()                {}
 func (this ChatMessageReactionEmote) GetID() string                    { return this.ID }
 func (this ChatMessageReactionEmote) GetType() ChatMessageReactionType { return this.Type }
-func (this ChatMessageReactionEmote) GetUser() *User                   { return this.User }
+func (this ChatMessageReactionEmote) GetUserID() uuid.UUID             { return this.UserID }
+func (this ChatMessageReactionEmote) GetUser() *ChatUser               { return this.User }
 func (this ChatMessageReactionEmote) GetReaction() string              { return this.Reaction }
 func (this ChatMessageReactionEmote) GetMessageID() string             { return this.MessageID }
 
+type ChatUser struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	DisplayName string    `json:"displayName"`
+	Color       string    `json:"color"`
+	IsBanned    bool      `json:"isBanned"`
+	CreatedAt   time.Time `json:"createdAt"`
+	AvatarURL   string    `json:"avatarUrl"`
+	IsAdmin     bool      `json:"isAdmin"`
+	Roles       []Role    `json:"roles"`
+}
+
+func (ChatUser) IsUser()                      {}
+func (this ChatUser) GetID() uuid.UUID        { return this.ID }
+func (this ChatUser) GetName() string         { return this.Name }
+func (this ChatUser) GetDisplayName() string  { return this.DisplayName }
+func (this ChatUser) GetColor() string        { return this.Color }
+func (this ChatUser) GetIsBanned() bool       { return this.IsBanned }
+func (this ChatUser) GetCreatedAt() time.Time { return this.CreatedAt }
+func (this ChatUser) GetAvatarURL() string    { return this.AvatarURL }
+func (this ChatUser) GetIsAdmin() bool        { return this.IsAdmin }
+
 type Chatter struct {
-	User *User `json:"user"`
+	UserID uuid.UUID `json:"userId"`
+	User   *BaseUser `json:"user"`
 }
 
 type CreateRoleInput struct {
@@ -141,7 +220,8 @@ func (this MessageSegmentLink) GetContent() string          { return this.Conten
 type MessageSegmentMention struct {
 	Content string             `json:"content"`
 	Type    MessageSegmentType `json:"type"`
-	User    *User              `json:"user"`
+	UserID  uuid.UUID          `json:"userId"`
+	User    *ChatUser          `json:"user"`
 }
 
 func (MessageSegmentMention) IsMessageSegment()                {}
@@ -165,7 +245,7 @@ type Query struct {
 
 type Role struct {
 	ID        uuid.UUID     `json:"id"`
-	ChannelID uuid.UUID     `json:"channelID"`
+	ChannelID uuid.UUID     `json:"channelId"`
 	Name      string        `json:"name"`
 	ImageURL  *string       `json:"imageUrl,omitempty"`
 	Features  []RoleFeature `json:"features"`
@@ -181,7 +261,8 @@ type Stream struct {
 	Viewers      int        `json:"viewers"`
 	Chatters     []Chatter  `json:"chatters"`
 	StartedAt    *time.Time `json:"startedAt,omitempty"`
-	Channel      *User      `json:"channel"`
+	ChannelID    uuid.UUID  `json:"channelId"`
+	Channel      *BaseUser  `json:"channel"`
 	ThumbnailURL string     `json:"thumbnailUrl"`
 }
 
@@ -222,18 +303,6 @@ type UpdateUserProfileInput struct {
 	Color       graphql.Omittable[*string] `json:"color,omitempty"`
 	Name        graphql.Omittable[*string] `json:"name,omitempty"`
 	DisplayName graphql.Omittable[*string] `json:"displayName,omitempty"`
-}
-
-type User struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	DisplayName string    `json:"displayName"`
-	Color       string    `json:"color"`
-	Roles       []Role    `json:"roles"`
-	IsBanned    bool      `json:"isBanned"`
-	CreatedAt   time.Time `json:"createdAt"`
-	AvatarURL   string    `json:"avatarUrl"`
-	IsAdmin     bool      `json:"isAdmin"`
 }
 
 type AuthedUserProviderType string

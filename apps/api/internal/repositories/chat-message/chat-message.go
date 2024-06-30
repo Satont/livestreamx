@@ -8,7 +8,8 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, opts CreateChatMessageOpts) (*Message, error)
-	FindLatest(ctx context.Context, opts FindManyOpts) ([]Message, error)
+	FindLatest(ctx context.Context, opts FindLatestOpts) ([]Message, error)
+	FindByID(ctx context.Context, id uuid.UUID) (*Message, error)
 }
 
 type CreateChatMessageOpts struct {
@@ -18,7 +19,7 @@ type CreateChatMessageOpts struct {
 	ReplyTo   *uuid.UUID
 }
 
-type FindManyOpts struct {
+type FindLatestOpts struct {
 	ChannelID uuid.UUID
 	Limit     int
 }

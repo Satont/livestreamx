@@ -8,7 +8,6 @@ import (
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
 	mtx_api "github.com/satont/stream/apps/api/internal/mtx-api"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
-	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 	"github.com/satont/stream/apps/api/internal/repositories/role"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
@@ -23,11 +22,10 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	chatMessageRepo          chat_message.Repository
-	userRepo                 user.Repository
-	chatMessagesWithUserRepo chat_messages_with_user.Repository
-	messageReactionRepo      message_reaction.Repository
-	rolesRepo                role.Repository
+	chatMessageRepo     chat_message.Repository
+	userRepo            user.Repository
+	messageReactionRepo message_reaction.Repository
+	rolesRepo           role.Repository
 	// userFilesRepo            user_file.Repository
 
 	sessionStorage     *session_storage.SessionStorage
@@ -44,11 +42,10 @@ type Resolver struct {
 type Opts struct {
 	fx.In
 
-	ChatMessageRepo          chat_message.Repository
-	UserRepo                 user.Repository
-	ChatMessagesWithUserRepo chat_messages_with_user.Repository
-	MessageReactionRepo      message_reaction.Repository
-	RolesRepo                role.Repository
+	ChatMessageRepo     chat_message.Repository
+	UserRepo            user.Repository
+	MessageReactionRepo message_reaction.Repository
+	RolesRepo           role.Repository
 	// UserFilesRepo            user_file.Repository
 
 	SessionStorage *session_storage.SessionStorage
@@ -64,12 +61,11 @@ type Opts struct {
 
 func New(opts Opts) *Resolver {
 	return &Resolver{
-		chatMessageRepo:          opts.ChatMessageRepo,
-		userRepo:                 opts.UserRepo,
-		chatMessagesWithUserRepo: opts.ChatMessagesWithUserRepo,
-		messageReactionRepo:      opts.MessageReactionRepo,
-		rolesRepo:                opts.RolesRepo,
-		subscriptionRouter:       opts.SubscriptionRouter,
+		chatMessageRepo:     opts.ChatMessageRepo,
+		userRepo:            opts.UserRepo,
+		messageReactionRepo: opts.MessageReactionRepo,
+		rolesRepo:           opts.RolesRepo,
+		subscriptionRouter:  opts.SubscriptionRouter,
 
 		sessionStorage: opts.SessionStorage,
 		mapper:         opts.Converter,

@@ -112,7 +112,7 @@ async function handleAddReaction(name: string) {
       :disabled="
         reactions.some(
           (r) =>
-            r.user.id === profile?.userProfile.user.id &&
+            r.user.id === profile?.userProfile.id &&
             r.reaction === reaction.reaction
         )
       "

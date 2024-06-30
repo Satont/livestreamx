@@ -54,12 +54,24 @@ func (cm *ChatMessage) UnmarshalJSON(data []byte) error {
 		cm.Segments = append(cm.Segments, msgSegment)
 	}
 
+	senderID, _ := uuid.Parse(raw["senderId"].(string))
+	cm.SenderID = senderID
+
 	senderData, _ := json.Marshal(raw["sender"])
-	var sender User
+	var sender ChatUser
 	if err := json.Unmarshal(senderData, &sender); err != nil {
 		return err
 	}
+
 	cm.Sender = &sender
+
+	rolesData, _ := json.Marshal(raw["roles"])
+	var roles []Role
+	if err := json.Unmarshal(rolesData, &roles); err != nil {
+		return err
+	}
+
+	cm.Sender.Roles = roles
 
 	createdAt, _ := time.Parse(time.RFC3339, raw["createdAt"].(string))
 	cm.CreatedAt = createdAt
