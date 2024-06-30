@@ -6,12 +6,14 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	data_loader "github.com/satont/stream/apps/api/internal/gql/data-loader"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	"github.com/satont/stream/apps/api/internal/gql/graph"
@@ -51,7 +53,6 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 				streams = append(
 					streams,
 					gqlmodel.Stream{
-						Viewers:      len(path.Readers),
 						Chatters:     []gqlmodel.Chatter{},
 						StartedAt:    path.ReadyTime,
 						ChannelID:    dbChannel.ID,
@@ -71,12 +72,31 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 	return streams, nil
 }
 
-// Chatters is the resolver for the chatters field.
-func (r *streamResolver) Chatters(ctx context.Context, obj *gqlmodel.Stream) ([]gqlmodel.Chatter, error) {
-	chattersRedisKey := fmt.Sprintf("streams:chatters:%s", obj.ChannelID)
+// Viewers is the resolver for the viewers field.
+func (r *streamResolver) Viewers(ctx context.Context, obj *gqlmodel.Stream) (int, error) {
+	viewers, err := r.redis.Get(ctx, r.buildStreamViewersRedisKey(obj.ChannelID)).Int()
+	if err != nil {
+		if !errors.Is(err, redis.Nil) {
+			r.logger.Sugar().Error(err)
+		}
+		return 0, nil
+	}
 
+	return viewers, nil
+}
+
+// Chatters is the resolver for the chatters field.
+func (r *streamResolver) Chatters(ctx context.Context, obj *gqlmodel.Stream) (
+	[]gqlmodel.Chatter,
+	error,
+) {
 	var chatters []gqlmodel.Chatter
-	iter := r.redis.Scan(ctx, 0, fmt.Sprintf("%s:*", chattersRedisKey), 0).Iterator()
+	iter := r.redis.Scan(
+		ctx,
+		0,
+		fmt.Sprintf("%s:*", r.buildStreamChattersRedisKey(obj.ChannelID)),
+		0,
+	).Iterator()
 	for iter.Next(ctx) {
 		key := iter.Val()
 		val, err := r.redis.Get(ctx, key).Bytes()
@@ -109,20 +129,22 @@ func (r *streamResolver) Chatters(ctx context.Context, obj *gqlmodel.Stream) ([]
 }
 
 // Channel is the resolver for the channel field.
-func (r *streamResolver) Channel(ctx context.Context, obj *gqlmodel.Stream) (*gqlmodel.BaseUser, error) {
+func (r *streamResolver) Channel(ctx context.Context, obj *gqlmodel.Stream) (
+	*gqlmodel.BaseUser,
+	error,
+) {
 	return data_loader.GetBaseUserByID(ctx, obj.ChannelID)
 }
 
 // StreamInfo is the resolver for the streamInfo field.
-func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UUID) (<-chan *gqlmodel.Stream, error) {
+func (r *subscriptionResolver) StreamInfo(
+	ctx context.Context,
+	channelID uuid.UUID,
+) (<-chan *gqlmodel.Stream, error) {
 	dbChannel, err := r.userRepo.FindByID(ctx, channelID)
 	if err != nil {
 		return nil, err
 	}
-
-	chattersRedisKey := fmt.Sprintf("streams:chatters:%s", channelID.String())
-	viewersRedisKey := fmt.Sprintf("streams:viewers:%s", channelID.String())
-
 	user := middlewares.GetUserFromContext(ctx)
 	if user != nil {
 		userBytes, err := json.Marshal(user)
@@ -130,7 +152,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 			r.logger.Sugar().Error(err)
 			return nil, err
 		}
-		userChatterKey := fmt.Sprintf("%s:%s", chattersRedisKey, user.ID)
+		userChatterKey := fmt.Sprintf("%s:%s", r.buildStreamChattersRedisKey(channelID), user.ID)
 		if err := r.redis.Set(ctx, userChatterKey, userBytes, 48*time.Hour).Err(); err != nil {
 			return nil, err
 		}
@@ -138,11 +160,15 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 
 	channel := make(chan *gqlmodel.Stream, 1)
 
-	if err := r.redis.Incr(ctx, viewersRedisKey).Err(); err != nil {
+	if err := r.redis.Incr(ctx, r.buildStreamViewersRedisKey(channelID)).Err(); err != nil {
 		return nil, err
 	}
 
-	if err := r.redis.Expire(ctx, viewersRedisKey, 48*time.Hour).Err(); err != nil {
+	if err := r.redis.Expire(
+		ctx,
+		r.buildStreamViewersRedisKey(channelID),
+		48*time.Hour,
+	).Err(); err != nil {
 		return nil, err
 	}
 
@@ -150,13 +176,16 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 		defer func() {
 			close(channel)
 			if user != nil {
-				userChatterKey := fmt.Sprintf("%s:%s", chattersRedisKey, user.ID)
+				userChatterKey := fmt.Sprintf("%s:%s", r.buildStreamChattersRedisKey(channelID), user.ID)
 				if err := r.redis.Del(context.Background(), userChatterKey).Err(); err != nil {
 					r.logger.Sugar().Error(err)
 				}
 			}
 
-			if err := r.redis.Decr(context.Background(), viewersRedisKey).Err(); err != nil {
+			if err := r.redis.Decr(
+				context.Background(),
+				r.buildStreamViewersRedisKey(channelID),
+			).Err(); err != nil {
 				r.logger.Sugar().Error(err)
 			}
 		}()
@@ -173,15 +202,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 					continue
 				}
 
-				viewers, err := r.redis.Get(ctx, viewersRedisKey).Int()
-				if err != nil {
-					r.logger.Sugar().Error(err)
-					time.Sleep(1 * time.Second)
-					continue
-				}
-
 				streamInfo := &gqlmodel.Stream{
-					Viewers:      viewers,
 					StartedAt:    mtxInfo.ReadyTime,
 					ChannelID:    dbChannel.ID,
 					ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.ID),
