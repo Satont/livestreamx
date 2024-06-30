@@ -69,6 +69,11 @@ services:
     volumes:
       - ./mediamtx.yml:/mediamtx.yml
 
+  nats:
+    image: nats:2.10.11-scratch
+    command: -js -m 8222
+    restart: always
+
 volumes:
     postgres:
     redis:

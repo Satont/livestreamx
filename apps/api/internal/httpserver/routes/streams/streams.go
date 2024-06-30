@@ -27,7 +27,7 @@ func New(opts Opts) (*Streams, error) {
 	group := opts.HttpServer.Group("/streams")
 	group.POST("auth", s.authHandler)
 
-	group.GET("/*regex", s.reverseProxy("http://localhost:8888"))
+	group.GET("/*regex", s.reverseProxy(opts.Config.MediaMtxAddr+":8888"))
 
 	return s, nil
 }
