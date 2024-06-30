@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useSubscription } from '@urql/vue'
 import { createGlobalState } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { FragmentType, graphql } from '@/gql'
 import { useFragment } from '@/gql/fragment-masking.ts'
 import { ChatEmote_FragmentFragment } from '@/gql/graphql.js'
+import { useRoute } from "vue-router";
 
 export const ChatMessage_Fragment = graphql(`
   fragment ChatMessage_Fragment on ChatMessage {
@@ -72,17 +73,54 @@ export const ChatReaction_Fragment = graphql(`
 `)
 
 export const useChat = createGlobalState(() => {
+  const routerParams = useRoute()
+  const channelName = computed(() => {
+    if (typeof routerParams.params.channelName != 'string') return null
+
+    return routerParams.params.channelName
+  })
+
+  const channelRequest = useQuery({
+    query: graphql(`
+        query ChannelPageChannel($channelName: String!) {
+          fetchUserByName(name: $channelName) {
+            id
+            name
+            avatarUrl
+          }
+        }
+    `),
+    get variables() {
+      return {
+        channelName: channelName.value
+      }
+    }
+  })
+
+  const channelData = computed(() => {
+    if (!channelRequest.data) return null
+
+    return channelRequest.data.value
+  })
+
   const messages = ref<FragmentType<typeof ChatMessage_Fragment>[]>([])
 
   const sub = useSubscription({
     query: graphql(`
-      subscription NewChatMessages {
-        chatMessages {
+      subscription NewChatMessages($channelID: UUID!) {
+        chatMessages(channelID: $channelID) {
           ...ChatMessage_Fragment
         }
       }
     `),
-    variables: {}
+    get variables() {
+      return {
+        channelID: channelData.value?.fetchUserByName.id
+      }
+    },
+    pause() {
+      return !channelData.value?.fetchUserByName.id
+    },
   })
 
   watch(sub.data, (data) => {
@@ -93,13 +131,20 @@ export const useChat = createGlobalState(() => {
 
   const initialMessages = useQuery({
     query: graphql(`
-      query ChatMessages {
-        chatMessagesLatest {
+      query ChatMessages($channelID: UUID!) {
+        chatMessagesLatest(channelID: $channelID) {
           ...ChatMessage_Fragment
         }
       }
     `),
-    variables: {}
+    get variables() {
+      return {
+        channelID: channelData.value?.fetchUserByName.id
+      }
+    },
+    pause() {
+      return !channelData.value?.fetchUserByName.id
+    },
   })
 
   watch(initialMessages.data, (data) => {
@@ -121,13 +166,20 @@ export const useChat = createGlobalState(() => {
 
   const useQueryEmotes = useQuery({
     query: graphql(`
-      query ChatEmotes {
-        getEmotes {
+      query ChatEmotes($channelID: UUID!) {
+        getEmotes(channelID: $channelID) {
           ...ChatEmote_Fragment
         }
       }
     `),
-    variables: {}
+    get variables() {
+      return {
+        channelID: channelData.value?.fetchUserByName.id
+      }
+    },
+    pause() {
+      return !channelData.value?.fetchUserByName.id
+    }
   })
 
   watch(useQueryEmotes.data, (data) => {
@@ -140,21 +192,28 @@ export const useChat = createGlobalState(() => {
   const useReactionAddMutation = () =>
     useMutation(
       graphql(`
-        mutation AddReaction($messageId: String!, $content: String!) {
-          addReaction(messageId: $messageId, content: $content)
+        mutation AddReaction($messageId: String!, $content: String!, $channelID: UUID!) {
+          addReaction(messageId: $messageId, content: $content, channelID: $channelID)
         }
       `)
     )
 
   const newReactionSub = useSubscription({
     query: graphql(`
-      subscription NewMessageReaction {
-        reactionAdd {
+      subscription NewMessageReaction($channelID: UUID!) {
+        reactionAdd(channelID: $channelID) {
           ...ChatReaction_Fragment
         }
       }
     `),
-    variables: {}
+    get variables() {
+      return {
+        channelID: channelData.value?.fetchUserByName.id
+      }
+    },
+    pause() {
+      return !channelData.value?.fetchUserByName.id
+    },
   })
 
   watch(newReactionSub.data, (data) => {
@@ -173,6 +232,7 @@ export const useChat = createGlobalState(() => {
     messages,
     useSendMessage,
     emotes,
-    useReactionAddMutation
+    useReactionAddMutation,
+    channelData,
   }
 })

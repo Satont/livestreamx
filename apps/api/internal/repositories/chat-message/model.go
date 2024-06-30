@@ -8,6 +8,7 @@ import (
 
 type Message struct {
 	ID        uuid.UUID
+	ChannelID uuid.UUID
 	SenderID  uuid.UUID
 	Text      string
 	CreatedAt time.Time

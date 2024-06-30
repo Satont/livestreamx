@@ -31,6 +31,75 @@ type Pgx struct {
 	pgx *pgxpool.Pool
 }
 
+func (c *Pgx) FindByStreamKey(ctx context.Context, streamKey uuid.UUID) (*User, error) {
+	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
+		Select(selectUserFields...).
+		From("users").
+		Where(squirrel.Eq{"stream_key": streamKey}).
+		Suffix("LIMIT 1").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	user := &User{}
+	err = c.pgx.QueryRow(ctx, query, args...).Scan(
+		&user.ID,
+		&user.Name,
+		&user.DisplayName,
+		&user.Color,
+		&user.AvatarUrl,
+		&user.CreatedAt,
+		&user.Banned,
+		&user.IsAdmin,
+		&user.StreamKey,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+
+		return nil, err
+	}
+
+	providersQuery, providersArgs, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
+		Select("id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url").
+		From("users_providers").
+		Where(squirrel.Eq{"user_id": user.ID}).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := c.pgx.Query(ctx, providersQuery, providersArgs...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var providers []Provider
+	for rows.Next() {
+		provider := Provider{}
+		err = rows.Scan(
+			&provider.ID,
+			&provider.UserID,
+			&provider.Provider,
+			&provider.ProviderUserID,
+			&provider.ProviderUserName,
+			&provider.ProviderUserDisplayName,
+			&provider.ProviderAvatarUrl,
+		)
+		if err != nil {
+			return nil, err
+		}
+		providers = append(providers, provider)
+	}
+
+	user.Providers = providers
+
+	return user, nil
+}
+
 func (c *Pgx) DeleteAccount(ctx context.Context, userID uuid.UUID) error {
 	query, args, err := squirrel.
 		Delete("users").
@@ -62,6 +131,7 @@ var selectUserFields = []string{
 	"created_at",
 	"banned",
 	"is_admin",
+	"stream_key",
 }
 
 func (c *Pgx) FindByName(ctx context.Context, name string) (*User, error) {
@@ -72,8 +142,8 @@ func (c *Pgx) FindByName(ctx context.Context, name string) (*User, error) {
 		From("users").
 		Where(
 			squirrel.Or{
-				squirrel.Eq{"name": name},
-				squirrel.Eq{"display_name": name},
+				squirrel.Expr("LOWER(name) = ?", name),
+				squirrel.Expr("LOWER(display_name) = ?", name),
 			},
 		).
 		Suffix("LIMIT 1").
@@ -100,6 +170,8 @@ func (c *Pgx) FindByName(ctx context.Context, name string) (*User, error) {
 		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.Banned,
+		&user.IsAdmin,
+		&user.StreamKey,
 	)
 	if err != nil {
 		return nil, err
@@ -155,7 +227,7 @@ func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			opts.AvatarUrl,
 			opts.Color,
 		).
-		Suffix("RETURNING id, name, display_name, color, avatar_url, created_at, is_admin").
+		Suffix("RETURNING id, name, display_name, color, avatar_url, created_at, is_admin, stream_key").
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -182,6 +254,7 @@ func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.IsAdmin,
+		&user.StreamKey,
 	)
 	if err != nil {
 		return nil, err
@@ -267,6 +340,7 @@ func (c *Pgx) FindByProviderUserID(
 		&user.CreatedAt,
 		&user.Banned,
 		&user.IsAdmin,
+		&user.StreamKey,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -341,6 +415,7 @@ func (c *Pgx) FindByID(ctx context.Context, userID uuid.UUID) (*User, error) {
 		&user.CreatedAt,
 		&user.Banned,
 		&user.IsAdmin,
+		&user.StreamKey,
 	)
 	if err != nil {
 		return nil, err

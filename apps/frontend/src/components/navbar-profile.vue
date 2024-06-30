@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertCircle } from 'lucide-vue-next'
+import { AlertCircle, Copy, Eye, EyeOff } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
 
 import { useProfile } from '@/api/profile.js'
@@ -74,6 +74,13 @@ async function saveChanges() {
 }
 
 const deleteConfirmationOpened = ref(false)
+
+const streamAddress = `rtsp://${window.location.host}`
+
+const showStreamKey = ref(false)
+function copyText(text: string) {
+  navigator.clipboard.writeText(text)
+}
 </script>
 
 <template>
@@ -162,7 +169,66 @@ const deleteConfirmationOpened = ref(false)
         />
       </div>
 
-      <template v-if="!!profile">
+      <template v-if="profile">
+        <Separator />
+
+        <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-4">
+            <Label for="streamServer">Stream server</Label>
+            <div class="w-full relative">
+              <Input
+                id="streamServer"
+                disabled
+                :default-value="streamAddress"
+                @click="copyText(streamAddress)"
+                class="pr-8"
+              />
+              <Button
+                size="xs"
+                variant="ghost"
+                @click="copyText(streamAddress)"
+                class="absolute right-2 bottom-0 top-1.5"
+              >
+                <Copy class="size-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            <Label for="streamKey">Stream key</Label>
+            <div class="w-full relative">
+              <Input
+                id="streamKey"
+                :default-value="profile.userProfile.streamKey"
+                :type="showStreamKey ? 'text' : 'password'"
+                disabled
+                class="pr-8"
+              />
+              <div class="absolute right-2 bottom-0 top-1.5 flex gap-0.5">
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  @click="copyText(profile?.userProfile.streamKey)"
+                >
+                  <Copy class="size-4" />
+                </Button>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  @click="showStreamKey = !showStreamKey"
+                >
+                  <component
+                    :is="showStreamKey ? EyeOff : Eye"
+                    class="size-4"
+                  />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template v-if="profile">
         <Separator />
 
         <DialogFooter

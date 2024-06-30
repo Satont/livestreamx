@@ -7,95 +7,160 @@ package resolvers
 import (
 	"context"
 	"fmt"
-	"slices"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
+	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
+	userrepo "github.com/satont/stream/apps/api/internal/repositories/user"
+	"golang.org/x/sync/errgroup"
 )
 
-// Stream is the resolver for the stream field.
-func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
-	panic(fmt.Errorf("not implemented: Stream - stream"))
-}
-
-// StreamInfo is the resolver for the streamInfo field.
-func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel.Stream, error) {
-	userID, userIdErr := r.sessionStorage.GetUserID(ctx)
-	if userIdErr == nil {
-		user, err := r.userRepo.FindByID(ctx, uuid.MustParse(userID))
-		if err != nil {
-			return nil, err
-		}
-
-		chattersLock.Lock()
-		r.streamChatters[user.ID.String()] = gqlmodel.Chatter{
-			User: &gqlmodel.User{
-				ID:          user.ID.String(),
-				Name:        user.Name,
-				DisplayName: user.DisplayName,
-				Color:       user.Color,
-				Roles:       nil,
-				IsBanned:    user.Banned,
-				CreatedAt:   user.CreatedAt,
-				AvatarURL:   user.AvatarUrl,
-			},
-		}
-
-		chattersLock.Unlock()
+// Streams is the resolver for the streams field.
+func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) {
+	paths, err := r.mtxApi.GetPaths(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	r.streamViewers.Inc()
-	chann := make(chan *gqlmodel.Stream)
+	var streamsMu sync.Mutex
+	var streams []gqlmodel.Stream
+	var errwg errgroup.Group
 
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				chattersLock.Lock()
-				defer chattersLock.Unlock()
-
-				r.streamViewers.Dec()
-
-				if userIdErr == nil {
-					delete(r.streamChatters, userID)
+	for _, path := range paths {
+		path := path
+		errwg.Go(
+			func() error {
+				parsedStreamKey, err := uuid.Parse(path.Name)
+				if err != nil {
+					return err
 				}
 
-				close(chann)
-				return
-			default:
-				chatters := lo.Values(r.streamChatters)
-				slices.SortFunc(
-					chatters,
-					func(a, b gqlmodel.Chatter) int {
-						return strings.Compare(a.User.Name, b.User.Name)
+				dbChannel, err := r.userRepo.FindByStreamKey(ctx, parsedStreamKey)
+				if err != nil {
+					return err
+				}
+
+				streamsMu.Lock()
+				defer streamsMu.Unlock()
+
+				c := r.mapper.DbUserToGql(*dbChannel)
+
+				streams = append(
+					streams,
+					gqlmodel.Stream{
+						Viewers:   len(path.Readers),
+						Chatters:  nil,
+						StartedAt: nil,
+						Channel:   &c,
 					},
 				)
 
-				mtxInfo, err := r.mtxApi.GetStreamInfo()
-				if err != nil {
-					fmt.Println(err)
+				return nil
+			},
+		)
+	}
+
+	if err := errwg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return streams, nil
+}
+
+// StreamInfo is the resolver for the streamInfo field.
+func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UUID) (<-chan *gqlmodel.Stream, error) {
+	dbChannel, err := r.userRepo.FindByID(ctx, channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	chattersRedisKey := fmt.Sprintf("streams:chatters:%s", channelID.String())
+	user := middlewares.GetUserFromContext(ctx)
+	if user != nil {
+		userBytes, err := json.Marshal(user)
+		if err != nil {
+			r.logger.Sugar().Error(err)
+			return nil, err
+		}
+		userChatterKey := fmt.Sprintf("%s:%s", chattersRedisKey, user.ID)
+		if err := r.redis.Set(ctx, userChatterKey, userBytes, 48*time.Hour).Err(); err != nil {
+			return nil, err
+		}
+	}
+
+	channel := make(chan *gqlmodel.Stream, 1)
+
+	go func() {
+		defer close(channel)
+
+		for {
+			select {
+			case <-ctx.Done():
+				if user != nil {
+					userChatterKey := fmt.Sprintf("%s:%s", chattersRedisKey, user.ID)
+					if err := r.redis.Del(context.Background(), userChatterKey).Err(); err != nil {
+						r.logger.Sugar().Error(err)
+					}
 				}
+				return
+			default:
+				mtxInfo, err := r.mtxApi.GetPathInfoByApyKey(ctx, dbChannel.StreamKey.String())
+				if err != nil {
+					r.logger.Sugar().Error(err)
+					time.Sleep(1 * time.Second)
+					continue
+				}
+
+				var chatters []gqlmodel.Chatter
+				iter := r.redis.Scan(ctx, 0, fmt.Sprintf("%s:*", chattersRedisKey), 0).Iterator()
+				for iter.Next(ctx) {
+					key := iter.Val()
+					val, err := r.redis.Get(ctx, key).Bytes()
+					if err != nil {
+						r.logger.Sugar().Error(err)
+						continue
+					}
+
+					var u userrepo.User
+					if err := json.Unmarshal(val, &u); err != nil {
+						r.logger.Sugar().Error(err)
+						continue
+					}
+
+					gqlUser := r.mapper.DbUserToGql(u)
+
+					chatters = append(
+						chatters,
+						gqlmodel.Chatter{
+							User: &gqlUser,
+						},
+					)
+				}
+				if err := iter.Err(); err != nil {
+					r.logger.Sugar().Error(err)
+					time.Sleep(1 * time.Second)
+					continue
+				}
+
+				gqlChannel := r.mapper.DbUserToGql(*dbChannel)
 
 				streamInfo := &gqlmodel.Stream{
-					Viewers:  int(r.streamViewers.Load()),
-					Chatters: chatters,
+					Viewers:   len(mtxInfo.Readers),
+					Chatters:  chatters,
+					StartedAt: mtxInfo.ReadyTime,
+					Channel:   &gqlChannel,
 				}
 
-				if mtxInfo != nil {
-					streamInfo.StartedAt = mtxInfo.ReadyTime
-				}
-
-				chann <- streamInfo
+				channel <- streamInfo
 				time.Sleep(1 * time.Second)
 			}
 		}
 	}()
 
-	return chann, nil
+	return channel, nil
 }
 
 // !!! WARNING !!!
@@ -104,4 +169,6 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context) (<-chan *gqlmodel
 //   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //     it when you're done.
 //   - You have helper methods in this file. Move them out to keep these resolver files clean.
-var chattersLock = sync.Mutex{}
+func (r *queryResolver) Stream(ctx context.Context) (*gqlmodel.Stream, error) {
+	panic(fmt.Errorf("not implemented: Stream - stream"))
+}

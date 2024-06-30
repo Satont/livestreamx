@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -25,11 +26,14 @@ type callbackOpts struct {
 
 func (c *Auth) callback(ctx context.Context, opts callbackOpts) (*userrepo.User, error) {
 	authedUserID, authedErr := c.sessionStore.GetUserID(ctx)
-	existedUser, _ := c.userRepo.FindByProviderUserID(
+	existedUser, err := c.userRepo.FindByProviderUserID(
 		ctx,
 		opts.ProviderUserID,
 		opts.Provider,
 	)
+	if err != nil && !errors.Is(err, userrepo.ErrNotFound) {
+		return nil, err
+	}
 
 	subOpts := subCallbackOpts{
 		callbackOpts:          opts,

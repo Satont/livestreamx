@@ -1,5 +1,8 @@
 api: yes
 
+authMethod: http
+externalAuthenticationURL: http://localhost:1337/streams/auth
+
 #authMethod: internal
 #authInternalUsers:
 #  - user: any
@@ -28,9 +31,13 @@ api: yes
 #      - action: pprof
 #    ips: [127.0.0.1]
 
+hlsPartDuration: 500ms
 
 paths:
-  mystream:
-  proxy:
-    runOnReady: ffmpeg -i rtsp://localhost:$RTSP_PORT/$RTSP_PATH -vcodec copy -ac 2 -c:a libopus -b:a 128k -async 50 -f rtsp rtsp://localhost:$RTSP_PORT/mystream
-    runOnInitRestart: yes
+  "~^(.+)$":
+#    runOnReady: ffmpeg -re -stream_loop -1 -i file.ts -c copy -f rtsp rtsp://localhost:$RTSP_PORT/$G1
+#    runOnInitRestart: yes
+#  mystream:
+#  proxy:
+#    runOnReady: ffmpeg -i rtsp://localhost:$RTSP_PORT/$RTSP_PATH -vcodec copy -ac 2 -c:a libopus -b:a 128k -async 50 -f rtsp rtsp://localhost:$RTSP_PORT/mystream
+#    runOnInitRestart: yes

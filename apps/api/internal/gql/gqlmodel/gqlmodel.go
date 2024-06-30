@@ -44,6 +44,7 @@ type AttachedFile struct {
 type AuthedUser struct {
 	User      *User                `json:"user"`
 	Providers []AuthedUserProvider `json:"providers"`
+	StreamKey uuid.UUID            `json:"streamKey"`
 }
 
 type AuthedUserProvider struct {
@@ -61,6 +62,7 @@ type BanUser struct {
 
 type ChatMessage struct {
 	ID        string                `json:"id"`
+	ChannelID uuid.UUID             `json:"channelId"`
 	Segments  []MessageSegment      `json:"segments"`
 	Sender    *User                 `json:"sender"`
 	CreatedAt time.Time             `json:"createdAt"`
@@ -170,14 +172,16 @@ type Role struct {
 }
 
 type SendMessageInput struct {
-	Text    string                        `json:"text"`
-	ReplyTo graphql.Omittable[*uuid.UUID] `json:"replyTo,omitempty"`
+	ChannelID uuid.UUID                     `json:"channelId"`
+	Text      string                        `json:"text"`
+	ReplyTo   graphql.Omittable[*uuid.UUID] `json:"replyTo,omitempty"`
 }
 
 type Stream struct {
 	Viewers   int        `json:"viewers"`
 	Chatters  []Chatter  `json:"chatters"`
 	StartedAt *time.Time `json:"startedAt,omitempty"`
+	Channel   *User      `json:"channel"`
 }
 
 type Subscription struct {

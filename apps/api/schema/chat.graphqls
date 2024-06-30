@@ -1,22 +1,23 @@
 extend type Query {
-    chatMessagesLatest(limit: Int): [ChatMessage!]!
-    getEmotes: [Emote!]!
+    chatMessagesLatest(channelID: UUID!, limit: Int): [ChatMessage!]!
+    getEmotes(channelID: UUID!): [Emote!]!
 }
 
 extend type Mutation {
     sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
     attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
-    addReaction(messageId: String!, content: String!): Boolean! @isAuthenticated @notBanned
+    addReaction(messageId: String!, content: String!, channelID: UUID!): Boolean! @isAuthenticated @notBanned
 }
 
 extend type Subscription {
-    chatMessages: ChatMessage!
-    systemMessages: SystemMessage!
-    reactionAdd: ChatMessageReaction!
+    chatMessages(channelID: UUID!): ChatMessage!
+    systemMessages(channelID: UUID!): SystemMessage!
+    reactionAdd(channelID: UUID!): ChatMessageReaction!
 }
 
 type ChatMessage {
     id: ID!
+    channelId: UUID!
     segments: [MessageSegment!]!
     sender: User!
     createdAt: Time!
@@ -37,6 +38,7 @@ interface MessageSegment {
 }
 
 input SendMessageInput {
+    channelId: UUID!
     text: String!
     replyTo: UUID
 }

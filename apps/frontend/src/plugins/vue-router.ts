@@ -9,11 +9,16 @@ export const router = createRouter({
       children: [
         {
           path: '/',
-          component: () => import('../pages/stream.vue')
+          component: () => import('../pages/index.vue')
         },
         {
           path: '/dashboard',
           component: () => import('../pages/dashboard.vue')
+        },
+        {
+          path: '/:channelName',
+          name: 'Channel',
+          component: () => import('../pages/stream.vue')
         }
       ]
     }

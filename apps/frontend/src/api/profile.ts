@@ -27,6 +27,7 @@ export const useProfile = createGlobalState(() => {
               avatarUrl
             }
             __typename
+            streamKey
           }
         }
       `),

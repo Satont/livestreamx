@@ -91,6 +91,7 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel
 			AvatarURL:   newUser.AvatarUrl,
 		},
 		Providers: providers,
+		StreamKey: newUser.StreamKey,
 	}, nil
 }
 
@@ -164,5 +165,44 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*gqlmodel.AuthedUser, 
 			IsAdmin:     user.IsAdmin,
 		},
 		Providers: providers,
+		StreamKey: user.StreamKey,
+	}, nil
+}
+
+// FetchUserByName is the resolver for the fetchUserByName field.
+func (r *queryResolver) FetchUserByName(ctx context.Context, name string) (*gqlmodel.User, error) {
+	user, err := r.userRepo.FindByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &gqlmodel.User{
+		ID:          user.ID.String(),
+		Name:        user.Name,
+		DisplayName: user.DisplayName,
+		Color:       user.Color,
+		Roles:       nil,
+		IsBanned:    user.Banned,
+		CreatedAt:   user.CreatedAt,
+		AvatarURL:   user.AvatarUrl,
+	}, nil
+}
+
+// FetchUserByID is the resolver for the fetchUserById field.
+func (r *queryResolver) FetchUserByID(ctx context.Context, id uuid.UUID) (*gqlmodel.User, error) {
+	user, err := r.userRepo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &gqlmodel.User{
+		ID:          user.ID.String(),
+		Name:        user.Name,
+		DisplayName: user.DisplayName,
+		Color:       user.Color,
+		Roles:       nil,
+		IsBanned:    user.Banned,
+		CreatedAt:   user.CreatedAt,
+		AvatarURL:   user.AvatarUrl,
 	}, nil
 }

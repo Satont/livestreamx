@@ -18,7 +18,8 @@ func (c *SevenTV) openWebSocket() {
 			conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 			defer conn.Close()
 			if err != nil {
-				panic(err)
+				fmt.Println(err)
+				continue
 			}
 
 			if err := conn.WriteMessage(
@@ -30,7 +31,8 @@ func (c *SevenTV) openWebSocket() {
 					),
 				),
 			); err != nil {
-				panic(err)
+				fmt.Println(err)
+				continue
 			}
 
 		readLoop:

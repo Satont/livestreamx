@@ -1,15 +1,16 @@
 extend type Query {
-    stream: Stream
+    streams: [Stream!]!
 }
 
 extend type Subscription {
-    streamInfo: Stream
+    streamInfo(channelID: UUID!): Stream
 }
 
 type Stream {
     viewers: Int!
     chatters: [Chatter!]!
     startedAt: Time
+    channel: User!
 }
 
 type Chatter {
