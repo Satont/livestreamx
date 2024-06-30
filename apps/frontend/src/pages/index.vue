@@ -51,14 +51,14 @@ function computeStreamUptime(startedAt: Date) {
           />
 
           <span
-            class="flex gap-2 items-center absolute py-0.5 px-2 bottom-1 right-1 bg-black/60 rounded-md text-sm"
+            class="flex gap-2 items-center absolute py-0.5 px-2 bottom-1 right-1 bg-accent-foreground rounded-md text-sm text-accent"
           >
             <Eye class="size-4" />
             {{ stream.viewers }}
           </span>
 
           <span
-            class="flex gap-2 items-center absolute top-1 px-2 py-0.5 right-1 bg-black/60 rounded-md text-sm"
+            class="flex gap-2 items-center absolute top-1 px-2 py-0.5 right-1 bg-accent-foreground rounded-md text-sm text-accent"
           >
             <Clock class="size-4" />
             {{ computeStreamUptime(stream.startedAt) }}
