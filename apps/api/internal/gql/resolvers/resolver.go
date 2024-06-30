@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
 	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/gql/mappers"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
@@ -14,6 +15,7 @@ import (
 	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 	subscriptions_router "github.com/satont/stream/apps/api/internal/subscriptions-router"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 // This file will not be regenerated automatically.
@@ -35,6 +37,8 @@ type Resolver struct {
 	sevenTv            *seven_tv.SevenTV
 	mtxApi             *mtx_api.MtxApi
 	subscriptionRouter subscriptions_router.Router
+	redis              *redis.Client
+	logger             *zap.Logger
 }
 
 type Opts struct {
@@ -54,6 +58,8 @@ type Opts struct {
 	SevenTv            *seven_tv.SevenTV
 	MtxApi             *mtx_api.MtxApi
 	SubscriptionRouter subscriptions_router.Router
+	Redis              *redis.Client
+	Logger             *zap.Logger
 }
 
 func New(opts Opts) *Resolver {
@@ -71,5 +77,7 @@ func New(opts Opts) *Resolver {
 		mtxApi:         opts.MtxApi,
 		// userFilesRepo:            opts.UserFilesRepo,
 		sevenTv: opts.SevenTv,
+		redis:   opts.Redis,
+		logger:  opts.Logger,
 	}
 }

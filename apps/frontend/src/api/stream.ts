@@ -1,4 +1,4 @@
-import { useSubscription } from '@urql/vue'
+import { useQuery, useSubscription } from '@urql/vue'
 import { createGlobalState } from '@vueuse/core'
 
 import { useChat } from '@/api/chat.ts'
@@ -41,3 +41,23 @@ export const useStream = createGlobalState(() => {
     useStreamState
   }
 })
+
+export const useStreamsList = () => {
+  return useQuery({
+    query: graphql(`
+      query StreamsList {
+        streams {
+          viewers
+          viewers
+          channel {
+            name
+            id
+            displayName
+            avatarUrl
+          }
+        }
+      }
+    `),
+    variables: {}
+  })
+}

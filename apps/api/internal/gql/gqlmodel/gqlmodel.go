@@ -181,6 +181,7 @@ type Stream struct {
 	Viewers   int        `json:"viewers"`
 	Chatters  []Chatter  `json:"chatters"`
 	StartedAt *time.Time `json:"startedAt,omitempty"`
+	Channel   *User      `json:"channel"`
 }
 
 type Subscription struct {

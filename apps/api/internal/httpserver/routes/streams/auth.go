@@ -3,7 +3,6 @@ package streams
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/kr/pretty"
 )
 
 type authReq struct {
@@ -42,7 +41,11 @@ func (c *Streams) authHandler(ctx *gin.Context) {
 			return
 		}
 
-		pretty.Println(user)
+		if user.Banned {
+			ctx.JSON(403, gin.H{"error": "User is banned"})
+			return
+		}
+
 		ctx.Status(200)
 		return
 	}

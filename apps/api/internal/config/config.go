@@ -15,10 +15,10 @@ type Config struct {
 	PostgresURL string `envconfig:"POSTGRES_URL"`
 	NatsURL     string `envconfig:"NATS_URL" default:"nats://localhost:8223" required:"true"`
 
-	ApiPort            int    `required:"false"  envconfig:"API_PORT" default:"1337"`
-	ApiSessionSecret   string `envconfig:"API_SESSION_SECRET"`
-	SevenTVEmoteSetID  string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`
-	StreamPathInfoAddr string `envconfig:"STREAM_PATH_INFO_ADDR"`
+	ApiPort           int    `required:"false"  envconfig:"API_PORT" default:"1337"`
+	ApiSessionSecret  string `envconfig:"API_SESSION_SECRET"`
+	SevenTVEmoteSetID string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`
+	MediaMtxAddr      string `envconfig:"MEDIA_MTX_ADDR" required:"true"`
 
 	S3Host        string `envconfig:"S3_HOST"`
 	S3AccessToken string `envconfig:"S3_ACCESS_TOKEN"`

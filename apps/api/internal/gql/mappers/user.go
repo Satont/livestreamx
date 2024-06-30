@@ -15,5 +15,6 @@ func (c *Mapper) DbUserToGql(u user.User) gqlmodel.User {
 		IsBanned:    u.Banned,
 		CreatedAt:   u.CreatedAt,
 		AvatarURL:   u.AvatarUrl,
+		IsAdmin:     u.IsAdmin,
 	}
 }

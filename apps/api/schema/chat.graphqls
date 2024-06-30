@@ -6,7 +6,7 @@ extend type Query {
 extend type Mutation {
     sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
     attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
-    addReaction(messageId: String!, content: String!): Boolean! @isAuthenticated @notBanned
+    addReaction(messageId: String!, content: String!, channelID: UUID!): Boolean! @isAuthenticated @notBanned
 }
 
 extend type Subscription {

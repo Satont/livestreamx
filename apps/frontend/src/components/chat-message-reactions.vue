@@ -39,6 +39,7 @@ const unwrappedMessage = useFragment(ChatMessage_Fragment, props.msg)
 const reactions = useFragment(ChatReaction_Fragment, unwrappedMessage.reactions)
 const { showReactionsOnMessage } = useShowReactionsOnMessage()
 
+const { channelData } = useChat()
 const { data: profile } = useProfile().useData()
 const dialogOpen = ref(false)
 const { emotes, useReactionAddMutation } = useChat()
@@ -73,10 +74,13 @@ const smallerThanLg = breakpoints.smaller('lg')
 
 const reactionAddMutation = useReactionAddMutation()
 async function handleAddReaction(name: string) {
+  if (!channelData.value) return
+
   try {
     const { error } = await reactionAddMutation.executeMutation({
       messageId: unwrappedMessage.id,
-      content: name
+      content: name,
+      channelID: channelData.value!.fetchUserByName.id
     })
 
     if (error) {

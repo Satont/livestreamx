@@ -29,6 +29,7 @@ import (
 	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 	subscriptions_router "github.com/satont/stream/apps/api/internal/subscriptions-router"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 
 	"github.com/nats-io/nats.go"
 )
@@ -43,6 +44,11 @@ var App = fx.Options(
 			}
 
 			return redis.NewClient(opts), nil
+		},
+		func() *zap.Logger {
+			logger, _ := zap.NewDevelopment()
+			zap.ReplaceGlobals(logger)
+			return logger
 		},
 		func(c config.Config) (*pgxpool.Pool, error) {
 			return pgxpool.New(context.Background(), c.PostgresURL)

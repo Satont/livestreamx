@@ -139,7 +139,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddReaction       func(childComplexity int, messageID string, content string) int
+		AddReaction       func(childComplexity int, messageID string, content string, channelID uuid.UUID) int
 		AttachFile        func(childComplexity int, file graphql.Upload) int
 		ChatSwitchUserBan func(childComplexity int, input gqlmodel.BanUser) int
 		CreateRole        func(childComplexity int, input gqlmodel.CreateRoleInput) int
@@ -157,7 +157,7 @@ type ComplexityRoot struct {
 		FetchUserByName    func(childComplexity int, name string) int
 		GetEmotes          func(childComplexity int, channelID uuid.UUID) int
 		Roles              func(childComplexity int) int
-		Stream             func(childComplexity int) int
+		Streams            func(childComplexity int) int
 		UserProfile        func(childComplexity int) int
 	}
 
@@ -170,6 +170,7 @@ type ComplexityRoot struct {
 	}
 
 	Stream struct {
+		Channel   func(childComplexity int) int
 		Chatters  func(childComplexity int) int
 		StartedAt func(childComplexity int) int
 		Viewers   func(childComplexity int) int
@@ -214,7 +215,7 @@ type MutationResolver interface {
 	ChatSwitchUserBan(ctx context.Context, input gqlmodel.BanUser) (bool, error)
 	SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error)
 	AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error)
-	AddReaction(ctx context.Context, messageID string, content string) (bool, error)
+	AddReaction(ctx context.Context, messageID string, content string, channelID uuid.UUID) (bool, error)
 	CreateRole(ctx context.Context, input gqlmodel.CreateRoleInput) (*gqlmodel.Role, error)
 	UpdateRole(ctx context.Context, id uuid.UUID, input gqlmodel.UpdateRoleInput) (*gqlmodel.Role, error)
 	DeleteRole(ctx context.Context, id uuid.UUID) (bool, error)
@@ -226,7 +227,7 @@ type QueryResolver interface {
 	ChatMessagesLatest(ctx context.Context, channelID uuid.UUID, limit *int) ([]gqlmodel.ChatMessage, error)
 	GetEmotes(ctx context.Context, channelID uuid.UUID) ([]gqlmodel.Emote, error)
 	Roles(ctx context.Context) ([]gqlmodel.Role, error)
-	Stream(ctx context.Context) (*gqlmodel.Stream, error)
+	Streams(ctx context.Context) ([]gqlmodel.Stream, error)
 	UserProfile(ctx context.Context) (*gqlmodel.AuthedUser, error)
 	FetchUserByName(ctx context.Context, name string) (*gqlmodel.User, error)
 	FetchUserByID(ctx context.Context, id uuid.UUID) (*gqlmodel.User, error)
@@ -603,7 +604,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddReaction(childComplexity, args["messageId"].(string), args["content"].(string)), true
+		return e.complexity.Mutation.AddReaction(childComplexity, args["messageId"].(string), args["content"].(string), args["channelID"].(uuid.UUID)), true
 
 	case "Mutation.attachFile":
 		if e.complexity.Mutation.AttachFile == nil {
@@ -758,12 +759,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Roles(childComplexity), true
 
-	case "Query.stream":
-		if e.complexity.Query.Stream == nil {
+	case "Query.streams":
+		if e.complexity.Query.Streams == nil {
 			break
 		}
 
-		return e.complexity.Query.Stream(childComplexity), true
+		return e.complexity.Query.Streams(childComplexity), true
 
 	case "Query.userProfile":
 		if e.complexity.Query.UserProfile == nil {
@@ -806,6 +807,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Role.Name(childComplexity), true
+
+	case "Stream.channel":
+		if e.complexity.Stream.Channel == nil {
+			break
+		}
+
+		return e.complexity.Stream.Channel(childComplexity), true
 
 	case "Stream.chatters":
 		if e.complexity.Stream.Chatters == nil {
@@ -1124,7 +1132,7 @@ input BanUser {
 extend type Mutation {
     sendMessage(input: SendMessageInput!): Boolean! @isAuthenticated @notBanned
     attachFile(file: Upload!): AttachedFile! @isAuthenticated @notBanned
-    addReaction(messageId: String!, content: String!): Boolean! @isAuthenticated @notBanned
+    addReaction(messageId: String!, content: String!, channelID: UUID!): Boolean! @isAuthenticated @notBanned
 }
 
 extend type Subscription {
@@ -1306,7 +1314,7 @@ scalar Upload
 scalar Time
 scalar UUID`, BuiltIn: false},
 	{Name: "../../../schema/stream.graphqls", Input: `extend type Query {
-    stream: Stream
+    streams: [Stream!]!
 }
 
 extend type Subscription {
@@ -1317,6 +1325,7 @@ type Stream {
     viewers: Int!
     chatters: [Chatter!]!
     startedAt: Time
+    channel: User!
 }
 
 type Chatter {
@@ -1413,6 +1422,15 @@ func (ec *executionContext) field_Mutation_addReaction_args(ctx context.Context,
 		}
 	}
 	args["content"] = arg1
+	var arg2 uuid.UUID
+	if tmp, ok := rawArgs["channelID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+		arg2, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channelID"] = arg2
 	return args, nil
 }
 
@@ -4247,7 +4265,7 @@ func (ec *executionContext) _Mutation_addReaction(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().AddReaction(rctx, fc.Args["messageId"].(string), fc.Args["content"].(string))
+			return ec.resolvers.Mutation().AddReaction(rctx, fc.Args["messageId"].(string), fc.Args["content"].(string), fc.Args["channelID"].(uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsAuthenticated == nil {
@@ -5011,8 +5029,8 @@ func (ec *executionContext) fieldContext_Query_roles(_ context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_stream(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_stream(ctx, field)
+func (ec *executionContext) _Query_streams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_streams(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5025,21 +5043,24 @@ func (ec *executionContext) _Query_stream(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Stream(rctx)
+		return ec.resolvers.Query().Streams(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodel.Stream)
+	res := resTmp.([]gqlmodel.Stream)
 	fc.Result = res
-	return ec.marshalOStream2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐStream(ctx, field.Selections, res)
+	return ec.marshalNStream2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐStreamᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_stream(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_streams(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -5053,6 +5074,8 @@ func (ec *executionContext) fieldContext_Query_stream(_ context.Context, field g
 				return ec.fieldContext_Stream_chatters(ctx, field)
 			case "startedAt":
 				return ec.fieldContext_Stream_startedAt(ctx, field)
+			case "channel":
+				return ec.fieldContext_Stream_channel(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
 		},
@@ -5761,6 +5784,70 @@ func (ec *executionContext) fieldContext_Stream_startedAt(_ context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Stream_channel(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.Stream) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Stream_channel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Channel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Stream_channel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Stream",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_User_color(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_User_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			case "isAdmin":
+				return ec.fieldContext_User_isAdmin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_chatMessages(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	fc, err := ec.fieldContext_Subscription_chatMessages(ctx, field)
 	if err != nil {
@@ -6040,6 +6127,8 @@ func (ec *executionContext) fieldContext_Subscription_streamInfo(ctx context.Con
 				return ec.fieldContext_Stream_chatters(ctx, field)
 			case "startedAt":
 				return ec.fieldContext_Stream_startedAt(ctx, field)
+			case "channel":
+				return ec.fieldContext_Stream_channel(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Stream", field.Name)
 		},
@@ -9665,16 +9754,19 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "stream":
+		case "streams":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_stream(ctx, field)
+				res = ec._Query_streams(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -9860,6 +9952,11 @@ func (ec *executionContext) _Stream(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "startedAt":
 			out.Values[i] = ec._Stream_startedAt(ctx, field, obj)
+		case "channel":
+			out.Values[i] = ec._Stream_channel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11011,6 +11108,54 @@ func (ec *executionContext) marshalNRoleFeature2ᚕgithubᚗcomᚋsatontᚋstrea
 func (ec *executionContext) unmarshalNSendMessageInput2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSendMessageInput(ctx context.Context, v interface{}) (gqlmodel.SendMessageInput, error) {
 	res, err := ec.unmarshalInputSendMessageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStream2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐStream(ctx context.Context, sel ast.SelectionSet, v gqlmodel.Stream) graphql.Marshaler {
+	return ec._Stream(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStream2ᚕgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐStreamᚄ(ctx context.Context, sel ast.SelectionSet, v []gqlmodel.Stream) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNStream2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐStream(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

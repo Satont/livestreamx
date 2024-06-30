@@ -192,8 +192,8 @@ export const useChat = createGlobalState(() => {
   const useReactionAddMutation = () =>
     useMutation(
       graphql(`
-        mutation AddReaction($messageId: String!, $content: String!) {
-          addReaction(messageId: $messageId, content: $content)
+        mutation AddReaction($messageId: String!, $content: String!, $channelID: UUID!) {
+          addReaction(messageId: $messageId, content: $content, channelID: $channelID)
         }
       `)
     )
