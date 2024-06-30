@@ -57,15 +57,7 @@ services:
   mediamtx:
     image: bluenviron/mediamtx:latest-ffmpeg
     restart: always
-    networks:
-      - caddy
-    ports:
-      - "8554:8554"
-      - "1935:1935"
-      - "8888:8888"
-      - "8889:8889"
-      - "8890:8890/udp"
-      - "8189:8189/udp"
+    network_mode: host
     volumes:
       - ./mediamtx.yml:/mediamtx.yml
 
