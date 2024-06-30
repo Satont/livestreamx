@@ -104,13 +104,11 @@ function insertEmoteInText(value: unknown) {
 }
 
 const breakPoints = useBreakpoints(breakpointsTailwind)
-const isSmall = breakPoints.smallerOrEqual('sm')
+const isSmall = breakPoints.smallerOrEqual('lg')
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-2 bg-accent border-t-2 border-red-400 min-h-auto max-h-36 p-2 relative"
-  >
+  <div class="flex flex-col gap-2 bg-accent min-h-auto max-h-36 p-2 relative">
     <Mention
       :keys="mentionKeys"
       :items="mentionItems"
