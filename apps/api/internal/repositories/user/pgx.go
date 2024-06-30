@@ -31,6 +31,83 @@ type Pgx struct {
 	pgx *pgxpool.Pool
 }
 
+func (c *Pgx) FindManyByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*User, error) {
+	idsStrings := make([]string, 0, len(userIDs))
+	for _, id := range userIDs {
+		idsStrings = append(idsStrings, id.String())
+	}
+
+	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
+		Select(selectUserFields...).
+		From("users").
+		Where(squirrel.Eq{"id": idsStrings}).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := c.pgx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]*User, 0, len(userIDs))
+	for rows.Next() {
+		user := &User{}
+		err = rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.DisplayName,
+			&user.Color,
+			&user.AvatarUrl,
+			&user.CreatedAt,
+			&user.Banned,
+			&user.IsAdmin,
+			&user.StreamKey,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		providersQuery, providersArgs, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
+			Select("id, user_id, provider, provider_user_id, provider_user_name, provider_user_display_name, provider_user_avatar_url").
+			From("users_providers").
+			Where(squirrel.Eq{"user_id": user.ID}).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		providersRows, err := c.pgx.Query(ctx, providersQuery, providersArgs...)
+		if err != nil {
+			return nil, err
+		}
+		defer providersRows.Close()
+
+		for providersRows.Next() {
+			foundProvider := Provider{}
+			err = providersRows.Scan(
+				&foundProvider.ID,
+				&foundProvider.UserID,
+				&foundProvider.Provider,
+				&foundProvider.ProviderUserID,
+				&foundProvider.ProviderUserName,
+				&foundProvider.ProviderUserDisplayName,
+				&foundProvider.ProviderAvatarUrl,
+			)
+			if err != nil {
+				return nil, err
+			}
+			user.Providers = append(user.Providers, foundProvider)
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func (c *Pgx) FindByStreamKey(ctx context.Context, streamKey uuid.UUID) (*User, error) {
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Select(selectUserFields...).

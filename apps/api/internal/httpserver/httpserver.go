@@ -10,8 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/gql"
+	data_loader "github.com/satont/stream/apps/api/internal/gql/data-loader"
+	"github.com/satont/stream/apps/api/internal/gql/mappers"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
+	"github.com/satont/stream/apps/api/internal/repositories/user"
 	"go.uber.org/fx"
 )
 
@@ -22,6 +25,8 @@ type Opts struct {
 	Config       config.Config
 	SessionStore *session_storage.SessionStorage
 	Middlewares  *middlewares.Middlewares
+	Mapper       *mappers.Mapper
+	UserRepo     user.Repository
 }
 
 func New(opts Opts) *Server {
@@ -59,6 +64,18 @@ func New(opts Opts) *Server {
 
 	s.Any(
 		"/query",
+		func(c *gin.Context) {
+			loader := data_loader.New(
+				data_loader.Opts{
+					UserRepo: opts.UserRepo,
+					Mapper:   opts.Mapper,
+				},
+			)
+
+			c.Request = c.Request.WithContext(
+				context.WithValue(c.Request.Context(), data_loader.LoadersKey, loader),
+			)
+		},
 		func(c *gin.Context) {
 			opts.Gql.ServeHTTP(c.Writer, c.Request)
 		},

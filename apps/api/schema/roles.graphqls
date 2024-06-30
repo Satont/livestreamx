@@ -1,16 +1,18 @@
 extend type Query {
-    roles: [Role!]! @isAuthenticated @isAdmin
+    roles: [Role!]! @isAuthenticated
 }
 
 extend type Mutation {
-    createRole(input: CreateRoleInput!): Role! @isAuthenticated @isAdmin
-    updateRole(id: UUID!, input: UpdateRoleInput!): Role! @isAuthenticated @isAdmin
-    deleteRole(id: UUID!): Boolean! @isAuthenticated @isAdmin
+    createRole(input: CreateRoleInput!): Role! @isAuthenticated
+    updateRole(id: UUID!, input: UpdateRoleInput!): Role! @isAuthenticated
+    deleteRole(id: UUID!): Boolean! @isAuthenticated
+    userAssigneRole(userId: UUID!, roleId: UUID!): Boolean! @isAuthenticated
+    userUnassignRole(userId: UUID!, roleId: UUID!): Boolean! @isAuthenticated
 }
 
 type Role {
     id: UUID!
-    channelID: UUID!
+    channelId: UUID!
     name: String!
     imageUrl: String
     features: [RoleFeature!]!

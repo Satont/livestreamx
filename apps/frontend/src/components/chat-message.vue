@@ -126,7 +126,7 @@ const repliedMessage = computed(() => {
             :style="{ color: correctColor(segment.user.color) }"
             class="p-0.5 rounded"
             :class="{
-              'bg-zinc-400': segment.user.id === profile?.userProfile.user.id
+              'bg-zinc-400': segment.user.id === profile?.userProfile.id
             }"
           >
             @{{ segment.user.displayName }}

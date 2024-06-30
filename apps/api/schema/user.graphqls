@@ -10,20 +10,37 @@ extend type Mutation {
     logout: Boolean! @isAuthenticated
 }
 
-type User {
-    id: ID!
+interface User {
+    id: UUID!
     name: String!
     displayName: String!
     color: String!
-    roles: [Role!]!
     isBanned: Boolean!
     createdAt: Time!
     avatarUrl: String!
     isAdmin: Boolean!
 }
 
-type AuthedUser {
-    user: User!
+type BaseUser implements User {
+    id: UUID!
+    name: String!
+    displayName: String!
+    color: String!
+    isBanned: Boolean!
+    createdAt: Time!
+    avatarUrl: String!
+    isAdmin: Boolean!
+}
+
+type AuthedUser implements User {
+    id: UUID!
+    name: String!
+    displayName: String!
+    color: String!
+    isBanned: Boolean!
+    createdAt: Time!
+    avatarUrl: String!
+    isAdmin: Boolean!
     providers: [AuthedUserProvider!]!
     streamKey: UUID!
 }

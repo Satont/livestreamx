@@ -9,16 +9,14 @@ export const useProfile = createGlobalState(() => {
       query: graphql(`
         query UserProfile {
           userProfile {
-            user {
-              id
-              name
-              displayName
-              isBanned
-              createdAt
-              color
-              avatarUrl
-              isAdmin
-            }
+            id
+            name
+            displayName
+            isBanned
+            createdAt
+            color
+            avatarUrl
+            isAdmin
             providers {
               provider
               userId

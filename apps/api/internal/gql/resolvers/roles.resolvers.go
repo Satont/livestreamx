@@ -78,9 +78,60 @@ func (r *mutationResolver) DeleteRole(ctx context.Context, id uuid.UUID) (bool, 
 	return true, nil
 }
 
+// UserAssigneRole is the resolver for the userAssigneRole field.
+func (r *mutationResolver) UserAssigneRole(ctx context.Context, userID uuid.UUID, roleID uuid.UUID) (bool, error) {
+	requestedUserID, err := r.sessionStorage.GetUserID(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	role, err := r.rolesRepo.FindOneByID(ctx, roleID)
+	if err != nil {
+		return false, fmt.Errorf("failed to fetch role: %w", err)
+	}
+
+	if role.ChannelID != uuid.MustParse(requestedUserID) {
+		return false, fmt.Errorf("role does not belong to the user's channel")
+	}
+
+	if err := r.rolesRepo.AssignRoleToUser(ctx, roleID, userID); err != nil {
+		return false, fmt.Errorf("failed to assign role to user: %w", err)
+	}
+
+	return true, nil
+}
+
+// UserUnassignRole is the resolver for the userUnassignRole field.
+func (r *mutationResolver) UserUnassignRole(ctx context.Context, userID uuid.UUID, roleID uuid.UUID) (bool, error) {
+	requestedUserID, err := r.sessionStorage.GetUserID(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	role, err := r.rolesRepo.FindOneByID(ctx, roleID)
+	if err != nil {
+		return false, fmt.Errorf("failed to fetch role: %w", err)
+	}
+
+	if role.ChannelID != uuid.MustParse(requestedUserID) {
+		return false, fmt.Errorf("role does not belong to the user's channel")
+	}
+
+	if err := r.rolesRepo.UnassignRoleFromUser(ctx, roleID, userID); err != nil {
+		return false, fmt.Errorf("failed to unassign role from user: %w", err)
+	}
+
+	return true, nil
+}
+
 // Roles is the resolver for the roles field.
 func (r *queryResolver) Roles(ctx context.Context) ([]gqlmodel.Role, error) {
-	roles, err := r.rolesRepo.FindMany(ctx)
+	userID, err := r.sessionStorage.GetUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	roles, err := r.rolesRepo.FindManyByChannelID(ctx, uuid.MustParse(userID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch roles: %w", err)
 	}

@@ -26,7 +26,7 @@ const { data: profile } = useProfile().useData()
           >Streams</router-link
         >
         <router-link
-          v-if="profile?.userProfile.user.isAdmin"
+          v-if="profile?.userProfile.isAdmin"
           class="transition-colors hover:text-foreground/80 text-foreground/60"
           to="/dashboard"
         >

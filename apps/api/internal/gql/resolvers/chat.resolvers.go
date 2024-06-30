@@ -15,12 +15,48 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	minio "github.com/minio/minio-go/v7"
+	data_loader "github.com/satont/stream/apps/api/internal/gql/data-loader"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
+	"github.com/satont/stream/apps/api/internal/gql/graph"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
-	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 )
+
+// Sender is the resolver for the sender field.
+func (r *chatMessageResolver) Sender(ctx context.Context, obj *gqlmodel.ChatMessage) (*gqlmodel.ChatUser, error) {
+	return data_loader.GetChatUserByID(ctx, obj.SenderID)
+}
+
+// User is the resolver for the user field.
+func (r *chatMessageReactionEmojiResolver) User(ctx context.Context, obj *gqlmodel.ChatMessageReactionEmoji) (*gqlmodel.ChatUser, error) {
+	return data_loader.GetChatUserByID(ctx, obj.UserID)
+}
+
+// User is the resolver for the user field.
+func (r *chatMessageReactionEmoteResolver) User(ctx context.Context, obj *gqlmodel.ChatMessageReactionEmote) (*gqlmodel.ChatUser, error) {
+	return data_loader.GetChatUserByID(ctx, obj.UserID)
+}
+
+// Roles is the resolver for the roles field.
+func (r *chatUserResolver) Roles(ctx context.Context, obj *gqlmodel.ChatUser) ([]gqlmodel.Role, error) {
+	userRoles, err := r.rolesRepo.FindUserRoles(ctx, obj.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user roles: %w", err)
+	}
+
+	roles := make([]gqlmodel.Role, 0, len(userRoles))
+	for _, role := range userRoles {
+		roles = append(roles, r.mapper.DbRoleToGql(role))
+	}
+
+	return roles, nil
+}
+
+// User is the resolver for the user field.
+func (r *messageSegmentMentionResolver) User(ctx context.Context, obj *gqlmodel.MessageSegmentMention) (*gqlmodel.ChatUser, error) {
+	return data_loader.GetChatUserByID(ctx, obj.UserID)
+}
 
 // SendMessage is the resolver for the sendMessage field.
 func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error) {
@@ -54,13 +90,8 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 		return false, fmt.Errorf("failed to create chat message: %w", err)
 	}
 
-	messageWithUser, err := r.chatMessagesWithUserRepo.FindByID(ctx, message.ID)
-	if err != nil {
-		return false, fmt.Errorf("failed to find chat message: %w", err)
-	}
-
 	go func() {
-		gqlMessage := r.mapper.ChatMessageWithUser(ctx, messageWithUser)
+		gqlMessage := r.mapper.ChatMessageWithUser(ctx, message)
 		if err := r.subscriptionRouter.Publish(
 			fmt.Sprintf(
 				chatMessagesSubscriptionKey,
@@ -128,8 +159,7 @@ func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, co
 	}
 
 	go func() {
-		gqlUser := r.mapper.DbUserToGql(*user)
-		gqlReaction := r.mapper.DbReactionToGql(*newReaction, &gqlUser)
+		gqlReaction := r.mapper.DbReactionToGql(*newReaction)
 
 		// TODO: reaction should use channel id for publish and subscription
 		if err := r.subscriptionRouter.Publish(
@@ -153,8 +183,9 @@ func (r *queryResolver) ChatMessagesLatest(ctx context.Context, channelID uuid.U
 		limitQuery = *limit
 	}
 
-	messages, err := r.chatMessagesWithUserRepo.FindLatest(
-		ctx, chat_messages_with_user.FindLatestOpts{
+	messages, err := r.chatMessageRepo.FindLatest(
+		ctx,
+		chat_message.FindLatestOpts{
 			Limit:     limitQuery,
 			ChannelID: channelID,
 		},
@@ -320,3 +351,30 @@ func (r *subscriptionResolver) ReactionAdd(ctx context.Context, channelID uuid.U
 
 	return channel, nil
 }
+
+// ChatMessage returns graph.ChatMessageResolver implementation.
+func (r *Resolver) ChatMessage() graph.ChatMessageResolver { return &chatMessageResolver{r} }
+
+// ChatMessageReactionEmoji returns graph.ChatMessageReactionEmojiResolver implementation.
+func (r *Resolver) ChatMessageReactionEmoji() graph.ChatMessageReactionEmojiResolver {
+	return &chatMessageReactionEmojiResolver{r}
+}
+
+// ChatMessageReactionEmote returns graph.ChatMessageReactionEmoteResolver implementation.
+func (r *Resolver) ChatMessageReactionEmote() graph.ChatMessageReactionEmoteResolver {
+	return &chatMessageReactionEmoteResolver{r}
+}
+
+// ChatUser returns graph.ChatUserResolver implementation.
+func (r *Resolver) ChatUser() graph.ChatUserResolver { return &chatUserResolver{r} }
+
+// MessageSegmentMention returns graph.MessageSegmentMentionResolver implementation.
+func (r *Resolver) MessageSegmentMention() graph.MessageSegmentMentionResolver {
+	return &messageSegmentMentionResolver{r}
+}
+
+type chatMessageResolver struct{ *Resolver }
+type chatMessageReactionEmojiResolver struct{ *Resolver }
+type chatMessageReactionEmoteResolver struct{ *Resolver }
+type chatUserResolver struct{ *Resolver }
+type messageSegmentMentionResolver struct{ *Resolver }

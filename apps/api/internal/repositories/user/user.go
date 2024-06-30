@@ -17,6 +17,7 @@ type Repository interface {
 		error,
 	)
 	FindByID(ctx context.Context, userID uuid.UUID) (*User, error)
+	FindManyByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*User, error)
 	FindByStreamKey(ctx context.Context, streamKey uuid.UUID) (*User, error)
 	Update(ctx context.Context, userID uuid.UUID, opts UpdateOpts) (*User, error)
 	AddProviderToUser(ctx context.Context, userID uuid.UUID, opts AddProviderToUserOpts) (

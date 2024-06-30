@@ -7,7 +7,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
-	chat_messages_with_user "github.com/satont/stream/apps/api/internal/repositories/chat-messages-with-user"
+	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	seven_tv "github.com/satont/stream/apps/api/internal/seven-tv"
 )
 
@@ -16,11 +16,10 @@ var mentionRegexp = regexp.MustCompile(`@([a-zA-Z0-9_]+)`)
 
 func (c *Mapper) ChatMessageWithUser(
 	ctx context.Context,
-	m *chat_messages_with_user.MessageWithUser,
+	m *chat_message.Message,
 ) gqlmodel.ChatMessage {
-	splittedText := strings.Fields(m.Message.Text)
+	splittedText := strings.Fields(m.Text)
 	var segments []gqlmodel.MessageSegment
-	usersDbCache := make(map[string]*gqlmodel.User)
 
 	emotesSlice := lo.Values(c.sevenTv.Emotes)
 
@@ -59,20 +58,9 @@ func (c *Mapper) ChatMessageWithUser(
 				Type:    gqlmodel.MessageSegmentTypeMention,
 			}
 
-			if cachedUser, ok := usersDbCache[text[1:]]; ok {
-				mentionSegment.User = cachedUser
-				segments = append(segments, mentionSegment)
-				continue
-			}
-
 			user, err := c.userRepo.FindByName(ctx, text[1:])
 			if err == nil && user != nil {
-				userGql := c.DbUserToGql(*user)
-
-				usersDbCache[text[1:]] = &userGql
-				mentionSegment.User = &userGql
-
-				segments = append(segments, mentionSegment)
+				mentionSegment.UserID = user.ID
 			} else {
 				segments = append(
 					segments,
@@ -94,31 +82,16 @@ func (c *Mapper) ChatMessageWithUser(
 
 	reactions := make([]gqlmodel.ChatMessageReaction, 0, len(m.Reactions))
 	for _, r := range m.Reactions {
-		var user *gqlmodel.User
-		if u, ok := usersDbCache[r.UserID.String()]; ok {
-			user = u
-		} else {
-			u, err := c.userRepo.FindByID(ctx, r.UserID)
-			if err == nil && u != nil {
-				userGql := c.DbUserToGql(*u)
-
-				usersDbCache[r.UserID.String()] = &userGql
-				user = &userGql
-			}
-		}
-
-		reactions = append(reactions, c.DbReactionToGql(r, user))
+		reactions = append(reactions, c.DbReactionToGql(r))
 	}
 
-	sender := c.DbUserToGql(m.User)
-
 	return gqlmodel.ChatMessage{
-		ID:        m.Message.ID.String(),
-		ChannelID: m.Message.ChannelID,
+		ID:        m.ID.String(),
+		ChannelID: m.ChannelID,
+		SenderID:  m.SenderID,
 		Segments:  segments,
-		Sender:    &sender,
-		CreatedAt: m.Message.CreatedAt,
+		CreatedAt: m.CreatedAt,
 		Reactions: reactions,
-		ReplyTo:   m.Message.ReplyTo,
+		ReplyTo:   m.ReplyTo,
 	}
 }
