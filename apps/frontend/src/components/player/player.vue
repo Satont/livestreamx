@@ -24,7 +24,7 @@ const videoSource = computed(() => {
   if (!channelData.value) return null
 
   return {
-    src: `${window.location.origin}/api/streams/${channelData.value.fetchUserByName.id}/index.m3u8`,
+    src: `${window.location.origin}/api/streams/read/${channelData.value.fetchUserByName.id}/index.m3u8`,
     type: 'application/x-mpegURL'
   }
 })

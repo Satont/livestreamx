@@ -11,6 +11,7 @@ type Stream {
     chatters: [Chatter!]!
     startedAt: Time
     channel: User!
+    thumbnailUrl: String!
 }
 
 type Chatter {

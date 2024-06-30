@@ -1,7 +1,23 @@
 <script setup lang="ts">
+import { formatDuration, intervalToDuration } from 'date-fns'
+import { Clock, Eye } from 'lucide-vue-next'
+
 import { useStreamsList } from '@/api/stream.ts'
 
 const { data: streams } = useStreamsList()
+
+const now = new Date()
+
+function computeStreamUptime(startedAt: Date) {
+  const duration = intervalToDuration({
+    start: startedAt,
+    end: now
+  })
+
+  return formatDuration(duration, {
+    format: ['hours', 'minutes']
+  })
+}
 </script>
 
 <template>
@@ -22,39 +38,38 @@ const { data: streams } = useStreamsList()
       <router-link
         v-for="stream of streams?.streams"
         :key="stream.channel.id"
-        class="flex flex-col border border-border rounded bg-accent relative w-80"
+        class="flex flex-col border border-border rounded-md bg-accent w-80"
         :to="{
           name: 'Channel',
           params: { channelName: stream.channel.name }
         }"
       >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          class="absolute top-[-12px] left-[-15px] text-green-400"
-          aria-hidden
-        >
-          <circle
-            cx="12"
-            cy="12"
-            r="5"
-            fill="currentColor"
+        <div class="w-full h-full relative">
+          <img
+            :src="stream.thumbnailUrl"
+            class="w-full h-full"
           />
-          <circle
-            cx="12"
-            cy="12"
-            r="6"
-            fill="currentColor"
-            style="
-              animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-              transform-origin: center center;
-            "
+
+          <span
+            class="flex gap-2 items-center absolute py-0.5 px-2 bottom-1 right-1 bg-black/60 rounded-md text-sm"
+          >
+            <Eye class="size-4" />
+            {{ stream.viewers }}
+          </span>
+
+          <span
+            class="flex gap-2 items-center absolute top-1 px-2 py-0.5 right-1 bg-black/60 rounded-md text-sm"
+          >
+            <Clock class="size-4" />
+            {{ computeStreamUptime(stream.startedAt) }}
+          </span>
+        </div>
+
+        <div class="p-4 flex gap-2 h-auto">
+          <img
+            :src="stream.channel.avatarUrl"
+            class="size-6 rounded-full"
           />
-        </svg>
-        <div class="p-4 h-auto">
           {{ stream.channel.displayName }}
         </div>
       </router-link>

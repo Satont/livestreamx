@@ -1,0 +1,24 @@
+<svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+>
+    <circle
+            cx="12"
+            cy="12"
+            r="5"
+            fill="currentColor"
+    />
+    <circle
+            cx="12"
+            cy="12"
+            r="6"
+            fill="currentColor"
+            style="
+              animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+              transform-origin: center center;
+            "
+    />
+</svg>

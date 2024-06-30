@@ -55,6 +55,8 @@ export const useStreamsList = () => {
             displayName
             avatarUrl
           }
+          startedAt
+          thumbnailUrl
         }
       }
     `),

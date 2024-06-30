@@ -19,6 +19,7 @@ type Config struct {
 	ApiSessionSecret  string `envconfig:"API_SESSION_SECRET"`
 	SevenTVEmoteSetID string `envconfig:"SEVEN_TV_EMOTE_SET_ID"`
 	MediaMtxAddr      string `envconfig:"MEDIA_MTX_ADDR" required:"true"`
+	ThumbnailsURI     string `envconfig:"THUMBNAILS_URI" required:"true"`
 
 	S3Host        string `envconfig:"S3_HOST"`
 	S3AccessToken string `envconfig:"S3_ACCESS_TOKEN"`

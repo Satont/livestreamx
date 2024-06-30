@@ -4,6 +4,7 @@ services:
     network_mode: host
     volumes:
       - ./mediamtx.dev.yml:/mediamtx.yml
+      - ./thumbnails:/thumbnails
 
   redis:
     image: redis:latest

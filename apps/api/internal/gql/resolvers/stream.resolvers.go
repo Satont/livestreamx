@@ -51,10 +51,11 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 				streams = append(
 					streams,
 					gqlmodel.Stream{
-						Viewers:   len(path.Readers),
-						Chatters:  nil,
-						StartedAt: nil,
-						Channel:   &c,
+						Viewers:      len(path.Readers),
+						Chatters:     []gqlmodel.Chatter{},
+						StartedAt:    path.ReadyTime,
+						Channel:      &c,
+						ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.ID),
 					},
 				)
 
@@ -148,10 +149,11 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 				gqlChannel := r.mapper.DbUserToGql(*dbChannel)
 
 				streamInfo := &gqlmodel.Stream{
-					Viewers:   len(mtxInfo.Readers),
-					Chatters:  chatters,
-					StartedAt: mtxInfo.ReadyTime,
-					Channel:   &gqlChannel,
+					Viewers:      len(mtxInfo.Readers),
+					Chatters:     chatters,
+					StartedAt:    mtxInfo.ReadyTime,
+					Channel:      &gqlChannel,
+					ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.ID),
 				}
 
 				channel <- streamInfo

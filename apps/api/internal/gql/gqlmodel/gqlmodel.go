@@ -178,10 +178,11 @@ type SendMessageInput struct {
 }
 
 type Stream struct {
-	Viewers   int        `json:"viewers"`
-	Chatters  []Chatter  `json:"chatters"`
-	StartedAt *time.Time `json:"startedAt,omitempty"`
-	Channel   *User      `json:"channel"`
+	Viewers      int        `json:"viewers"`
+	Chatters     []Chatter  `json:"chatters"`
+	StartedAt    *time.Time `json:"startedAt,omitempty"`
+	Channel      *User      `json:"channel"`
+	ThumbnailURL string     `json:"thumbnailUrl"`
 }
 
 type Subscription struct {
