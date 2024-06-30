@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { chatFontSize } from '@/composables/chat-font-size.ts'
+import { reverseStreamChatDirection } from '@/composables/reverse-stream-chat-direction.ts'
 import { showAvatars } from '@/composables/show-avatars.js'
 import { showTimestamps } from '@/composables/show-timestamps.js'
 import { useProfileModalState } from '@/composables/use-profile-modal-state.js'
@@ -107,6 +108,20 @@ function focusColorPicker() {
             class="data-[state=unchecked]:bg-zinc-600"
           />
         </Button>
+
+        <Button
+          @click="reverseStreamChatDirection = !reverseStreamChatDirection"
+          size="sm"
+          class="flex gap-2 justify-between"
+          variant="ghost"
+        >
+          <span> Swap chat position left/right </span>
+          <Switch
+            :checked="reverseStreamChatDirection"
+            class="data-[state=unchecked]:bg-zinc-600"
+          />
+        </Button>
+
         <Button
           size="sm"
           variant="ghost"
