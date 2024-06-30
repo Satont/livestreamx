@@ -25,7 +25,7 @@ const { data: streams } = useStreamsList()
         class="flex flex-col border border-border rounded bg-accent relative w-80"
         :to="{
           name: 'Channel',
-          params: { channelName: stream.channel.displayName }
+          params: { channelName: stream.channel.name }
         }"
       >
         <svg
@@ -55,7 +55,7 @@ const { data: streams } = useStreamsList()
           />
         </svg>
         <div class="p-4 h-auto">
-          {{ stream.channel.name }}
+          {{ stream.channel.displayName }}
         </div>
       </router-link>
     </div>
