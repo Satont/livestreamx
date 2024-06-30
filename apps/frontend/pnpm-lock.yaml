@@ -68,6 +68,9 @@ dependencies:
   video.js:
     specifier: 8.12.0
     version: 8.12.0
+  videojs-persist:
+    specifier: 0.2.0
+    version: 0.2.0(video.js@8.12.0)
   vite-svg-loader:
     specifier: 5.1.0
     version: 5.1.0(vue@3.4.29)
@@ -5502,6 +5505,16 @@ packages:
 
   /videojs-font@4.1.0:
     resolution: {integrity: sha512-X1LuPfLZPisPLrANIAKCknZbZu5obVM/ylfd1CN+SsCmPZQ3UMDPcvLTpPBJxcBuTpHQq2MO1QCFt7p8spnZ/w==}
+    dev: false
+
+  /videojs-persist@0.2.0(video.js@8.12.0):
+    resolution: {integrity: sha512-FBdOKx6NEfVzicFanDQMelDTeQRZc0v0VXYPtKNFo6wZoSavgtb5DOrbjNjd1HvUApQ+j1OdlUGxXHWNdbsfow==}
+    engines: {node: '>=14', npm: '>=6'}
+    peerDependencies:
+      video.js: '>=6'
+    dependencies:
+      global: 4.4.0
+      video.js: 8.12.0
     dev: false
 
   /videojs-vtt.js@0.15.5:

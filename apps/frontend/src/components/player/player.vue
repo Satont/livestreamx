@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { VideoPlayer } from '@videojs-player/vue'
 import videojs from 'video.js'
+
+import 'videojs-persist'
+
 import { computed, shallowRef } from 'vue'
 
 import 'video.js/dist/video-js.css'
@@ -13,13 +16,6 @@ const player = shallowRef<Player>()
 
 const { channelData } = useChat()
 
-// const volume = useLocalStorage('livestreamx-player-volume-v2', [30], {
-//   serializer: {
-//     read: (v: any) => (v ? JSON.parse(v) : null),
-//     write: (v: any) => JSON.stringify(v)
-//   }
-// })
-
 const videoSource = computed(() => {
   if (!channelData.value) return null
 
@@ -31,6 +27,8 @@ const videoSource = computed(() => {
 
 const handleMounted = (payload: { player: Player }) => {
   player.value = payload.player
+  // @ts-ignore
+  player.value.persist()
 }
 
 const handleReady = () => {
@@ -59,6 +57,7 @@ const handleReady = () => {
     autoplay="any"
     controls
     liveui
+    :muted="false"
     :sources="[videoSource]"
     :control-bar="{
       progressControl: false,

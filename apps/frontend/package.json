@@ -33,6 +33,7 @@
     "tailwindcss-animate": "1.0.7",
     "textarea-caret": "3.1.0",
     "video.js": "8.12.0",
+    "videojs-persist": "0.2.0",
     "vite-svg-loader": "5.1.0",
     "vue": "3.4.29",
     "vue-router": "4.3.3",
