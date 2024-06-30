@@ -8,7 +8,7 @@ extend type Subscription {
 
 type Stream {
     viewers: Int!
-    chatters: [Chatter!]!
+    chatters: [Chatter!]! @goField(forceResolver: true)
     startedAt: Time
     channelId: UUID!
     channel: BaseUser! @goField(forceResolver: true)

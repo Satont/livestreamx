@@ -71,6 +71,43 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 	return streams, nil
 }
 
+// Chatters is the resolver for the chatters field.
+func (r *streamResolver) Chatters(ctx context.Context, obj *gqlmodel.Stream) ([]gqlmodel.Chatter, error) {
+	chattersRedisKey := fmt.Sprintf("streams:chatters:%s", obj.ChannelID)
+
+	var chatters []gqlmodel.Chatter
+	iter := r.redis.Scan(ctx, 0, fmt.Sprintf("%s:*", chattersRedisKey), 0).Iterator()
+	for iter.Next(ctx) {
+		key := iter.Val()
+		val, err := r.redis.Get(ctx, key).Bytes()
+		if err != nil {
+			r.logger.Sugar().Error(err)
+			return nil, err
+		}
+
+		var u userrepo.User
+		if err := json.Unmarshal(val, &u); err != nil {
+			r.logger.Sugar().Error(err)
+			return nil, err
+		}
+
+		gqlUser := r.mapper.DbUserToBaseUserGql(u)
+
+		chatters = append(
+			chatters,
+			gqlmodel.Chatter{
+				User: &gqlUser,
+			},
+		)
+	}
+	if err := iter.Err(); err != nil {
+		r.logger.Sugar().Error(err)
+		return nil, err
+	}
+
+	return chatters, nil
+}
+
 // Channel is the resolver for the channel field.
 func (r *streamResolver) Channel(ctx context.Context, obj *gqlmodel.Stream) (*gqlmodel.BaseUser, error) {
 	return data_loader.GetBaseUserByID(ctx, obj.ChannelID)
@@ -84,6 +121,8 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 	}
 
 	chattersRedisKey := fmt.Sprintf("streams:chatters:%s", channelID.String())
+	viewersRedisKey := fmt.Sprintf("streams:viewers:%s", channelID.String())
+
 	user := middlewares.GetUserFromContext(ctx)
 	if user != nil {
 		userBytes, err := json.Marshal(user)
@@ -99,18 +138,32 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 
 	channel := make(chan *gqlmodel.Stream, 1)
 
+	if err := r.redis.Incr(ctx, viewersRedisKey).Err(); err != nil {
+		return nil, err
+	}
+
+	if err := r.redis.Expire(ctx, viewersRedisKey, 48*time.Hour).Err(); err != nil {
+		return nil, err
+	}
+
 	go func() {
-		defer close(channel)
+		defer func() {
+			close(channel)
+			if user != nil {
+				userChatterKey := fmt.Sprintf("%s:%s", chattersRedisKey, user.ID)
+				if err := r.redis.Del(context.Background(), userChatterKey).Err(); err != nil {
+					r.logger.Sugar().Error(err)
+				}
+			}
+
+			if err := r.redis.Decr(context.Background(), viewersRedisKey).Err(); err != nil {
+				r.logger.Sugar().Error(err)
+			}
+		}()
 
 		for {
 			select {
 			case <-ctx.Done():
-				if user != nil {
-					userChatterKey := fmt.Sprintf("%s:%s", chattersRedisKey, user.ID)
-					if err := r.redis.Del(context.Background(), userChatterKey).Err(); err != nil {
-						r.logger.Sugar().Error(err)
-					}
-				}
 				return
 			default:
 				mtxInfo, err := r.mtxApi.GetPathInfoByApyKey(ctx, dbChannel.StreamKey.String())
@@ -120,44 +173,17 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 					continue
 				}
 
-				var chatters []gqlmodel.Chatter
-				iter := r.redis.Scan(ctx, 0, fmt.Sprintf("%s:*", chattersRedisKey), 0).Iterator()
-				for iter.Next(ctx) {
-					key := iter.Val()
-					val, err := r.redis.Get(ctx, key).Bytes()
-					if err != nil {
-						r.logger.Sugar().Error(err)
-						continue
-					}
-
-					var u userrepo.User
-					if err := json.Unmarshal(val, &u); err != nil {
-						r.logger.Sugar().Error(err)
-						continue
-					}
-
-					gqlUser := r.mapper.DbUserToBaseUserGql(u)
-
-					chatters = append(
-						chatters,
-						gqlmodel.Chatter{
-							User: &gqlUser,
-						},
-					)
-				}
-				if err := iter.Err(); err != nil {
+				viewers, err := r.redis.Get(ctx, viewersRedisKey).Int()
+				if err != nil {
 					r.logger.Sugar().Error(err)
 					time.Sleep(1 * time.Second)
 					continue
 				}
 
-				gqlChannel := r.mapper.DbUserToBaseUserGql(*dbChannel)
-
 				streamInfo := &gqlmodel.Stream{
-					Viewers:      len(mtxInfo.Readers),
-					Chatters:     chatters,
+					Viewers:      viewers,
 					StartedAt:    mtxInfo.ReadyTime,
-					Channel:      &gqlChannel,
+					ChannelID:    dbChannel.ID,
 					ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.ID),
 				}
 

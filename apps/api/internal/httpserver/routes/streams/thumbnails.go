@@ -42,7 +42,6 @@ func (c *Streams) thumbnailsHandler(ctx *gin.Context) {
 	}
 
 	thumbnailPath := filepath.Join(thumbnailsRoot, dbChannel.StreamKey.String()+".jpg")
-	c.logger.Sugar().Info("thumbnailPath: ", thumbnailPath)
 
 	ctx.File(thumbnailPath)
 }
