@@ -15,7 +15,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./thumbnails:/thumbnails
+      - ./thumbnails:/app/thumbnails
     labels:
       caddy: streamx.satont.dev
       caddy.handle_path: /api/*
