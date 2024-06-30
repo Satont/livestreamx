@@ -17,5 +17,5 @@ ENV VITE_STREAM_URL=$VITE_STREAM_URL
 
 RUN cd /app/apps/frontend && pnpm build
 
-FROM devforth/spa-to-http:latest
+FROM devforth/spa-to-http:1.0.6
 COPY --from=builder /app/apps/frontend/dist .
