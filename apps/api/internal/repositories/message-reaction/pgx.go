@@ -28,11 +28,11 @@ type Pgx struct {
 }
 
 var selectFields = []string{
-	"id",
-	"message_id",
-	"user_id",
-	"reaction",
-	"m.channel_id",
+	"r.id",
+	"r.message_id",
+	"r.user_id",
+	"r.reaction",
+	"m.channel_id AS channel_id",
 }
 
 func (c *Pgx) FindOne(ctx context.Context, reactionID uuid.UUID) (
@@ -41,9 +41,9 @@ func (c *Pgx) FindOne(ctx context.Context, reactionID uuid.UUID) (
 ) {
 	query, args, err := squirrel.
 		Select(selectFields...).
-		From("messages_reactions").
-		Where(squirrel.Eq{"id": reactionID}).
-		Join("messages m ON m.id = message_id").
+		From("messages_reactions r").
+		Where(squirrel.Eq{"r.id": reactionID}).
+		Join("chat_messages m ON m.id = r.message_id").
 		Limit(1).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
@@ -71,9 +71,9 @@ func (c *Pgx) FindManyByMessageID(ctx context.Context, messageID uuid.UUID) (
 ) {
 	query, args, err := squirrel.
 		Select(selectFields...).
-		From("messages_reactions").
-		Where(squirrel.Eq{"message_id": messageID}).
-		Join("messages m ON m.id = message_id").
+		From("messages_reactions r").
+		Where(squirrel.Eq{"r.message_id": messageID}).
+		Join("chat_messages m ON m.id = message_id").
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {

@@ -157,13 +157,13 @@ func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, co
 		},
 	)
 	if err != nil {
+		r.logger.Sugar().Error("failed to create reaction", err)
 		return false, err
 	}
 
 	go func() {
 		gqlReaction := r.mapper.DbReactionToGql(*newReaction)
 
-		// TODO: reaction should use channel id for publish and subscription
 		if err := r.subscriptionRouter.Publish(
 			fmt.Sprintf(
 				chatMessageReactionKey,
@@ -171,7 +171,7 @@ func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, co
 			),
 			&gqlReaction,
 		); err != nil {
-			fmt.Println(err)
+			r.logger.Sugar().Error("failed to publish reaction", err)
 		}
 	}()
 
