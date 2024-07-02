@@ -42,17 +42,6 @@ const data = computed<{
       }
   }
 })
-
-const removedEmote = computed(() => {
-  if (
-    unwrappedMessage.type !== SystemMessageType.EmoteRemoved ||
-    !('emoteId' in unwrappedMessage)
-  ) {
-    return null
-  }
-
-  return emotes.value.find((emote) => emote.id === unwrappedMessage.emoteId)
-})
 </script>
 
 <template>
@@ -77,12 +66,7 @@ const removedEmote = computed(() => {
       </template>
     </div>
     <div class="p-1 bg-accent rounded-b">
-      <template
-        v-if="
-          unwrappedMessage.type === SystemMessageType.EmoteAdded &&
-          'emote' in unwrappedMessage
-        "
-      >
+      <template v-if="'emote' in unwrappedMessage">
         <img
           :src="(unwrappedMessage.emote as ChatEmote_FragmentFragment).url"
           :style="{
@@ -92,22 +76,6 @@ const removedEmote = computed(() => {
           class="scale-90 inline-block relative"
         />
         {{ (unwrappedMessage.emote as ChatEmote_FragmentFragment).name }}
-      </template>
-      <template
-        v-if="
-          unwrappedMessage.type === SystemMessageType.EmoteRemoved &&
-          removedEmote
-        "
-      >
-        <img
-          :src="removedEmote.url"
-          :style="{
-            width: `${removedEmote.width}px`,
-            height: `${removedEmote.height}px`
-          }"
-          class="scale-90 inline-block relative"
-        />
-        {{ removedEmote.name }}
       </template>
     </div>
   </div>

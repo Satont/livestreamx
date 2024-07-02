@@ -113,3 +113,67 @@ func (c *SevenTV) fetchEmoteSetEmotes(emoteSetID string) (map[string]Emote, erro
 
 	return emotes, nil
 }
+
+type fetchSingleEmoteResponse struct {
+	Id        string   `json:"id"`
+	Name      string   `json:"name"`
+	Flags     int      `json:"flags"`
+	Tags      []string `json:"tags"`
+	Lifecycle int      `json:"lifecycle"`
+	State     []string `json:"state"`
+	Listed    bool     `json:"listed"`
+	Animated  bool     `json:"animated"`
+	Owner     struct {
+		Id          string `json:"id"`
+		Username    string `json:"username"`
+		DisplayName string `json:"display_name"`
+		AvatarUrl   string `json:"avatar_url"`
+		Style       struct {
+			Color int `json:"color"`
+		} `json:"style"`
+		Roles []string `json:"roles"`
+	} `json:"owner"`
+	Host struct {
+		Url   string `json:"url"`
+		Files []struct {
+			Name       string `json:"name"`
+			StaticName string `json:"static_name"`
+			Width      int    `json:"width"`
+			Height     int    `json:"height"`
+			FrameCount int    `json:"frame_count"`
+			Size       int    `json:"size"`
+			Format     string `json:"format"`
+		} `json:"files"`
+	} `json:"host"`
+	Versions []struct {
+		Id          string   `json:"id"`
+		Name        string   `json:"name"`
+		Description string   `json:"description"`
+		Lifecycle   int      `json:"lifecycle"`
+		State       []string `json:"state"`
+		Listed      bool     `json:"listed"`
+		Animated    bool     `json:"animated"`
+		CreatedAt   int64    `json:"createdAt"`
+	} `json:"versions"`
+}
+
+func (c *SevenTV) fetchSingleEmote(id string) (*fetchSingleEmoteResponse, error) {
+	data := &fetchSingleEmoteResponse{}
+
+	_, err := req.
+		SetSuccessResult(&data).
+		SetRetryCount(20).
+		SetRetryFixedInterval(200 * time.Millisecond).
+		Get(
+			fmt.Sprintf(
+				"https://7tv.io/v3/emotes/%s?t=%v",
+				id,
+				time.Now().UnixMilli(),
+			),
+		)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}

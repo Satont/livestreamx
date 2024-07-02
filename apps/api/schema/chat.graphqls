@@ -123,7 +123,7 @@ type SystemMessageEmoteAdded implements SystemMessage {
 
 type SystemMessageEmoteRemoved implements SystemMessage {
     type: SystemMessageType!
-    emoteId: String!
+    emote: Emote!
     createdAt: Time!
     actor: SystemMessageEmoteActor!
 }

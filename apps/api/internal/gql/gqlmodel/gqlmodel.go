@@ -295,7 +295,7 @@ func (this SystemMessageEmoteAdded) GetCreatedAt() time.Time    { return this.Cr
 
 type SystemMessageEmoteRemoved struct {
 	Type      SystemMessageType        `json:"type"`
-	EmoteID   string                   `json:"emoteId"`
+	Emote     *Emote                   `json:"emote"`
 	CreatedAt time.Time                `json:"createdAt"`
 	Actor     *SystemMessageEmoteActor `json:"actor"`
 }

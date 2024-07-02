@@ -247,7 +247,7 @@ type ComplexityRoot struct {
 	SystemMessageEmoteRemoved struct {
 		Actor     func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
-		EmoteID   func(childComplexity int) int
+		Emote     func(childComplexity int) int
 		Type      func(childComplexity int) int
 	}
 
@@ -1288,12 +1288,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SystemMessageEmoteRemoved.CreatedAt(childComplexity), true
 
-	case "SystemMessageEmoteRemoved.emoteId":
-		if e.complexity.SystemMessageEmoteRemoved.EmoteID == nil {
+	case "SystemMessageEmoteRemoved.emote":
+		if e.complexity.SystemMessageEmoteRemoved.Emote == nil {
 			break
 		}
 
-		return e.complexity.SystemMessageEmoteRemoved.EmoteID(childComplexity), true
+		return e.complexity.SystemMessageEmoteRemoved.Emote(childComplexity), true
 
 	case "SystemMessageEmoteRemoved.type":
 		if e.complexity.SystemMessageEmoteRemoved.Type == nil {
@@ -1625,7 +1625,7 @@ type SystemMessageEmoteAdded implements SystemMessage {
 
 type SystemMessageEmoteRemoved implements SystemMessage {
     type: SystemMessageType!
-    emoteId: String!
+    emote: Emote!
     createdAt: Time!
     actor: SystemMessageEmoteActor!
 }
@@ -8622,8 +8622,8 @@ func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_type(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _SystemMessageEmoteRemoved_emoteId(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteRemoved) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SystemMessageEmoteRemoved_emoteId(ctx, field)
+func (ec *executionContext) _SystemMessageEmoteRemoved_emote(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteRemoved) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteRemoved_emote(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -8636,7 +8636,7 @@ func (ec *executionContext) _SystemMessageEmoteRemoved_emoteId(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EmoteID, nil
+		return obj.Emote, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8648,19 +8648,31 @@ func (ec *executionContext) _SystemMessageEmoteRemoved_emoteId(ctx context.Conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*gqlmodel.Emote)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNEmote2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐEmote(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_emoteId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_emote(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SystemMessageEmoteRemoved",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Emote_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Emote_name(ctx, field)
+			case "url":
+				return ec.fieldContext_Emote_url(ctx, field)
+			case "width":
+				return ec.fieldContext_Emote_width(ctx, field)
+			case "height":
+				return ec.fieldContext_Emote_height(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
 		},
 	}
 	return fc, nil
@@ -13001,8 +13013,8 @@ func (ec *executionContext) _SystemMessageEmoteRemoved(ctx context.Context, sel 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "emoteId":
-			out.Values[i] = ec._SystemMessageEmoteRemoved_emoteId(ctx, field, obj)
+		case "emote":
+			out.Values[i] = ec._SystemMessageEmoteRemoved_emote(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

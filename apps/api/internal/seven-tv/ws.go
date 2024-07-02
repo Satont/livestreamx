@@ -7,6 +7,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gorilla/websocket"
+	"github.com/kr/pretty"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	system_messages "github.com/satont/stream/apps/api/internal/system-messages"
 )
@@ -39,6 +40,8 @@ func (c *SevenTV) openWebSocket() {
 					c.logger.Sugar().Error("[7TV] unmarshal", err, string(message))
 					continue
 				}
+
+				pretty.Println(string(message))
 
 				if data.Op != dispatch_opcode {
 					continue
@@ -107,12 +110,24 @@ func (c *SevenTV) openWebSocket() {
 								ch.ChannelID,
 							)
 
+							emoteData, err := c.fetchSingleEmote(pulledBody.OldValue.ID)
+							if err != nil {
+								c.logger.Sugar().Error("[7TV] fetch single emote", err)
+								continue
+							}
+
 							c.subscriptionsRouter.Publish(
 								system_messages.BuildSubscriptionEmoteRemovedKey(ch.ChannelID),
 								&gqlmodel.SystemMessageEmoteRemoved{
 									Type:      gqlmodel.SystemMessageTypeEmoteRemoved,
 									CreatedAt: time.Now().UTC(),
-									EmoteID:   pulledBody.OldValue.ID,
+									Emote: &gqlmodel.Emote{
+										ID:     emoteData.Id,
+										Name:   emoteData.Name,
+										URL:    fmt.Sprintf("%s/%s", emoteData.Host.Url, "1x.webp"),
+										Width:  emoteData.Host.Files[0].Width,
+										Height: emoteData.Host.Files[0].Height,
+									},
 									Actor: &gqlmodel.SystemMessageEmoteActor{
 										ID:          data.D.Body.Actor.ID,
 										Name:        data.D.Body.Actor.Username,

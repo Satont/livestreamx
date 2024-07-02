@@ -94,7 +94,9 @@ export const SystemMessage_Fragment = graphql(`
         }
       }
       ...on SystemMessageEmoteRemoved {
-        emoteId
+        emote {
+          ...ChatEmote_Fragment
+        }
         actor {
           id
           name
