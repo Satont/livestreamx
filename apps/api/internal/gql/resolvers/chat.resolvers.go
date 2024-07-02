@@ -9,12 +9,13 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	minio "github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7"
 	data_loader "github.com/satont/stream/apps/api/internal/gql/data-loader"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	"github.com/satont/stream/apps/api/internal/gql/graph"
@@ -24,22 +25,34 @@ import (
 )
 
 // Sender is the resolver for the sender field.
-func (r *chatMessageResolver) Sender(ctx context.Context, obj *gqlmodel.ChatMessage) (*gqlmodel.ChatUser, error) {
+func (r *chatMessageResolver) Sender(
+	ctx context.Context,
+	obj *gqlmodel.ChatMessage,
+) (*gqlmodel.ChatUser, error) {
 	return data_loader.GetChatUserByID(ctx, obj.SenderID)
 }
 
 // User is the resolver for the user field.
-func (r *chatMessageReactionEmojiResolver) User(ctx context.Context, obj *gqlmodel.ChatMessageReactionEmoji) (*gqlmodel.ChatUser, error) {
+func (r *chatMessageReactionEmojiResolver) User(
+	ctx context.Context,
+	obj *gqlmodel.ChatMessageReactionEmoji,
+) (*gqlmodel.ChatUser, error) {
 	return data_loader.GetChatUserByID(ctx, obj.UserID)
 }
 
 // User is the resolver for the user field.
-func (r *chatMessageReactionEmoteResolver) User(ctx context.Context, obj *gqlmodel.ChatMessageReactionEmote) (*gqlmodel.ChatUser, error) {
+func (r *chatMessageReactionEmoteResolver) User(
+	ctx context.Context,
+	obj *gqlmodel.ChatMessageReactionEmote,
+) (*gqlmodel.ChatUser, error) {
 	return data_loader.GetChatUserByID(ctx, obj.UserID)
 }
 
 // Roles is the resolver for the roles field.
-func (r *chatUserResolver) Roles(ctx context.Context, obj *gqlmodel.ChatUser) ([]gqlmodel.Role, error) {
+func (r *chatUserResolver) Roles(ctx context.Context, obj *gqlmodel.ChatUser) (
+	[]gqlmodel.Role,
+	error,
+) {
 	userRoles, err := r.rolesRepo.FindUserRoles(ctx, obj.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user roles: %w", err)
@@ -54,12 +67,18 @@ func (r *chatUserResolver) Roles(ctx context.Context, obj *gqlmodel.ChatUser) ([
 }
 
 // User is the resolver for the user field.
-func (r *messageSegmentMentionResolver) User(ctx context.Context, obj *gqlmodel.MessageSegmentMention) (*gqlmodel.ChatUser, error) {
+func (r *messageSegmentMentionResolver) User(
+	ctx context.Context,
+	obj *gqlmodel.MessageSegmentMention,
+) (*gqlmodel.ChatUser, error) {
 	return data_loader.GetChatUserByID(ctx, obj.UserID)
 }
 
 // SendMessage is the resolver for the sendMessage field.
-func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (bool, error) {
+func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendMessageInput) (
+	bool,
+	error,
+) {
 	userId, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return false, err
@@ -91,7 +110,8 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 	}
 
 	go func() {
-		gqlMessage := r.mapper.ChatMessageWithUser(ctx, message)
+		mapperContext := context.WithoutCancel(ctx)
+		gqlMessage := r.mapper.ChatMessageWithUser(mapperContext, message)
 		if err := r.subscriptionRouter.Publish(
 			fmt.Sprintf(
 				chatMessagesSubscriptionKey,
@@ -107,7 +127,10 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 }
 
 // AttachFile is the resolver for the attachFile field.
-func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) (*gqlmodel.AttachedFile, error) {
+func (r *mutationResolver) AttachFile(
+	ctx context.Context,
+	file graphql.Upload,
+) (*gqlmodel.AttachedFile, error) {
 	_, err := r.s3.PutObject(
 		ctx,
 		r.config.S3Bucket,
@@ -135,7 +158,12 @@ func (r *mutationResolver) AttachFile(ctx context.Context, file graphql.Upload) 
 }
 
 // AddReaction is the resolver for the addReaction field.
-func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, content string, channelID uuid.UUID) (bool, error) {
+func (r *mutationResolver) AddReaction(
+	ctx context.Context,
+	messageID string,
+	content string,
+	channelID uuid.UUID,
+) (bool, error) {
 	userID, err := r.sessionStorage.GetUserID(ctx)
 	if err != nil {
 		return false, err
@@ -177,7 +205,11 @@ func (r *mutationResolver) AddReaction(ctx context.Context, messageID string, co
 }
 
 // ChatMessagesLatest is the resolver for the chatMessagesLatest field.
-func (r *queryResolver) ChatMessagesLatest(ctx context.Context, channelID uuid.UUID, limit *int) ([]gqlmodel.ChatMessage, error) {
+func (r *queryResolver) ChatMessagesLatest(
+	ctx context.Context,
+	channelID uuid.UUID,
+	limit *int,
+) ([]gqlmodel.ChatMessage, error) {
 	limitQuery := 100
 	if limit != nil {
 		limitQuery = *limit
@@ -195,12 +227,28 @@ func (r *queryResolver) ChatMessagesLatest(ctx context.Context, channelID uuid.U
 	}
 
 	gqlMessages := make([]gqlmodel.ChatMessage, 0, len(messages))
+	var gqlMessageWg sync.WaitGroup
+	var gqlMessageMu sync.Mutex
+
 	for _, m := range messages {
-		gqlMessages = append(
-			gqlMessages,
-			r.mapper.ChatMessageWithUser(ctx, &m),
-		)
+		m := m
+
+		gqlMessageWg.Add(1)
+
+		go func() {
+			defer gqlMessageWg.Done()
+
+			gqlMessageMu.Lock()
+			defer gqlMessageMu.Unlock()
+
+			gqlMessages = append(
+				gqlMessages,
+				r.mapper.ChatMessageWithUser(ctx, &m),
+			)
+		}()
 	}
+
+	gqlMessageWg.Wait()
 
 	slices.SortFunc(
 		gqlMessages,
@@ -217,7 +265,10 @@ func (r *queryResolver) ChatMessagesLatest(ctx context.Context, channelID uuid.U
 }
 
 // GetEmotes is the resolver for the getEmotes field.
-func (r *queryResolver) GetEmotes(ctx context.Context, channelID uuid.UUID) ([]gqlmodel.Emote, error) {
+func (r *queryResolver) GetEmotes(ctx context.Context, channelID uuid.UUID) (
+	[]gqlmodel.Emote,
+	error,
+) {
 	emotes := make([]gqlmodel.Emote, 0, len(r.sevenTv.Emotes))
 	for _, emote := range r.sevenTv.Emotes {
 		emotes = append(
@@ -246,7 +297,10 @@ func (r *queryResolver) GetEmotes(ctx context.Context, channelID uuid.UUID) ([]g
 }
 
 // ChatMessages is the resolver for the chatMessages field.
-func (r *subscriptionResolver) ChatMessages(ctx context.Context, channelID uuid.UUID) (<-chan *gqlmodel.ChatMessage, error) {
+func (r *subscriptionResolver) ChatMessages(
+	ctx context.Context,
+	channelID uuid.UUID,
+) (<-chan *gqlmodel.ChatMessage, error) {
 	channel := make(chan *gqlmodel.ChatMessage, 1)
 
 	go func() {
@@ -285,12 +339,18 @@ func (r *subscriptionResolver) ChatMessages(ctx context.Context, channelID uuid.
 }
 
 // SystemMessages is the resolver for the systemMessages field.
-func (r *subscriptionResolver) SystemMessages(ctx context.Context, channelID uuid.UUID) (<-chan gqlmodel.SystemMessage, error) {
+func (r *subscriptionResolver) SystemMessages(
+	ctx context.Context,
+	channelID uuid.UUID,
+) (<-chan gqlmodel.SystemMessage, error) {
 	panic(fmt.Errorf("not implemented: SystemMessages - systemMessages"))
 }
 
 // ReactionAdd is the resolver for the reactionAdd field.
-func (r *subscriptionResolver) ReactionAdd(ctx context.Context, channelID uuid.UUID) (<-chan gqlmodel.ChatMessageReaction, error) {
+func (r *subscriptionResolver) ReactionAdd(
+	ctx context.Context,
+	channelID uuid.UUID,
+) (<-chan gqlmodel.ChatMessageReaction, error) {
 	channel := make(chan gqlmodel.ChatMessageReaction, 1)
 
 	go func() {

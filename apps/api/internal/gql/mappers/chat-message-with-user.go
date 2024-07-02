@@ -61,6 +61,7 @@ func (c *Mapper) ChatMessageWithUser(
 			user, err := c.userRepo.FindByName(ctx, text[1:])
 			if err == nil && user != nil {
 				mentionSegment.UserID = user.ID
+				segments = append(segments, mentionSegment)
 			} else {
 				segments = append(
 					segments,
