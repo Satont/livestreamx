@@ -1,6 +1,8 @@
 package resolvers
 
 import (
+	"context"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
 	"github.com/satont/stream/apps/api/internal/config"
@@ -41,6 +43,7 @@ type Resolver struct {
 
 type Opts struct {
 	fx.In
+	LC fx.Lifecycle
 
 	ChatMessageRepo     chat_message.Repository
 	UserRepo            user.Repository
@@ -60,7 +63,7 @@ type Opts struct {
 }
 
 func New(opts Opts) *Resolver {
-	return &Resolver{
+	r := &Resolver{
 		chatMessageRepo:     opts.ChatMessageRepo,
 		userRepo:            opts.UserRepo,
 		messageReactionRepo: opts.MessageReactionRepo,
@@ -76,4 +79,24 @@ func New(opts Opts) *Resolver {
 		redis:   opts.Redis,
 		logger:  opts.Logger,
 	}
+
+	opts.LC.Append(
+		fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				go func() {
+					if err := r.resetStreamsViewersAndChatters(context.TODO()); err != nil {
+						r.logger.Sugar().Error(err)
+						return
+					}
+
+					r.logger.Sugar().Info("[GQL] reset streams viewers and chatters")
+				}()
+
+				return nil
+			},
+			OnStop: nil,
+		},
+	)
+
+	return r
 }
