@@ -625,7 +625,9 @@ func (c *Pgx) Update(ctx context.Context, userID uuid.UUID, opts UpdateOpts) (*U
 		updateMap["banned"] = *opts.IsBanned
 	}
 
-	updateMap["seven_tv_emote_set_id"] = opts.SevenTvEmoteSetID
+	if opts.SevenTvEmoteSetID != nil {
+		updateMap["seven_tv_emote_set_id"] = opts.SevenTvEmoteSetID
+	}
 
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Update("users").
