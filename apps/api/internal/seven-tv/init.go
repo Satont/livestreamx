@@ -54,6 +54,12 @@ func (c *SevenTV) init() {
 var channelsLock sync.Mutex
 
 func (c *SevenTV) InitUser(user user.User) error {
+	for {
+		if c.wsConn != nil {
+			break
+		}
+	}
+
 	for idx, ch := range c.Channels {
 		// delete item for slice
 		if ch.ChannelID == user.ID {
@@ -66,6 +72,17 @@ func (c *SevenTV) InitUser(user user.User) error {
 	if user.SevenTvEmoteSetID == nil {
 		return nil
 	}
+
+	if err := c.subscribeToEmoteSetUpdates(*user.SevenTvEmoteSetID); err != nil {
+		c.logger.Sugar().Error("[7TV] Cannot subscribe to emote set updates", err)
+		return err
+	}
+
+	c.logger.Sugar().Infow(
+		"[7TV] subscribed to emote set updates",
+		"user_id", user.ID.String(),
+		"emote_set_id", *user.SevenTvEmoteSetID,
+	)
 
 	emotes, err := c.fetchEmoteSetEmotes(*user.SevenTvEmoteSetID)
 	if err != nil && errors.Is(err, ErrNoEmotes) {
@@ -89,17 +106,6 @@ func (c *SevenTV) InitUser(user user.User) error {
 		},
 	)
 	channelsLock.Unlock()
-
-	if err := c.subscribeToEmoteSetUpdates(*user.SevenTvEmoteSetID); err != nil {
-		c.logger.Sugar().Error("[7TV] Cannot subscribe to emote set updates", err)
-		return err
-	}
-
-	c.logger.Sugar().Infow(
-		"[7TV] subscribed to emote set updates",
-		"user_id", user.ID.String(),
-		"emote_set_id", *user.SevenTvEmoteSetID,
-	)
 
 	return nil
 }

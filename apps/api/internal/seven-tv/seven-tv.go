@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
+	subscriptions_router "github.com/satont/stream/apps/api/internal/subscriptions-router"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -15,17 +16,19 @@ type Opts struct {
 	fx.In
 	LC fx.Lifecycle
 
-	Config   config.Config
-	UserRepo user.Repository
-	Logger   *zap.Logger
+	Config              config.Config
+	UserRepo            user.Repository
+	Logger              *zap.Logger
+	SubscriptionsRouter subscriptions_router.Router
 }
 
 func New(opts Opts) *SevenTV {
 	s := &SevenTV{
-		config:   opts.Config,
-		Channels: make([]ChannelCache, 0),
-		userRepo: opts.UserRepo,
-		logger:   opts.Logger,
+		config:              opts.Config,
+		Channels:            make([]ChannelCache, 0),
+		userRepo:            opts.UserRepo,
+		logger:              opts.Logger,
+		subscriptionsRouter: opts.SubscriptionsRouter,
 	}
 
 	opts.LC.Append(
@@ -43,10 +46,11 @@ func New(opts Opts) *SevenTV {
 }
 
 type SevenTV struct {
-	config   config.Config
-	userRepo user.Repository
-	wsConn   *websocket.Conn
-	logger   *zap.Logger
+	config              config.Config
+	userRepo            user.Repository
+	wsConn              *websocket.Conn
+	logger              *zap.Logger
+	subscriptionsRouter subscriptions_router.Router
 
 	// map of channels with emotes
 	Channels []ChannelCache

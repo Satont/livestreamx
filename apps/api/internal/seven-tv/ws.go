@@ -7,6 +7,8 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gorilla/websocket"
+	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
+	system_messages "github.com/satont/stream/apps/api/internal/system-messages"
 )
 
 func (c *SevenTV) openWebSocket() {
@@ -15,7 +17,6 @@ func (c *SevenTV) openWebSocket() {
 	go func() {
 		for {
 			conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-			c.wsConn = conn
 			defer conn.Close()
 			if err != nil {
 				c.logger.Sugar().Error("[7TV] dial", err)
@@ -23,6 +24,7 @@ func (c *SevenTV) openWebSocket() {
 			}
 
 			c.logger.Sugar().Info("[7TV] socket connected")
+			c.wsConn = conn
 
 		readLoop:
 			for {
@@ -65,6 +67,26 @@ func (c *SevenTV) openWebSocket() {
 							Width:  emote.Value.Data.Host.Files[0].Width,
 							Height: emote.Value.Data.Host.Files[0].Height,
 						}
+
+						c.subscriptionsRouter.Publish(
+							system_messages.BuildSubscriptionEmoteAddedKey(ch.ChannelID),
+							&gqlmodel.SystemMessageEmoteAdded{
+								Type:      gqlmodel.SystemMessageTypeEmoteAdded,
+								CreatedAt: time.Now().UTC(),
+								Emote: &gqlmodel.Emote{
+									ID:     emote.Value.ID,
+									Name:   emote.Value.Name,
+									URL:    fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, "1x.webp"),
+									Width:  emote.Value.Data.Host.Files[0].Width,
+									Height: emote.Value.Data.Host.Files[0].Height,
+								},
+								Actor: &gqlmodel.SystemMessageEmoteActor{
+									ID:          data.D.Body.Actor.ID,
+									Name:        data.D.Body.Actor.Username,
+									DisplayName: data.D.Body.Actor.DisplayName,
+								},
+							},
+						)
 					}
 				}
 
@@ -83,6 +105,20 @@ func (c *SevenTV) openWebSocket() {
 								data.D.Body.ID,
 								"channel_id",
 								ch.ChannelID,
+							)
+
+							c.subscriptionsRouter.Publish(
+								system_messages.BuildSubscriptionEmoteRemovedKey(ch.ChannelID),
+								&gqlmodel.SystemMessageEmoteRemoved{
+									Type:      gqlmodel.SystemMessageTypeEmoteRemoved,
+									CreatedAt: time.Now().UTC(),
+									EmoteID:   pulledBody.OldValue.ID,
+									Actor: &gqlmodel.SystemMessageEmoteActor{
+										ID:          data.D.Body.Actor.ID,
+										Name:        data.D.Body.Actor.Username,
+										DisplayName: data.D.Body.Actor.DisplayName,
+									},
+								},
 							)
 
 							delete(ch.Emotes, pulledBody.OldValue.ID)

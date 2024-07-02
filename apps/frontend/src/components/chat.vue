@@ -3,19 +3,36 @@ import { useScroll } from '@vueuse/core'
 import { Pause } from 'lucide-vue-next'
 import { computed, nextTick, ref, watch } from 'vue'
 
-import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
+import {
+  ChatMessage_Fragment,
+  SystemMessage_Fragment,
+  useChat
+} from '@/api/chat.ts'
 import ChatMessageForm from '@/components/chat-message-form.vue'
 import ChatMessage from '@/components/chat-message.vue'
+import ChatSystemMessage from '@/components/chat-system-message.vue'
 import StreamUptime from '@/components/stream-uptime.vue'
 import StreamViewers from '@/components/stream-viewers.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useChatMessageSend } from '@/composables/use-chat-message-send.ts'
 import { FragmentType, useFragment } from '@/gql'
 
-const { messages } = useChat()
+const { messages, systemMessages } = useChat()
 const unwrappedMessages = computed(() =>
   useFragment(ChatMessage_Fragment, messages.value)
 )
+
+const allMessages = computed(() => {
+  return [
+    ...unwrappedMessages.value,
+    ...systemMessages.value
+  ].sort((a, b) => {
+    if (!('createdAt' in a) || !('createdAt' in b)) return 0
+
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  })
+})
+
 const { replyTo } = useChatMessageSend()
 
 const messagesEl = ref<HTMLElement | null>(null)
@@ -28,7 +45,7 @@ watch(arrivedState, (v) => {
 })
 
 watch(
-  messages,
+  allMessages,
   async () => {
     if (!messagesEl.value || scrollPaused.value) return
 
@@ -71,12 +88,17 @@ const replyingTo = computed(() => {
         ref="messagesEl"
         class="h-full relative flex flex-col overflow-y-auto px-2"
       >
-        <ChatMessage
-          v-for="message in messages"
-          :key="useFragment(ChatMessage_Fragment, message).id"
-          :msg="message"
-          @reply="scrollToBottom"
-        />
+        <template v-for="message in allMessages">
+          <ChatMessage
+            v-if="!('type' in message)"
+            :msg="message as FragmentType<typeof ChatMessage_Fragment>"
+            @reply="scrollToBottom"
+          />
+          <ChatSystemMessage
+            v-else
+            :msg="message as FragmentType<typeof SystemMessage_Fragment>"
+          />
+        </template>
       </div>
       <div
         v-if="scrollPaused || replyingTo"

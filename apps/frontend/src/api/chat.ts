@@ -79,6 +79,36 @@ export const ChatReaction_Fragment = graphql(`
   }
 `)
 
+export const SystemMessage_Fragment = graphql(`
+    fragment SystemMessage_Fragment on SystemMessage {
+      type
+      createdAt
+      ...on SystemMessageEmoteAdded {
+        emote {
+          ...ChatEmote_Fragment
+        }
+        actor {
+          id
+          name
+          displayName
+        }
+      }
+      ...on SystemMessageEmoteRemoved {
+        emoteId
+        actor {
+          id
+          name
+          displayName
+        }
+      }
+      ...on SystemMessageKickMessage {
+        message
+        senderColor
+        senderName
+      }
+    }
+`)
+
 export const useChat = createGlobalState(() => {
   const routerParams = useRoute()
   const channelName = computed(() => {
@@ -235,11 +265,36 @@ export const useChat = createGlobalState(() => {
     useFragment(ChatMessage_Fragment, message).reactions.push(fragment)
   })
 
+  const systemMessages = ref<FragmentType<typeof SystemMessage_Fragment>[]>([])
+  const systemMessageSub = useSubscription({
+    query: graphql(`
+        subscription SystemMessages($channelID: UUID!) {
+          systemMessages(channelID: $channelID) {
+            ...SystemMessage_Fragment
+          }
+        }
+    `),
+    get variables() {
+      return {
+        channelID: channelData.value?.fetchUserByName.id
+      }
+    },
+    pause() {
+      return !channelData.value?.fetchUserByName.id
+    },
+  })
+  watch(systemMessageSub.data, (data) => {
+    if (!data?.systemMessages) return
+
+    systemMessages.value = [...systemMessages.value, data.systemMessages]
+  })
+
   return {
     messages,
     useSendMessage,
     emotes,
     useReactionAddMutation,
     channelData,
+    systemMessages,
   }
 })

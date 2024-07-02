@@ -32,6 +32,7 @@ type MessageSegment interface {
 type SystemMessage interface {
 	IsSystemMessage()
 	GetType() SystemMessageType
+	GetCreatedAt() time.Time
 }
 
 type User interface {
@@ -275,29 +276,56 @@ type Stream struct {
 type Subscription struct {
 }
 
+type SystemMessageEmoteActor struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+}
+
 type SystemMessageEmoteAdded struct {
-	Type  SystemMessageType `json:"type"`
-	Emote *Emote            `json:"emote"`
+	Type      SystemMessageType        `json:"type"`
+	Emote     *Emote                   `json:"emote"`
+	CreatedAt time.Time                `json:"createdAt"`
+	Actor     *SystemMessageEmoteActor `json:"actor"`
 }
 
 func (SystemMessageEmoteAdded) IsSystemMessage()                {}
 func (this SystemMessageEmoteAdded) GetType() SystemMessageType { return this.Type }
+func (this SystemMessageEmoteAdded) GetCreatedAt() time.Time    { return this.CreatedAt }
 
 type SystemMessageEmoteRemoved struct {
-	Type    SystemMessageType `json:"type"`
-	EmoteID string            `json:"emoteId"`
+	Type      SystemMessageType        `json:"type"`
+	EmoteID   string                   `json:"emoteId"`
+	CreatedAt time.Time                `json:"createdAt"`
+	Actor     *SystemMessageEmoteActor `json:"actor"`
 }
 
 func (SystemMessageEmoteRemoved) IsSystemMessage()                {}
 func (this SystemMessageEmoteRemoved) GetType() SystemMessageType { return this.Type }
+func (this SystemMessageEmoteRemoved) GetCreatedAt() time.Time    { return this.CreatedAt }
 
 type SystemMessageEmoteUpdated struct {
-	Type  SystemMessageType `json:"type"`
-	Emote *Emote            `json:"emote"`
+	Type      SystemMessageType        `json:"type"`
+	Emote     *Emote                   `json:"emote"`
+	CreatedAt time.Time                `json:"createdAt"`
+	Actor     *SystemMessageEmoteActor `json:"actor"`
 }
 
 func (SystemMessageEmoteUpdated) IsSystemMessage()                {}
 func (this SystemMessageEmoteUpdated) GetType() SystemMessageType { return this.Type }
+func (this SystemMessageEmoteUpdated) GetCreatedAt() time.Time    { return this.CreatedAt }
+
+type SystemMessageKickMessage struct {
+	Type        SystemMessageType `json:"type"`
+	SenderName  string            `json:"senderName"`
+	SenderColor string            `json:"senderColor"`
+	Message     string            `json:"message"`
+	CreatedAt   time.Time         `json:"createdAt"`
+}
+
+func (SystemMessageKickMessage) IsSystemMessage()                {}
+func (this SystemMessageKickMessage) GetType() SystemMessageType { return this.Type }
+func (this SystemMessageKickMessage) GetCreatedAt() time.Time    { return this.CreatedAt }
 
 type UpdateRoleInput struct {
 	Name     graphql.Omittable[*string]       `json:"name,omitempty"`
@@ -484,17 +512,19 @@ const (
 	SystemMessageTypeEmoteAdded   SystemMessageType = "EMOTE_ADDED"
 	SystemMessageTypeEmoteRemoved SystemMessageType = "EMOTE_REMOVED"
 	SystemMessageTypeEmoteUpdated SystemMessageType = "EMOTE_UPDATED"
+	SystemMessageTypeKickMessage  SystemMessageType = "KICK_MESSAGE"
 )
 
 var AllSystemMessageType = []SystemMessageType{
 	SystemMessageTypeEmoteAdded,
 	SystemMessageTypeEmoteRemoved,
 	SystemMessageTypeEmoteUpdated,
+	SystemMessageTypeKickMessage,
 }
 
 func (e SystemMessageType) IsValid() bool {
 	switch e {
-	case SystemMessageTypeEmoteAdded, SystemMessageTypeEmoteRemoved, SystemMessageTypeEmoteUpdated:
+	case SystemMessageTypeEmoteAdded, SystemMessageTypeEmoteRemoved, SystemMessageTypeEmoteUpdated, SystemMessageTypeKickMessage:
 		return true
 	}
 	return false

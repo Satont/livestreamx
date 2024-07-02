@@ -92,10 +92,12 @@ enum SystemMessageType {
     EMOTE_ADDED
     EMOTE_REMOVED
     EMOTE_UPDATED
+    KICK_MESSAGE
 }
 
 interface SystemMessage {
     type: SystemMessageType!
+    createdAt: Time!
 }
 
 type Emote {
@@ -106,19 +108,39 @@ type Emote {
     height: Int!
 }
 
+type SystemMessageEmoteActor {
+    id: String!
+    name: String!
+    displayName: String!
+}
+
 type SystemMessageEmoteAdded implements SystemMessage {
     type: SystemMessageType!
     emote: Emote!
+    createdAt: Time!
+    actor: SystemMessageEmoteActor!
 }
 
 type SystemMessageEmoteRemoved implements SystemMessage {
     type: SystemMessageType!
     emoteId: String!
+    createdAt: Time!
+    actor: SystemMessageEmoteActor!
 }
 
 type SystemMessageEmoteUpdated implements SystemMessage {
     type: SystemMessageType!
     emote: Emote!
+    createdAt: Time!
+    actor: SystemMessageEmoteActor!
+}
+
+type SystemMessageKickMessage implements SystemMessage {
+    type: SystemMessageType!
+    senderName: String!
+    senderColor: String!
+    message: String!
+    createdAt: Time!
 }
 
 enum ChatMessageReactionType {

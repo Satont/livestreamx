@@ -34,6 +34,11 @@ type SevenTvWebsocketPayload struct {
 			Pulled  []SevenTvWebsocketBody `json:"pulled"`
 			Pushed  []SevenTvWebsocketBody `json:"pushed"`
 			Updated []SevenTvWebsocketBody `json:"updated"`
+			Actor   struct {
+				ID          string `json:"id"`
+				Username    string `json:"username"`
+				DisplayName string `json:"display_name"`
+			}
 		} `json:"body"`
 	}
 }

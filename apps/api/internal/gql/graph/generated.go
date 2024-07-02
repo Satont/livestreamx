@@ -231,19 +231,39 @@ type ComplexityRoot struct {
 		SystemMessages func(childComplexity int, channelID uuid.UUID) int
 	}
 
+	SystemMessageEmoteActor struct {
+		DisplayName func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+	}
+
 	SystemMessageEmoteAdded struct {
-		Emote func(childComplexity int) int
-		Type  func(childComplexity int) int
+		Actor     func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Emote     func(childComplexity int) int
+		Type      func(childComplexity int) int
 	}
 
 	SystemMessageEmoteRemoved struct {
-		EmoteID func(childComplexity int) int
-		Type    func(childComplexity int) int
+		Actor     func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		EmoteID   func(childComplexity int) int
+		Type      func(childComplexity int) int
 	}
 
 	SystemMessageEmoteUpdated struct {
-		Emote func(childComplexity int) int
-		Type  func(childComplexity int) int
+		Actor     func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Emote     func(childComplexity int) int
+		Type      func(childComplexity int) int
+	}
+
+	SystemMessageKickMessage struct {
+		CreatedAt   func(childComplexity int) int
+		Message     func(childComplexity int) int
+		SenderColor func(childComplexity int) int
+		SenderName  func(childComplexity int) int
+		Type        func(childComplexity int) int
 	}
 }
 
@@ -1205,6 +1225,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.SystemMessages(childComplexity, args["channelID"].(uuid.UUID)), true
 
+	case "SystemMessageEmoteActor.displayName":
+		if e.complexity.SystemMessageEmoteActor.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteActor.DisplayName(childComplexity), true
+
+	case "SystemMessageEmoteActor.id":
+		if e.complexity.SystemMessageEmoteActor.ID == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteActor.ID(childComplexity), true
+
+	case "SystemMessageEmoteActor.name":
+		if e.complexity.SystemMessageEmoteActor.Name == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteActor.Name(childComplexity), true
+
+	case "SystemMessageEmoteAdded.actor":
+		if e.complexity.SystemMessageEmoteAdded.Actor == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteAdded.Actor(childComplexity), true
+
+	case "SystemMessageEmoteAdded.createdAt":
+		if e.complexity.SystemMessageEmoteAdded.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteAdded.CreatedAt(childComplexity), true
+
 	case "SystemMessageEmoteAdded.emote":
 		if e.complexity.SystemMessageEmoteAdded.Emote == nil {
 			break
@@ -1218,6 +1273,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SystemMessageEmoteAdded.Type(childComplexity), true
+
+	case "SystemMessageEmoteRemoved.actor":
+		if e.complexity.SystemMessageEmoteRemoved.Actor == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteRemoved.Actor(childComplexity), true
+
+	case "SystemMessageEmoteRemoved.createdAt":
+		if e.complexity.SystemMessageEmoteRemoved.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteRemoved.CreatedAt(childComplexity), true
 
 	case "SystemMessageEmoteRemoved.emoteId":
 		if e.complexity.SystemMessageEmoteRemoved.EmoteID == nil {
@@ -1233,6 +1302,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SystemMessageEmoteRemoved.Type(childComplexity), true
 
+	case "SystemMessageEmoteUpdated.actor":
+		if e.complexity.SystemMessageEmoteUpdated.Actor == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteUpdated.Actor(childComplexity), true
+
+	case "SystemMessageEmoteUpdated.createdAt":
+		if e.complexity.SystemMessageEmoteUpdated.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageEmoteUpdated.CreatedAt(childComplexity), true
+
 	case "SystemMessageEmoteUpdated.emote":
 		if e.complexity.SystemMessageEmoteUpdated.Emote == nil {
 			break
@@ -1246,6 +1329,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SystemMessageEmoteUpdated.Type(childComplexity), true
+
+	case "SystemMessageKickMessage.createdAt":
+		if e.complexity.SystemMessageKickMessage.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageKickMessage.CreatedAt(childComplexity), true
+
+	case "SystemMessageKickMessage.message":
+		if e.complexity.SystemMessageKickMessage.Message == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageKickMessage.Message(childComplexity), true
+
+	case "SystemMessageKickMessage.senderColor":
+		if e.complexity.SystemMessageKickMessage.SenderColor == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageKickMessage.SenderColor(childComplexity), true
+
+	case "SystemMessageKickMessage.senderName":
+		if e.complexity.SystemMessageKickMessage.SenderName == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageKickMessage.SenderName(childComplexity), true
+
+	case "SystemMessageKickMessage.type":
+		if e.complexity.SystemMessageKickMessage.Type == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageKickMessage.Type(childComplexity), true
 
 	}
 	return 0, false
@@ -1476,10 +1594,12 @@ enum SystemMessageType {
     EMOTE_ADDED
     EMOTE_REMOVED
     EMOTE_UPDATED
+    KICK_MESSAGE
 }
 
 interface SystemMessage {
     type: SystemMessageType!
+    createdAt: Time!
 }
 
 type Emote {
@@ -1490,19 +1610,39 @@ type Emote {
     height: Int!
 }
 
+type SystemMessageEmoteActor {
+    id: String!
+    name: String!
+    displayName: String!
+}
+
 type SystemMessageEmoteAdded implements SystemMessage {
     type: SystemMessageType!
     emote: Emote!
+    createdAt: Time!
+    actor: SystemMessageEmoteActor!
 }
 
 type SystemMessageEmoteRemoved implements SystemMessage {
     type: SystemMessageType!
     emoteId: String!
+    createdAt: Time!
+    actor: SystemMessageEmoteActor!
 }
 
 type SystemMessageEmoteUpdated implements SystemMessage {
     type: SystemMessageType!
     emote: Emote!
+    createdAt: Time!
+    actor: SystemMessageEmoteActor!
+}
+
+type SystemMessageKickMessage implements SystemMessage {
+    type: SystemMessageType!
+    senderName: String!
+    senderColor: String!
+    message: String!
+    createdAt: Time!
 }
 
 enum ChatMessageReactionType {
@@ -8110,6 +8250,138 @@ func (ec *executionContext) fieldContext_Subscription_streamInfo(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _SystemMessageEmoteActor_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteActor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteActor_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteActor_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteActor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteActor_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteActor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteActor_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteActor_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteActor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteActor_displayName(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteActor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteActor_displayName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisplayName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteActor_displayName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteActor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SystemMessageEmoteAdded_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteAdded) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SystemMessageEmoteAdded_type(ctx, field)
 	if err != nil {
@@ -8210,6 +8482,102 @@ func (ec *executionContext) fieldContext_SystemMessageEmoteAdded_emote(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _SystemMessageEmoteAdded_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteAdded) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteAdded_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteAdded_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteAdded",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteAdded_actor(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteAdded) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteAdded_actor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Actor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.SystemMessageEmoteActor)
+	fc.Result = res
+	return ec.marshalNSystemMessageEmoteActor2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageEmoteActor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteAdded_actor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteAdded",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SystemMessageEmoteActor_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SystemMessageEmoteActor_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_SystemMessageEmoteActor_displayName(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SystemMessageEmoteActor", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SystemMessageEmoteRemoved_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteRemoved) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SystemMessageEmoteRemoved_type(ctx, field)
 	if err != nil {
@@ -8293,6 +8661,102 @@ func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_emoteId(_ con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteRemoved_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteRemoved) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteRemoved_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteRemoved",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteRemoved_actor(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteRemoved) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteRemoved_actor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Actor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.SystemMessageEmoteActor)
+	fc.Result = res
+	return ec.marshalNSystemMessageEmoteActor2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageEmoteActor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteRemoved_actor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteRemoved",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SystemMessageEmoteActor_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SystemMessageEmoteActor_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_SystemMessageEmoteActor_displayName(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SystemMessageEmoteActor", field.Name)
 		},
 	}
 	return fc, nil
@@ -8393,6 +8857,322 @@ func (ec *executionContext) fieldContext_SystemMessageEmoteUpdated_emote(_ conte
 				return ec.fieldContext_Emote_height(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Emote", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteUpdated_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteUpdated) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteUpdated_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteUpdated_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteUpdated",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageEmoteUpdated_actor(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageEmoteUpdated) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageEmoteUpdated_actor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Actor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.SystemMessageEmoteActor)
+	fc.Result = res
+	return ec.marshalNSystemMessageEmoteActor2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageEmoteActor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageEmoteUpdated_actor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageEmoteUpdated",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SystemMessageEmoteActor_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SystemMessageEmoteActor_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_SystemMessageEmoteActor_displayName(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SystemMessageEmoteActor", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageKickMessage_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageKickMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageKickMessage_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.SystemMessageType)
+	fc.Result = res
+	return ec.marshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageKickMessage_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageKickMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SystemMessageType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageKickMessage_senderName(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageKickMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageKickMessage_senderName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SenderName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageKickMessage_senderName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageKickMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageKickMessage_senderColor(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageKickMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageKickMessage_senderColor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SenderColor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageKickMessage_senderColor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageKickMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageKickMessage_message(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageKickMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageKickMessage_message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageKickMessage_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageKickMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageKickMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageKickMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageKickMessage_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageKickMessage_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageKickMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10465,6 +11245,13 @@ func (ec *executionContext) _SystemMessage(ctx context.Context, sel ast.Selectio
 			return graphql.Null
 		}
 		return ec._SystemMessageEmoteUpdated(ctx, sel, obj)
+	case gqlmodel.SystemMessageKickMessage:
+		return ec._SystemMessageKickMessage(ctx, sel, &obj)
+	case *gqlmodel.SystemMessageKickMessage:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._SystemMessageKickMessage(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -12095,6 +12882,55 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 }
 
+var systemMessageEmoteActorImplementors = []string{"SystemMessageEmoteActor"}
+
+func (ec *executionContext) _SystemMessageEmoteActor(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.SystemMessageEmoteActor) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, systemMessageEmoteActorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemMessageEmoteActor")
+		case "id":
+			out.Values[i] = ec._SystemMessageEmoteActor_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._SystemMessageEmoteActor_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "displayName":
+			out.Values[i] = ec._SystemMessageEmoteActor_displayName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var systemMessageEmoteAddedImplementors = []string{"SystemMessageEmoteAdded", "SystemMessage"}
 
 func (ec *executionContext) _SystemMessageEmoteAdded(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.SystemMessageEmoteAdded) graphql.Marshaler {
@@ -12113,6 +12949,16 @@ func (ec *executionContext) _SystemMessageEmoteAdded(ctx context.Context, sel as
 			}
 		case "emote":
 			out.Values[i] = ec._SystemMessageEmoteAdded_emote(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._SystemMessageEmoteAdded_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "actor":
+			out.Values[i] = ec._SystemMessageEmoteAdded_actor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12160,6 +13006,16 @@ func (ec *executionContext) _SystemMessageEmoteRemoved(ctx context.Context, sel 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createdAt":
+			out.Values[i] = ec._SystemMessageEmoteRemoved_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "actor":
+			out.Values[i] = ec._SystemMessageEmoteRemoved_actor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12201,6 +13057,75 @@ func (ec *executionContext) _SystemMessageEmoteUpdated(ctx context.Context, sel 
 			}
 		case "emote":
 			out.Values[i] = ec._SystemMessageEmoteUpdated_emote(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._SystemMessageEmoteUpdated_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "actor":
+			out.Values[i] = ec._SystemMessageEmoteUpdated_actor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var systemMessageKickMessageImplementors = []string{"SystemMessageKickMessage", "SystemMessage"}
+
+func (ec *executionContext) _SystemMessageKickMessage(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.SystemMessageKickMessage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, systemMessageKickMessageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemMessageKickMessage")
+		case "type":
+			out.Values[i] = ec._SystemMessageKickMessage_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "senderName":
+			out.Values[i] = ec._SystemMessageKickMessage_senderName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "senderColor":
+			out.Values[i] = ec._SystemMessageKickMessage_senderColor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._SystemMessageKickMessage_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._SystemMessageKickMessage_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -13219,6 +14144,16 @@ func (ec *executionContext) marshalNSystemMessage2githubᚗcomᚋsatontᚋstream
 		return graphql.Null
 	}
 	return ec._SystemMessage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSystemMessageEmoteActor2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageEmoteActor(ctx context.Context, sel ast.SelectionSet, v *gqlmodel.SystemMessageEmoteActor) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SystemMessageEmoteActor(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx context.Context, v interface{}) (gqlmodel.SystemMessageType, error) {
