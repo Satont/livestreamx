@@ -140,6 +140,7 @@ const isSmall = breakPoints.smallerOrEqual('lg')
             class="absolute right-1 top-1 md:right-2 md:top-2"
             variant="ghost"
             size="xs"
+            :disabled="!profile"
           >
             <Smile />
           </Button>
