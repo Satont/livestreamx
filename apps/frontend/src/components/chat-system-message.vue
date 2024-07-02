@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, FunctionalComponent } from 'vue'
 
-import { SystemMessage_Fragment, useChat } from '@/api/chat.ts'
+import { SystemMessage_Fragment } from '@/api/chat.ts'
 import SevenTv from '@/assets/images/seventv.svg?component'
 import { chatFontSize } from '@/composables/chat-font-size.ts'
 import { FragmentType, useFragment } from '@/gql'
@@ -12,7 +12,6 @@ type Props = {
 }
 
 const props = defineProps<Props>()
-const { emotes } = useChat()
 
 const unwrappedMessage = useFragment(SystemMessage_Fragment, props.msg)
 
