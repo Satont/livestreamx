@@ -7,7 +7,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gorilla/websocket"
-	"github.com/kr/pretty"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	system_messages "github.com/satont/stream/apps/api/internal/system-messages"
 )
@@ -40,8 +39,6 @@ func (c *SevenTV) openWebSocket() {
 					c.logger.Sugar().Error("[7TV] unmarshal", err, string(message))
 					continue
 				}
-
-				pretty.Println(string(message))
 
 				if data.Op != dispatch_opcode {
 					continue
