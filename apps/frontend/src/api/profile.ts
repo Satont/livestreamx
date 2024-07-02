@@ -26,6 +26,7 @@ export const useProfile = createGlobalState(() => {
             }
             __typename
             streamKey
+            sevenTvEmoteSetId
           }
         }
       `),

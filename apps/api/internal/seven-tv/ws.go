@@ -2,7 +2,6 @@ package seven_tv
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"time"
 
@@ -16,36 +15,26 @@ func (c *SevenTV) openWebSocket() {
 	go func() {
 		for {
 			conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+			c.wsConn = conn
 			defer conn.Close()
 			if err != nil {
-				fmt.Println(err)
+				c.logger.Sugar().Error("[7TV] dial", err)
 				continue
 			}
 
-			if err := conn.WriteMessage(
-				websocket.TextMessage,
-				[]byte(
-					fmt.Sprintf(
-						`{"op":35,"d":{"type":"emote_set.update","condition":{"object_id":"%s"}}}`,
-						c.config.SevenTVEmoteSetID,
-					),
-				),
-			); err != nil {
-				fmt.Println(err)
-				continue
-			}
+			c.logger.Sugar().Info("[7TV] socket connected")
 
 		readLoop:
 			for {
 				_, message, err := conn.ReadMessage()
 				if err != nil {
-					log.Println("read:", err)
+					c.logger.Sugar().Error("[7TV] read", err)
 					break readLoop
 				}
 
 				data := SevenTvWebsocketPayload{}
 				if err := json.Unmarshal(message, &data); err != nil {
-					log.Println("unmarshal:", err)
+					c.logger.Sugar().Error("[7TV] unmarshal", err, string(message))
 					continue
 				}
 
@@ -54,30 +43,101 @@ func (c *SevenTV) openWebSocket() {
 				}
 
 				for _, emote := range data.D.Body.Pushed {
-					log.Printf("added: %s", emote.Value.Name)
+					for _, ch := range c.Channels {
+						if ch.EmoteSetID != data.D.Body.ID {
+							continue
+						}
 
-					c.Emotes[emote.Value.ID] = Emote{
-						ID:     emote.Value.ID,
-						Name:   emote.Value.Name,
-						URL:    fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, "1x.webp"),
-						Width:  emote.Value.Data.Host.Files[0].Width,
-						Height: emote.Value.Data.Host.Files[0].Height,
+						c.logger.Sugar().Infow(
+							"[7TV] added",
+							"emote_name",
+							emote.Value.Name,
+							"emote_set_id",
+							data.D.Body.ID,
+							"channel_id",
+							ch.ChannelID,
+						)
+
+						ch.Emotes[emote.Value.ID] = Emote{
+							ID:     emote.Value.ID,
+							Name:   emote.Value.Name,
+							URL:    fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, "1x.webp"),
+							Width:  emote.Value.Data.Host.Files[0].Width,
+							Height: emote.Value.Data.Host.Files[0].Height,
+						}
 					}
 				}
 
 				for _, pulledBody := range data.D.Body.Pulled {
 					if pulledBody.OldValue != nil && pulledBody.Value == nil {
-						log.Printf("deleted: %s", pulledBody.OldValue.Name)
-						delete(c.Emotes, pulledBody.OldValue.ID)
+						for _, ch := range c.Channels {
+							if ch.EmoteSetID != data.D.Body.ID {
+								continue
+							}
+
+							c.logger.Sugar().Infow(
+								"[7TV] deleted",
+								"emote_name",
+								pulledBody.OldValue.Name,
+								"emote_set_id",
+								data.D.Body.ID,
+								"channel_id",
+								ch.ChannelID,
+							)
+
+							delete(ch.Emotes, pulledBody.OldValue.ID)
+						}
 					}
 				}
 
 				for _, emote := range data.D.Body.Updated {
-					log.Printf("updated: %s", emote.Value.Name)
+					for _, ch := range c.Channels {
+						if ch.EmoteSetID != data.D.Body.ID {
+							continue
+						}
+
+						if _, ok := ch.Emotes[emote.Value.ID]; ok {
+							ch.Emotes[emote.Value.ID] = Emote{
+								ID:     emote.Value.ID,
+								Name:   emote.Value.Name,
+								URL:    fmt.Sprintf("%s/%s", emote.Value.Data.Host.URL, "1x.webp"),
+								Width:  emote.Value.Data.Host.Files[0].Width,
+								Height: emote.Value.Data.Host.Files[0].Height,
+							}
+						}
+
+						c.logger.Sugar().Infow(
+							"[7TV] updated",
+							"emote_name",
+							emote.Value.Name,
+							"emote_set_id",
+							data.D.Body.ID,
+						)
+					}
 				}
 			}
 
 			time.Sleep(500 * time.Millisecond)
+			continue
 		}
 	}()
+}
+
+func (c *SevenTV) subscribeToEmoteSetUpdates(emoteSetID string) error {
+	// do not subscribe to the same emote set
+	for _, ch := range c.Channels {
+		if ch.EmoteSetID == emoteSetID {
+			return nil
+		}
+	}
+
+	return c.wsConn.WriteMessage(
+		websocket.TextMessage,
+		[]byte(
+			fmt.Sprintf(
+				`{"op":35,"d":{"type":"emote_set.update","condition":{"object_id":"%v"}}}`,
+				emoteSetID,
+			),
+		),
+	)
 }

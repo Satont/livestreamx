@@ -32,6 +32,7 @@ type Repository interface {
 	) error
 	FindByName(ctx context.Context, name string) (*User, error)
 	DeleteAccount(ctx context.Context, userID uuid.UUID) error
+	FindMany(ctx context.Context, opts FindManyOpts) (*FindManyResult, error)
 }
 
 type CreateOpts struct {
@@ -52,10 +53,11 @@ type CreateOptsProvider struct {
 }
 
 type UpdateOpts struct {
-	Name        *string
-	DisplayName *string
-	Color       *string
-	IsBanned    *bool
+	Name              *string
+	DisplayName       *string
+	Color             *string
+	IsBanned          *bool
+	SevenTvEmoteSetID *string
 }
 
 type AddProviderToUserOpts struct {
@@ -72,4 +74,15 @@ type UpdateProviderByUserIdOpts struct {
 	ProviderUserDisplayName string
 	ProviderAvatar          string
 	Email                   *string
+}
+
+type FindManyOpts struct {
+	Page    int
+	PerPage int
+}
+
+type FindManyResult struct {
+	Users       []User
+	Total       int
+	HasNextPage bool
 }

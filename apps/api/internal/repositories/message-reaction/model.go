@@ -8,6 +8,7 @@ import (
 
 type MessageReaction struct {
 	ID        uuid.UUID
+	ChannelID uuid.UUID
 	MessageID uuid.UUID
 	UserID    uuid.UUID
 	Reaction  string

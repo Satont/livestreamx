@@ -70,16 +70,17 @@ type ComplexityRoot struct {
 	}
 
 	AuthedUser struct {
-		AvatarURL   func(childComplexity int) int
-		Color       func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		DisplayName func(childComplexity int) int
-		ID          func(childComplexity int) int
-		IsAdmin     func(childComplexity int) int
-		IsBanned    func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Providers   func(childComplexity int) int
-		StreamKey   func(childComplexity int) int
+		AvatarURL         func(childComplexity int) int
+		Color             func(childComplexity int) int
+		CreatedAt         func(childComplexity int) int
+		DisplayName       func(childComplexity int) int
+		ID                func(childComplexity int) int
+		IsAdmin           func(childComplexity int) int
+		IsBanned          func(childComplexity int) int
+		Name              func(childComplexity int) int
+		Providers         func(childComplexity int) int
+		SevenTvEmoteSetID func(childComplexity int) int
+		StreamKey         func(childComplexity int) int
 	}
 
 	AuthedUserProvider struct {
@@ -113,6 +114,7 @@ type ComplexityRoot struct {
 	}
 
 	ChatMessageReactionEmoji struct {
+		ChannelID func(childComplexity int) int
 		ID        func(childComplexity int) int
 		MessageID func(childComplexity int) int
 		Reaction  func(childComplexity int) int
@@ -122,6 +124,7 @@ type ComplexityRoot struct {
 	}
 
 	ChatMessageReactionEmote struct {
+		ChannelID func(childComplexity int) int
 		Emote     func(childComplexity int) int
 		ID        func(childComplexity int) int
 		MessageID func(childComplexity int) int
@@ -419,6 +422,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuthedUser.Providers(childComplexity), true
 
+	case "AuthedUser.sevenTvEmoteSetId":
+		if e.complexity.AuthedUser.SevenTvEmoteSetID == nil {
+			break
+		}
+
+		return e.complexity.AuthedUser.SevenTvEmoteSetID(childComplexity), true
+
 	case "AuthedUser.streamKey":
 		if e.complexity.AuthedUser.StreamKey == nil {
 			break
@@ -573,6 +583,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatMessage.SenderID(childComplexity), true
 
+	case "ChatMessageReactionEmoji.channelID":
+		if e.complexity.ChatMessageReactionEmoji.ChannelID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmoji.ChannelID(childComplexity), true
+
 	case "ChatMessageReactionEmoji.id":
 		if e.complexity.ChatMessageReactionEmoji.ID == nil {
 			break
@@ -614,6 +631,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatMessageReactionEmoji.UserID(childComplexity), true
+
+	case "ChatMessageReactionEmote.channelID":
+		if e.complexity.ChatMessageReactionEmote.ChannelID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessageReactionEmote.ChannelID(childComplexity), true
 
 	case "ChatMessageReactionEmote.emote":
 		if e.complexity.ChatMessageReactionEmote.Emote == nil {
@@ -1493,6 +1517,7 @@ interface ChatMessageReaction {
     user: ChatUser!
     reaction: String!
     messageId: String!
+    channelID: UUID!
 }
 
 type ChatMessageReactionEmoji implements ChatMessageReaction {
@@ -1502,6 +1527,7 @@ type ChatMessageReactionEmoji implements ChatMessageReaction {
     user: ChatUser! @goField(forceResolver: true)
     reaction: String!
     messageId: String!
+    channelID: UUID!
 }
 
 type ChatMessageReactionEmote implements ChatMessageReaction {
@@ -1512,6 +1538,7 @@ type ChatMessageReactionEmote implements ChatMessageReaction {
     reaction: String!
     emote: Emote!
     messageId: String!
+    channelID: UUID!
 }`, BuiltIn: false},
 	{Name: "../../../schema/roles.graphqls", Input: `extend type Query {
     roles: [Role!]! @isAuthenticated
@@ -1632,6 +1659,7 @@ type AuthedUser implements User {
     isAdmin: Boolean!
     providers: [AuthedUserProvider!]!
     streamKey: UUID!
+    sevenTvEmoteSetId: String
 }
 
 enum AuthedUserProviderType {
@@ -1651,6 +1679,7 @@ input UpdateUserProfileInput {
     color: String
     name: String
     displayName: String
+    sevenTvEmoteSetId: String
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -2762,6 +2791,47 @@ func (ec *executionContext) fieldContext_AuthedUser_streamKey(_ context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type UUID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthedUser_sevenTvEmoteSetId(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.AuthedUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthedUser_sevenTvEmoteSetId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SevenTvEmoteSetID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthedUser_sevenTvEmoteSetId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthedUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3992,6 +4062,50 @@ func (ec *executionContext) fieldContext_ChatMessageReactionEmoji_messageId(_ co
 	return fc, nil
 }
 
+func (ec *executionContext) _ChatMessageReactionEmoji_channelID(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmoji) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmoji_channelID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChannelID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmoji_channelID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmoji",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UUID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ChatMessageReactionEmote_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ChatMessageReactionEmote_id(ctx, field)
 	if err != nil {
@@ -4327,6 +4441,50 @@ func (ec *executionContext) fieldContext_ChatMessageReactionEmote_messageId(_ co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessageReactionEmote_channelID(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessageReactionEmote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessageReactionEmote_channelID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChannelID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessageReactionEmote_channelID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessageReactionEmote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UUID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6396,6 +6554,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserProfile(ctx context.
 				return ec.fieldContext_AuthedUser_providers(ctx, field)
 			case "streamKey":
 				return ec.fieldContext_AuthedUser_streamKey(ctx, field)
+			case "sevenTvEmoteSetId":
+				return ec.fieldContext_AuthedUser_sevenTvEmoteSetId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthedUser", field.Name)
 		},
@@ -6895,6 +7055,8 @@ func (ec *executionContext) fieldContext_Query_userProfile(_ context.Context, fi
 				return ec.fieldContext_AuthedUser_providers(ctx, field)
 			case "streamKey":
 				return ec.fieldContext_AuthedUser_streamKey(ctx, field)
+			case "sevenTvEmoteSetId":
+				return ec.fieldContext_AuthedUser_sevenTvEmoteSetId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthedUser", field.Name)
 		},
@@ -10173,7 +10335,7 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"color", "name", "displayName"}
+	fieldsInOrder := [...]string{"color", "name", "displayName", "sevenTvEmoteSetId"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10201,6 +10363,13 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 				return it, err
 			}
 			it.DisplayName = graphql.OmittableOf(data)
+		case "sevenTvEmoteSetId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sevenTvEmoteSetId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SevenTvEmoteSetID = graphql.OmittableOf(data)
 		}
 	}
 
@@ -10460,6 +10629,8 @@ func (ec *executionContext) _AuthedUser(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "sevenTvEmoteSetId":
+			out.Values[i] = ec._AuthedUser_sevenTvEmoteSetId(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10790,6 +10961,11 @@ func (ec *executionContext) _ChatMessageReactionEmoji(ctx context.Context, sel a
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "channelID":
+			out.Values[i] = ec._ChatMessageReactionEmoji_channelID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10887,6 +11063,11 @@ func (ec *executionContext) _ChatMessageReactionEmote(ctx context.Context, sel a
 			}
 		case "messageId":
 			out.Values[i] = ec._ChatMessageReactionEmote_messageId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "channelID":
+			out.Values[i] = ec._ChatMessageReactionEmote_channelID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

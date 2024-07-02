@@ -32,9 +32,14 @@ const updater = useUpdateMutation()
 const deleter = useDeleteAccount()
 const { opened } = useProfileModalState()
 
-const form = ref({
+const form = ref<{
+  name: string
+  displayName: string
+  sevenTvEmoteSetId?: string
+}>({
   name: '',
-  displayName: ''
+  displayName: '',
+  sevenTvEmoteSetId: undefined
 })
 const formError = ref('')
 
@@ -44,6 +49,7 @@ watch(
     if (!v) return
     form.value.name = v.userProfile.name
     form.value.displayName = v.userProfile.displayName
+    form.value.sevenTvEmoteSetId = v.userProfile.sevenTvEmoteSetId ?? undefined
   },
   { immediate: true }
 )
@@ -62,7 +68,8 @@ async function saveChanges() {
   const { error: mutationError } = await updater.executeMutation({
     input: {
       name: form.value.name,
-      displayName: form.value.displayName
+      displayName: form.value.displayName,
+      sevenTvEmoteSetId: form.value.sevenTvEmoteSetId
     }
   })
 
@@ -225,6 +232,23 @@ function copyText(text: string) {
               </div>
             </div>
           </div>
+        </div>
+      </template>
+
+      <template v-if="profile">
+        <div class="grid grid-cols-4 items-center gap-4">
+          <Label
+            for="name"
+            class="text-right"
+          >
+            SevenTV Emote Set
+          </Label>
+          <Input
+            id="name"
+            v-model="form.sevenTvEmoteSetId"
+            class="col-span-3"
+            :maxlength="25"
+          />
         </div>
       </template>
 

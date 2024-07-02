@@ -10,10 +10,21 @@ import (
 func (c *Mapper) DbReactionToGql(
 	r message_reaction.MessageReaction,
 ) gqlmodel.ChatMessageReaction {
-	emotesSlice := lo.Values(c.sevenTv.Emotes)
+	sevenTvChannel, ok := lo.Find(
+		c.sevenTv.Channels, func(item seven_tv.ChannelCache) bool {
+			return item.ChannelID == r.ChannelID
+		},
+	)
+
+	sevenTvEmotes := lo.If[[]seven_tv.Emote](!ok, nil).ElseF(
+		func() []seven_tv.Emote {
+			return lo.Values(sevenTvChannel.Emotes)
+		},
+	)
 
 	emote, emoteFound := lo.Find(
-		emotesSlice, func(item seven_tv.Emote) bool {
+		sevenTvEmotes,
+		func(item seven_tv.Emote) bool {
 			return item.Name == r.Reaction
 		},
 	)

@@ -7,6 +7,7 @@ import (
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 type Opts struct {
@@ -16,6 +17,7 @@ type Opts struct {
 	Config       config.Config
 	SessionStore *session_storage.SessionStorage
 	UserRepo     user.Repository
+	Logger       *zap.Logger
 }
 
 func New(opts Opts) (*Auth, error) {
@@ -23,6 +25,7 @@ func New(opts Opts) (*Auth, error) {
 		config:       opts.Config,
 		sessionStore: opts.SessionStore,
 		userRepo:     opts.UserRepo,
+		logger:       opts.Logger,
 	}
 
 	group := opts.HttpServer.Group("/auth")
@@ -46,4 +49,5 @@ type Auth struct {
 	config       config.Config
 	sessionStore *session_storage.SessionStorage
 	userRepo     user.Repository
+	logger       *zap.Logger
 }

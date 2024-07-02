@@ -20,6 +20,7 @@ type ChatMessageReaction interface {
 	GetUser() *ChatUser
 	GetReaction() string
 	GetMessageID() string
+	GetChannelID() uuid.UUID
 }
 
 type MessageSegment interface {
@@ -55,16 +56,17 @@ type AttachedFile struct {
 }
 
 type AuthedUser struct {
-	ID          uuid.UUID            `json:"id"`
-	Name        string               `json:"name"`
-	DisplayName string               `json:"displayName"`
-	Color       string               `json:"color"`
-	IsBanned    bool                 `json:"isBanned"`
-	CreatedAt   time.Time            `json:"createdAt"`
-	AvatarURL   string               `json:"avatarUrl"`
-	IsAdmin     bool                 `json:"isAdmin"`
-	Providers   []AuthedUserProvider `json:"providers"`
-	StreamKey   uuid.UUID            `json:"streamKey"`
+	ID                uuid.UUID            `json:"id"`
+	Name              string               `json:"name"`
+	DisplayName       string               `json:"displayName"`
+	Color             string               `json:"color"`
+	IsBanned          bool                 `json:"isBanned"`
+	CreatedAt         time.Time            `json:"createdAt"`
+	AvatarURL         string               `json:"avatarUrl"`
+	IsAdmin           bool                 `json:"isAdmin"`
+	Providers         []AuthedUserProvider `json:"providers"`
+	StreamKey         uuid.UUID            `json:"streamKey"`
+	SevenTvEmoteSetID *string              `json:"sevenTvEmoteSetId,omitempty"`
 }
 
 func (AuthedUser) IsUser()                      {}
@@ -129,6 +131,7 @@ type ChatMessageReactionEmoji struct {
 	User      *ChatUser               `json:"user"`
 	Reaction  string                  `json:"reaction"`
 	MessageID string                  `json:"messageId"`
+	ChannelID uuid.UUID               `json:"channelID"`
 }
 
 func (ChatMessageReactionEmoji) IsChatMessageReaction()                {}
@@ -138,6 +141,7 @@ func (this ChatMessageReactionEmoji) GetUserID() uuid.UUID             { return 
 func (this ChatMessageReactionEmoji) GetUser() *ChatUser               { return this.User }
 func (this ChatMessageReactionEmoji) GetReaction() string              { return this.Reaction }
 func (this ChatMessageReactionEmoji) GetMessageID() string             { return this.MessageID }
+func (this ChatMessageReactionEmoji) GetChannelID() uuid.UUID          { return this.ChannelID }
 
 type ChatMessageReactionEmote struct {
 	ID        string                  `json:"id"`
@@ -147,6 +151,7 @@ type ChatMessageReactionEmote struct {
 	Reaction  string                  `json:"reaction"`
 	Emote     *Emote                  `json:"emote"`
 	MessageID string                  `json:"messageId"`
+	ChannelID uuid.UUID               `json:"channelID"`
 }
 
 func (ChatMessageReactionEmote) IsChatMessageReaction()                {}
@@ -156,6 +161,7 @@ func (this ChatMessageReactionEmote) GetUserID() uuid.UUID             { return 
 func (this ChatMessageReactionEmote) GetUser() *ChatUser               { return this.User }
 func (this ChatMessageReactionEmote) GetReaction() string              { return this.Reaction }
 func (this ChatMessageReactionEmote) GetMessageID() string             { return this.MessageID }
+func (this ChatMessageReactionEmote) GetChannelID() uuid.UUID          { return this.ChannelID }
 
 type ChatUser struct {
 	ID          uuid.UUID `json:"id"`
@@ -300,9 +306,10 @@ type UpdateRoleInput struct {
 }
 
 type UpdateUserProfileInput struct {
-	Color       graphql.Omittable[*string] `json:"color,omitempty"`
-	Name        graphql.Omittable[*string] `json:"name,omitempty"`
-	DisplayName graphql.Omittable[*string] `json:"displayName,omitempty"`
+	Color             graphql.Omittable[*string] `json:"color,omitempty"`
+	Name              graphql.Omittable[*string] `json:"name,omitempty"`
+	DisplayName       graphql.Omittable[*string] `json:"displayName,omitempty"`
+	SevenTvEmoteSetID graphql.Omittable[*string] `json:"sevenTvEmoteSetId,omitempty"`
 }
 
 type AuthedUserProviderType string

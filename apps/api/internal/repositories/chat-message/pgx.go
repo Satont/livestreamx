@@ -104,6 +104,7 @@ func (c *ChatMessagePgx) FindByID(ctx context.Context, id uuid.UUID) (*Message, 
 					UserID:    *reaction.UserID,
 					Reaction:  *reaction.Reaction,
 					CreatedAt: *reaction.CreatedAt,
+					ChannelID: row.ChannelID,
 				},
 			)
 		}
@@ -202,6 +203,7 @@ func (c *ChatMessagePgx) FindLatest(ctx context.Context, opts FindLatestOpts) ([
 						UserID:    *reaction.UserID,
 						Reaction:  *reaction.Reaction,
 						CreatedAt: *reaction.CreatedAt,
+						ChannelID: message.ChannelID,
 					},
 				)
 			}
@@ -216,6 +218,7 @@ func (c *ChatMessagePgx) FindLatest(ctx context.Context, opts FindLatestOpts) ([
 						UserID:    *reaction.UserID,
 						Reaction:  *reaction.Reaction,
 						CreatedAt: *reaction.CreatedAt,
+						ChannelID: message.ChannelID,
 					},
 				)
 			}

@@ -65,6 +65,7 @@ func (c *Auth) TwitchCallback(ctx *gin.Context) {
 		},
 	)
 	if err != nil {
+		c.logger.Sugar().Error(err)
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}

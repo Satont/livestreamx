@@ -133,6 +133,7 @@ interface ChatMessageReaction {
     user: ChatUser!
     reaction: String!
     messageId: String!
+    channelID: UUID!
 }
 
 type ChatMessageReactionEmoji implements ChatMessageReaction {
@@ -142,6 +143,7 @@ type ChatMessageReactionEmoji implements ChatMessageReaction {
     user: ChatUser! @goField(forceResolver: true)
     reaction: String!
     messageId: String!
+    channelID: UUID!
 }
 
 type ChatMessageReactionEmote implements ChatMessageReaction {
@@ -152,4 +154,5 @@ type ChatMessageReactionEmote implements ChatMessageReaction {
     reaction: String!
     emote: Emote!
     messageId: String!
+    channelID: UUID!
 }

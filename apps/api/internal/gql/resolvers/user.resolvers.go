@@ -24,7 +24,9 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel
 		return nil, fmt.Errorf("user not found")
 	}
 
-	opts := user.UpdateOpts{}
+	opts := user.UpdateOpts{
+		SevenTvEmoteSetID: input.SevenTvEmoteSetID.Value(),
+	}
 	if input.Color.IsSet() {
 		opts.Color = input.Color.Value()
 	}
@@ -79,17 +81,24 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel
 		)
 	}
 
+	go func() {
+		if err := r.sevenTv.InitUser(*newUser); err != nil {
+			r.logger.Sugar().Error("Cannot init 7tv user", err)
+		}
+	}()
+
 	return &gqlmodel.AuthedUser{
-		ID:          newUser.ID,
-		Name:        newUser.Name,
-		DisplayName: newUser.DisplayName,
-		Color:       newUser.Color,
-		IsBanned:    newUser.Banned,
-		CreatedAt:   newUser.CreatedAt,
-		AvatarURL:   newUser.AvatarUrl,
-		IsAdmin:     newUser.IsAdmin,
-		Providers:   providers,
-		StreamKey:   newUser.StreamKey,
+		ID:                newUser.ID,
+		Name:              newUser.Name,
+		DisplayName:       newUser.DisplayName,
+		Color:             newUser.Color,
+		IsBanned:          newUser.Banned,
+		CreatedAt:         newUser.CreatedAt,
+		AvatarURL:         newUser.AvatarUrl,
+		IsAdmin:           newUser.IsAdmin,
+		Providers:         providers,
+		StreamKey:         newUser.StreamKey,
+		SevenTvEmoteSetID: newUser.SevenTvEmoteSetID,
 	}, nil
 }
 
@@ -151,16 +160,17 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*gqlmodel.AuthedUser, 
 	}
 
 	return &gqlmodel.AuthedUser{
-		ID:          user.ID,
-		Name:        user.Name,
-		DisplayName: user.DisplayName,
-		Color:       user.Color,
-		IsBanned:    user.Banned,
-		CreatedAt:   user.CreatedAt,
-		AvatarURL:   user.AvatarUrl,
-		IsAdmin:     user.IsAdmin,
-		Providers:   providers,
-		StreamKey:   user.StreamKey,
+		ID:                user.ID,
+		Name:              user.Name,
+		DisplayName:       user.DisplayName,
+		Color:             user.Color,
+		IsBanned:          user.Banned,
+		CreatedAt:         user.CreatedAt,
+		AvatarURL:         user.AvatarUrl,
+		IsAdmin:           user.IsAdmin,
+		Providers:         providers,
+		StreamKey:         user.StreamKey,
+		SevenTvEmoteSetID: user.SevenTvEmoteSetID,
 	}, nil
 }
 

@@ -25,10 +25,89 @@ func NewPgx(opts Opts) (*Pgx, error) {
 	}, nil
 }
 
+var selectUserFields = []string{
+	"id",
+	"name",
+	"display_name",
+	"color",
+	"avatar_url",
+	"created_at",
+	"banned",
+	"is_admin",
+	"stream_key",
+	"seven_tv_emote_set_id",
+}
+
 var _ Repository = &Pgx{}
 
 type Pgx struct {
 	pgx *pgxpool.Pool
+}
+
+func (c *Pgx) FindMany(ctx context.Context, opts FindManyOpts) (*FindManyResult, error) {
+	limit := opts.PerPage
+	if limit == 0 {
+		limit = 100
+	}
+	offset := opts.Page * limit
+
+	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
+		Select(selectUserFields...).
+		From("users").
+		Offset(uint64(offset)).
+		Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := c.pgx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	users := make([]User, 0)
+	for rows.Next() {
+		user := User{}
+		err = rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.DisplayName,
+			&user.Color,
+			&user.AvatarUrl,
+			&user.CreatedAt,
+			&user.Banned,
+			&user.IsAdmin,
+			&user.StreamKey,
+			&user.SevenTvEmoteSetID,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	totalQuery, totalArgs, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
+		Select("COUNT(*)").
+		From("users").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var total int
+	err = c.pgx.QueryRow(ctx, totalQuery, totalArgs...).Scan(&total)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FindManyResult{
+		Users:       users,
+		Total:       total,
+		HasNextPage: total > offset+limit,
+	}, nil
 }
 
 func (c *Pgx) FindManyByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*User, error) {
@@ -65,6 +144,7 @@ func (c *Pgx) FindManyByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*User, 
 			&user.Banned,
 			&user.IsAdmin,
 			&user.StreamKey,
+			&user.SevenTvEmoteSetID,
 		)
 		if err != nil {
 			return nil, err
@@ -130,6 +210,7 @@ func (c *Pgx) FindByStreamKey(ctx context.Context, streamKey uuid.UUID) (*User, 
 		&user.Banned,
 		&user.IsAdmin,
 		&user.StreamKey,
+		&user.SevenTvEmoteSetID,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -199,18 +280,6 @@ func (c *Pgx) DeleteAccount(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-var selectUserFields = []string{
-	"id",
-	"name",
-	"display_name",
-	"color",
-	"avatar_url",
-	"created_at",
-	"banned",
-	"is_admin",
-	"stream_key",
-}
-
 func (c *Pgx) FindByName(ctx context.Context, name string) (*User, error) {
 	name = strings.ToLower(name)
 
@@ -249,6 +318,7 @@ func (c *Pgx) FindByName(ctx context.Context, name string) (*User, error) {
 		&user.Banned,
 		&user.IsAdmin,
 		&user.StreamKey,
+		&user.SevenTvEmoteSetID,
 	)
 	if err != nil {
 		return nil, err
@@ -304,7 +374,7 @@ func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			opts.AvatarUrl,
 			opts.Color,
 		).
-		Suffix("RETURNING id, name, display_name, color, avatar_url, created_at, is_admin, stream_key").
+		Suffix("RETURNING id, name, display_name, color, avatar_url, created_at, is_admin, stream_key, seven_tv_emote_set_id").
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -332,6 +402,7 @@ func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 		&user.CreatedAt,
 		&user.IsAdmin,
 		&user.StreamKey,
+		&user.SevenTvEmoteSetID,
 	)
 	if err != nil {
 		return nil, err
@@ -418,6 +489,7 @@ func (c *Pgx) FindByProviderUserID(
 		&user.Banned,
 		&user.IsAdmin,
 		&user.StreamKey,
+		&user.SevenTvEmoteSetID,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -493,6 +565,7 @@ func (c *Pgx) FindByID(ctx context.Context, userID uuid.UUID) (*User, error) {
 		&user.Banned,
 		&user.IsAdmin,
 		&user.StreamKey,
+		&user.SevenTvEmoteSetID,
 	)
 	if err != nil {
 		return nil, err
@@ -551,6 +624,8 @@ func (c *Pgx) Update(ctx context.Context, userID uuid.UUID, opts UpdateOpts) (*U
 	if opts.IsBanned != nil {
 		updateMap["banned"] = *opts.IsBanned
 	}
+
+	updateMap["seven_tv_emote_set_id"] = opts.SevenTvEmoteSetID
 
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Update("users").

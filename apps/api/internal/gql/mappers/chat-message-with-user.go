@@ -21,7 +21,13 @@ func (c *Mapper) ChatMessageWithUser(
 	splittedText := strings.Fields(m.Text)
 	var segments []gqlmodel.MessageSegment
 
-	emotesSlice := lo.Values(c.sevenTv.Emotes)
+	channelEmotes, _ := lo.Find(
+		c.sevenTv.Channels, func(item seven_tv.ChannelCache) bool {
+			return item.ChannelID == m.ChannelID
+		},
+	)
+
+	emotesSlice := lo.Values(channelEmotes.Emotes)
 
 	for _, text := range splittedText {
 		emote, emoteFound := lo.Find(

@@ -43,6 +43,7 @@ type AuthedUser implements User {
     isAdmin: Boolean!
     providers: [AuthedUserProvider!]!
     streamKey: UUID!
+    sevenTvEmoteSetId: String
 }
 
 enum AuthedUserProviderType {
@@ -62,4 +63,5 @@ input UpdateUserProfileInput {
     color: String
     name: String
     displayName: String
+    sevenTvEmoteSetId: String
 }

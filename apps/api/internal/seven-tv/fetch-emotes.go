@@ -68,26 +68,28 @@ type fetchEmoteSetResponse struct {
 	} `json:"owner"`
 }
 
-func (c *SevenTV) fetchEmotes() error {
+var ErrNoEmotes = errors.New("no emotes")
+
+func (c *SevenTV) fetchEmoteSetEmotes(emoteSetID string) (map[string]Emote, error) {
 	data := &fetchEmoteSetResponse{}
 
 	_, err := req.
 		SetSuccessResult(&data).
-		SetRetryCount(5).
+		SetRetryCount(20).
 		SetRetryFixedInterval(200 * time.Millisecond).
 		Get(
 			fmt.Sprintf(
 				"https://7tv.io/v3/emote-sets/%s?t=%v",
-				c.config.SevenTVEmoteSetID,
+				emoteSetID,
 				time.Now().UnixMilli(),
 			),
 		)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(data.Emotes) == 0 {
-		return errors.New("no emotes")
+		return nil, ErrNoEmotes
 	}
 
 	emotes := make(map[string]Emote)
@@ -109,7 +111,5 @@ func (c *SevenTV) fetchEmotes() error {
 		}
 	}
 
-	c.Emotes = emotes
-
-	return nil
+	return emotes, nil
 }

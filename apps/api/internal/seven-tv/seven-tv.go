@@ -3,28 +3,36 @@ package seven_tv
 import (
 	"context"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/satont/stream/apps/api/internal/config"
+	"github.com/satont/stream/apps/api/internal/repositories/user"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 type Opts struct {
 	fx.In
 	LC fx.Lifecycle
 
-	Config config.Config
+	Config   config.Config
+	UserRepo user.Repository
+	Logger   *zap.Logger
 }
 
 func New(opts Opts) *SevenTV {
 	s := &SevenTV{
-		config: opts.Config,
-		Emotes: make(map[string]Emote),
+		config:   opts.Config,
+		Channels: make([]ChannelCache, 0),
+		userRepo: opts.UserRepo,
+		logger:   opts.Logger,
 	}
 
 	opts.LC.Append(
 		fx.Hook{
 			OnStart: func(ctx context.Context) error {
 				go s.openWebSocket()
-				go s.fetchEmotes()
+				go s.init()
 
 				return nil
 			},
@@ -35,9 +43,19 @@ func New(opts Opts) *SevenTV {
 }
 
 type SevenTV struct {
-	config config.Config
+	config   config.Config
+	userRepo user.Repository
+	wsConn   *websocket.Conn
+	logger   *zap.Logger
 
-	Emotes map[string]Emote
+	// map of channels with emotes
+	Channels []ChannelCache
+}
+
+type ChannelCache struct {
+	EmoteSetID string
+	ChannelID  uuid.UUID
+	Emotes     map[string]Emote
 }
 
 type Emote struct {

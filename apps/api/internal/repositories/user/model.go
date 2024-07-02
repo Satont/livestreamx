@@ -7,16 +7,17 @@ import (
 )
 
 type User struct {
-	ID          uuid.UUID  `json:"id,omitempty"`
-	Name        string     `json:"name,omitempty"`
-	DisplayName string     `json:"display_name,omitempty"`
-	Color       string     `json:"color,omitempty"`
-	AvatarUrl   string     `json:"avatar_url,omitempty"`
-	Providers   []Provider `json:"providers,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	Banned      bool       `json:"banned,omitempty"`
-	IsAdmin     bool       `json:"is_admin,omitempty"`
-	StreamKey   uuid.UUID  `json:"stream_key,omitempty"`
+	ID                uuid.UUID  `json:"id,omitempty"`
+	Name              string     `json:"name,omitempty"`
+	DisplayName       string     `json:"display_name,omitempty"`
+	Color             string     `json:"color,omitempty"`
+	AvatarUrl         string     `json:"avatar_url,omitempty"`
+	Providers         []Provider `json:"providers,omitempty"`
+	CreatedAt         time.Time  `json:"created_at"`
+	Banned            bool       `json:"banned,omitempty"`
+	IsAdmin           bool       `json:"is_admin,omitempty"`
+	StreamKey         uuid.UUID  `json:"stream_key,omitempty"`
+	SevenTvEmoteSetID *string    `json:"seven_tv_emote_set_id,omitempty"`
 }
 
 type UserConnectionProvider int
