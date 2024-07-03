@@ -80,6 +80,9 @@ dependencies:
   vue-router:
     specifier: 4.3.3
     version: 4.3.3(vue@3.4.29)
+  vue-sonner:
+    specifier: 1.1.3
+    version: 1.1.3
   vue-virtual-scroller:
     specifier: 2.0.0-beta.8
     version: 2.0.0-beta.8(vue@3.4.29)
@@ -5693,6 +5696,10 @@ packages:
     dependencies:
       '@vue/devtools-api': 6.6.3
       vue: 3.4.29(typescript@5.5.2)
+    dev: false
+
+  /vue-sonner@1.1.3:
+    resolution: {integrity: sha512-6I+5GNobKvE2nR5MPhO+T59d4j2LXRQoc/ZCmGtCoBWKDQr5nzSqjFaOOdPysHFI2p42wNLhQMafd0N540UW9Q==}
     dev: false
 
   /vue-template-compiler@2.7.16:

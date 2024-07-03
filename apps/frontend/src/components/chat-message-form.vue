@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { UseVirtualList } from '@vueuse/components'
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
-import { Smile } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 
 import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
@@ -108,7 +107,9 @@ const isSmall = breakPoints.smallerOrEqual('lg')
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 bg-accent min-h-auto max-h-36 p-2 relative">
+  <div
+    class="flex flex-col gap-2 bg-[#111111] min-h-auto max-h-36 p-2 relative"
+  >
     <Mention
       :keys="mentionKeys"
       :items="mentionItems"
@@ -125,7 +126,7 @@ const isSmall = breakPoints.smallerOrEqual('lg')
         placeholder="Send message..."
         @keydown.enter="sendMessage"
         @paste="console.log"
-        class="pr-12 min-h-8 max-h-20 resize-none"
+        class="pr-12 min-h-8 max-h-20 resize-none bg-[#181818]"
         :rows="isSmall ? 1 : 3"
         @keyup="updateCarretPosition"
         @click="updateCarretPosition"
@@ -137,12 +138,23 @@ const isSmall = breakPoints.smallerOrEqual('lg')
       <Popover v-model:open="emoteMenuOpened">
         <PopoverTrigger as-child>
           <Button
-            class="absolute right-1 top-1 md:right-2 md:top-2"
-            variant="ghost"
+            class="absolute right-1.5 top-1.5 lg:right-2 lg:top-2"
+            variant="link"
             size="xs"
             :disabled="!profile"
           >
-            <Smile />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              class="size-5 text-stone-300/80"
+            >
+              <path
+                fill="currentColor"
+                d="M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.8 10.946a1 1 0 0 0-1.414.014a2.5 2.5 0 0 1-3.572 0a1 1 0 0 0-1.428 1.4a4.5 4.5 0 0 0 6.428 0a1 1 0 0 0-.014-1.414M9.01 9l-.127.007A1 1 0 0 0 9 11l.127-.007A1 1 0 0 0 9.01 9m6 0l-.127.007A1 1 0 0 0 15 11l.127-.007A1 1 0 0 0 15.01 9"
+              />
+            </svg>
           </Button>
         </PopoverTrigger>
         <PopoverContent class="h-[340px] w-96 p-0 mb-2">
@@ -210,8 +222,18 @@ const isSmall = breakPoints.smallerOrEqual('lg')
         @click="sendMessage"
         size="sm"
         :disabled="!profile"
-        >Send message</Button
+        class="send-button"
       >
+        Send
+      </Button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.send-button {
+  background: linear-gradient(180deg, #2e59ef 0%, #1e4be7 100%);
+
+  @apply border-solid border-[#ffffff14] text-white font-semibold px-4;
+}
+</style>

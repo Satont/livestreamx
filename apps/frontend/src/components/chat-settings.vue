@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Settings } from 'lucide-vue-next'
+import { Cog } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import { useProfile } from '@/api/profile.ts'
@@ -23,7 +23,6 @@ import { chatFontSize } from '@/composables/chat-font-size.ts'
 import { reverseStreamChatDirection } from '@/composables/reverse-stream-chat-direction.ts'
 import { showAvatars } from '@/composables/show-avatars.js'
 import { showTimestamps } from '@/composables/show-timestamps.js'
-import { useProfileModalState } from '@/composables/use-profile-modal-state.js'
 import { useShowReactionsOnMessage } from '@/composables/use-show-reactions-on-message.js'
 
 const fontSize = computed({
@@ -42,7 +41,6 @@ const { useData, useUpdateMutation } = useProfile()
 const { data: profile } = useData()
 const updateUser = useUpdateMutation()
 const { showReactionsOnMessage } = useShowReactionsOnMessage()
-const { opened: profileModalOpened } = useProfileModalState()
 
 async function handleColorChange(e: Event) {
   const newValue = (e.target as HTMLInputElement).value
@@ -65,9 +63,11 @@ function focusColorPicker() {
     <PopoverTrigger asChild>
       <Button
         size="sm"
-        variant="ghost"
-        ><Settings
-      /></Button>
+        variant="secondary"
+        class="text-stone-300/80"
+      >
+        <Cog />
+      </Button>
     </PopoverTrigger>
     <PopoverContent class="p-2 w-80">
       <div class="w-full flex flex-col">
@@ -138,15 +138,6 @@ function focusColorPicker() {
             :disabled="!profile"
             @change="handleColorChange"
           />
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          class="w-full flex justify-between"
-          :disabled="!profile"
-          @click="profileModalOpened = true"
-        >
-          Change name
         </Button>
         <Separator class="my-4" />
         <div class="flex flex-col gap-2 px-3">

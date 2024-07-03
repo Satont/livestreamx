@@ -16,6 +16,10 @@ export const router = createRouter({
           component: () => import('../pages/dashboard.vue')
         },
         {
+          path: '/dashboard/settings/stream',
+          component: () => import('../pages/stream-settings.vue')
+        },
+        {
           path: '/:channelName',
           name: 'Channel',
           component: () => import('../pages/stream.vue')
