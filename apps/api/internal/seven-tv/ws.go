@@ -25,16 +25,21 @@ func (c *SevenTV) openWebSocket() {
 
 			c.logger.Sugar().Info("[7TV] socket connected")
 
+			c.wsConn = conn
 			if len(c.Channels) > 0 {
 				for _, ch := range c.Channels {
 					if err := c.subscribeToEmoteSetUpdates(ch.EmoteSetID); err != nil {
 						c.logger.Sugar().Error("[7TV] subscribe", err)
 						continue
 					}
+
+					c.logger.Sugar().Infow(
+						"[7TV] reconnected to emote set updates",
+						"emote_set_id",
+						ch.EmoteSetID,
+					)
 				}
 			}
-
-			c.wsConn = conn
 
 		readLoop:
 			for {
