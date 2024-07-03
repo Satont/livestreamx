@@ -3,6 +3,7 @@ package seven_tv
 import (
 	"fmt"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/goccy/go-json"
@@ -186,6 +187,8 @@ func (c *SevenTV) openWebSocket() {
 	}()
 }
 
+var wsConnMu sync.Mutex
+
 func (c *SevenTV) subscribeToEmoteSetUpdates(emoteSetID string) error {
 	// do not subscribe to the same emote set
 	for _, ch := range c.Channels {
@@ -193,6 +196,9 @@ func (c *SevenTV) subscribeToEmoteSetUpdates(emoteSetID string) error {
 			return nil
 		}
 	}
+
+	wsConnMu.Lock()
+	defer wsConnMu.Unlock()
 
 	return c.wsConn.WriteMessage(
 		websocket.TextMessage,
