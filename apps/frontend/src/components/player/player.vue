@@ -27,6 +27,7 @@ const videoSource = computed(() => {
   </div>
 
   <media-player
+    class="overflow-hidden"
     v-else-if="videoSource"
     storage="streamx-player-v3"
     :title="channelData?.fetchUserByName.name"
@@ -34,8 +35,10 @@ const videoSource = computed(() => {
     playsInline
     autoPlay
     stream-type="live"
+    disableTimeSlider
   >
     <media-provider />
-    <media-video-layout disableTimeSlider />
+
+    <media-video-layout />
   </media-player>
 </template>
