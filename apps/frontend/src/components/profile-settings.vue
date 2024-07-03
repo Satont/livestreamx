@@ -80,15 +80,11 @@ function closeModal() {
 </script>
 
 <template>
-  <Dialog
-    v-model:open="modalOpened"
-    @update:open="console.log"
-  >
+  <Dialog v-model:open="modalOpened">
     <DialogOrSheet
       @closeAutoFocus="closeModal"
       @escapeKeyDown="closeModal"
       @interactOutside="closeModal"
-      class="top-[20%]"
     >
       <DialogHeader>
         <DialogTitle>
