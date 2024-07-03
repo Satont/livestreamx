@@ -1,18 +1,9 @@
 <script setup lang="ts">
-import { VideoPlayer } from '@videojs-player/vue'
-import videojs from 'video.js'
+import 'vidstack/bundle'
 
-import 'videojs-persist'
-
-import { computed, shallowRef } from 'vue'
-
-import 'video.js/dist/video-js.css'
+import { computed } from 'vue'
 
 import { useChat } from '@/api/chat.ts'
-
-type Player = ReturnType<typeof videojs>
-
-const player = shallowRef<Player>()
 
 const { channelData } = useChat()
 
@@ -24,19 +15,6 @@ const videoSource = computed(() => {
     type: 'application/x-mpegURL'
   }
 })
-
-const handleMounted = (payload: { player: Player }) => {
-  player.value = payload.player
-  // @ts-ignore
-  player.value.persist()
-}
-
-const handleReady = () => {
-  const { vhs } = player.value?.tech() as any
-  vhs.xhr.beforeRequest = (options: any) => {
-    return options
-  }
-}
 </script>
 
 <template>
@@ -48,30 +26,16 @@ const handleReady = () => {
     </div>
   </div>
 
-  <video-player
-    v-else
-    class="w-full h-full video-player vjs-theme-forest"
-    poster="/images/example/4.jpg"
-    crossorigin="anonymous"
-    playsinline
-    autoplay="any"
-    controls
-    liveui
-    :muted="false"
-    :sources="[videoSource]"
-    :control-bar="{
-      progressControl: false,
-      currentTimeDisplay: false,
-      remainingTimeDisplay: false
-    }"
-    :html5="{
-      vhs: {
-        maxPlaylistRetries: Infinity
-      },
-      nativeAudioTracks: false,
-      nativeVideoTracks: false
-    }"
-    @mounted="handleMounted"
-    @ready="handleReady"
-  />
+  <media-player
+    v-else-if="videoSource"
+    storage="streamx-player-v3"
+    :title="channelData?.fetchUserByName.name"
+    :src="videoSource"
+    playsInline
+    autoPlay
+    stream-type="live"
+  >
+    <media-provider />
+    <media-video-layout disableTimeSlider />
+  </media-player>
 </template>
