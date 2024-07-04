@@ -41,7 +41,15 @@ func (c *Streams) indexHandler(ctx *gin.Context) {
 		user.ID.String(),
 	)
 	if err != nil {
-		c.logger.Sugar().Errorf("Failed to build playlist: %v", err)
+		c.logger.Sugar().Errorw(
+			"Failed to build playlist",
+			"err",
+			err,
+			"user_id",
+			user.ID,
+			"referer",
+			ctx.Request.Referer(),
+		)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to build playlist"})
 		return
 	}
