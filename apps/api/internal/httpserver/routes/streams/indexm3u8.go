@@ -90,6 +90,13 @@ func (c *Streams) buildPlaylist(
 
 		errwg.Go(
 			func() error {
+				streamReqUri := fmt.Sprintf(
+					"%s/%s%s/index.m3u8",
+					c.config.MediaMtxAddr+":8888",
+					resolution,
+					streamKey,
+				)
+
 				resp, err := req.SetContext(ctx).Get(
 					fmt.Sprintf(
 						"%s/%s%s/index.m3u8",
@@ -99,7 +106,7 @@ func (c *Streams) buildPlaylist(
 					),
 				)
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to fetch m3u8 %s: %w", streamReqUri, err)
 				}
 				p, _, err := m3u8.DecodeFrom(resp.Body, true)
 				if err != nil {
