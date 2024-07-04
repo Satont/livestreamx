@@ -1,6 +1,8 @@
-name: Build and push app
+name: Push mediamtx
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 env:
@@ -12,7 +14,13 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+          app: [frontend, api]
     steps:
+      - name: Set DOCKER_IMAGE env
+        run: |
+          echo "DOCKER_IMAGE=$DOCKER_REGISTRY/satont/livestreamx" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -30,12 +38,14 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          file: ./mediamtx.Dockerfile
+          file: ./apps/${{ matrix.app }}//Dockerfile
           context: .
           push: true
           tags: |
-            ghcr.io/satont/livestreamx:mediamtx-latest
-            ghcr.io/satont/livestreamx:mediamtx-${{ github.sha }}
+            ${{ env.DOCKER_IMAGE }}:${{ matrix.app }}-latest
+            ${{ env.DOCKER_IMAGE }}:${{ matrix.app }}-${{ github.sha }}
           builder: ${{ steps.buildx.outputs.name }}
+          build-args: |
+            VITE_STREAM_URL=https://streamx.satont.dev/stream/
           cache-from: type=gha
           cache-to: type=gha,mode=max
