@@ -2,6 +2,7 @@ import path from 'node:path'
 import { webUpdateNotice } from '@plugin-web-update-notification/vite'
 import vue from '@vitejs/plugin-vue'
 import autoprefixer from 'autoprefixer'
+import { vite as vidstack } from 'vidstack/plugins'
 import { defineConfig } from 'vite'
 import { watch } from 'vite-plugin-watch'
 import svgLoader from 'vite-svg-loader'
@@ -23,6 +24,7 @@ export default defineConfig({
         }
       }
     }),
+    vidstack(),
     watch({
       onInit: true,
       pattern: 'src/**/*.ts',
