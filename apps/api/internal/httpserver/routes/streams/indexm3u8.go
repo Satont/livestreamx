@@ -110,7 +110,7 @@ func (c *Streams) buildPlaylist(
 				}
 				p, _, err := m3u8.DecodeFrom(resp.Body, true)
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to decode m3u8 %s: %w", streamReqUri, err)
 				}
 
 				masterpl := p.(*m3u8.MasterPlaylist)
@@ -126,16 +126,6 @@ func (c *Streams) buildPlaylist(
 					if name == "" {
 						variant.VariantParams.Video = "source"
 					}
-					// variant.Alternatives = append(
-					// 	[]*m3u8.Alternative{}, &m3u8.Alternative{
-					// 		GroupId:    name,
-					// 		URI:        uri,
-					// 		Type:       "VIDEO",
-					// 		Name:       name,
-					// 		Default:    true,
-					// 		Autoselect: "YES",
-					// 	},
-					// )
 					masterPlaylist.Variants = append(masterPlaylist.Variants, variant)
 					plmu.Unlock()
 				}
