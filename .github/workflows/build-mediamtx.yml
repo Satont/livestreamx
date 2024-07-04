@@ -1,4 +1,4 @@
-name: Push docker image to github registry
+name: Push mediamtx
 
 on:
   push:
