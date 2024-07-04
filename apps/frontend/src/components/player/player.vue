@@ -10,7 +10,8 @@ const { channelData } = useChat()
 const { data: streamData } = useStream().useStreamState()
 
 const src = computed(() => {
-  if (!channelData.value) return null
+  if (!channelData.value || !streamData.value?.streamInfo?.startedAt)
+    return null
   return `${window.location.origin}/api/streams/${channelData.value!.fetchUserByName.id}/index.m3u8`
 })
 </script>
@@ -30,7 +31,7 @@ const src = computed(() => {
   <media-player
     ref="player"
     :src="src"
-    v-if="src"
+    v-else-if="src"
     class="overflow-hidden h-full w-full"
     storage="streamx-player-v3"
     :title="channelData?.fetchUserByName.name"
