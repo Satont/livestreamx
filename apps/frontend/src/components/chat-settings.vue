@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Cog } from 'lucide-vue-next'
 import { computed } from 'vue'
+import { toast } from 'vue-sonner'
 
+import { ChatMessage_Fragment, useChat } from '@/api/chat.ts'
 import { useProfile } from '@/api/profile.ts'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,6 +26,7 @@ import { reverseStreamChatDirection } from '@/composables/reverse-stream-chat-di
 import { showAvatars } from '@/composables/show-avatars.js'
 import { showTimestamps } from '@/composables/show-timestamps.js'
 import { useShowReactionsOnMessage } from '@/composables/use-show-reactions-on-message.js'
+import { useFragment } from '@/gql'
 
 const fontSize = computed({
   get() {
@@ -38,9 +41,11 @@ const min = 10
 const max = 50
 
 const { useData, useUpdateMutation } = useProfile()
-const { data: profile } = useData()
+const { data: profile, executeQuery: refetchProfile } = useData()
 const updateUser = useUpdateMutation()
 const { showReactionsOnMessage } = useShowReactionsOnMessage()
+
+const { messages } = useChat()
 
 async function handleColorChange(e: Event) {
   const newValue = (e.target as HTMLInputElement).value
@@ -49,6 +54,18 @@ async function handleColorChange(e: Event) {
     input: {
       color: newValue
     }
+  })
+  await refetchProfile({ requestPolicy: 'network-only' })
+
+  // update colors in chat for that user
+  for (const message of messages.value) {
+    const msgFragment = useFragment(ChatMessage_Fragment, message)
+    msgFragment.sender.color = newValue
+  }
+
+  toast.success('Color updated', {
+    description: 'Your nickname color has been updated',
+    dismissible: true
   })
 }
 

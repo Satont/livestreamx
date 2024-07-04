@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/repositories/user"
 )
 
@@ -60,14 +61,14 @@ func (c *SevenTV) InitUser(user user.User) error {
 		}
 	}
 
-	for idx, ch := range c.Channels {
-		// delete item for slice
-		if ch.ChannelID == user.ID {
-			channelsLock.Lock()
-			c.Channels = append(c.Channels[:idx], c.Channels[idx+1:]...)
-			channelsLock.Unlock()
-		}
-	}
+	channelsLock.Lock()
+	c.Channels = lo.Filter(
+		c.Channels,
+		func(item ChannelCache, _ int) bool {
+			return item.ChannelID != user.ID
+		},
+	)
+	channelsLock.Unlock()
 
 	if user.SevenTvEmoteSetID == nil {
 		return nil

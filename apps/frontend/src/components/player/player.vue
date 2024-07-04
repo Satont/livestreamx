@@ -4,8 +4,10 @@ import 'vidstack/bundle'
 import { computed } from 'vue'
 
 import { useChat } from '@/api/chat.ts'
+import { useStream } from '@/api/stream.ts'
 
 const { channelData } = useChat()
+const { data: streamData } = useStream().useStreamState()
 
 const videoSource = computed(() => {
   if (!channelData.value) return null
@@ -22,6 +24,17 @@ const videoSource = computed(() => {
     <div class="flex items-center justify-center w-full h-full">
       <div class="text-center">
         <div class="text-2xl font-bold text-gray-500">No stream available</div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    v-else-if="!streamData?.streamInfo?.startedAt"
+    class="flex items-center justify-center w-full h-full"
+  >
+    <div class="text-center">
+      <div class="text-2xl font-bold text-accent-foreground">
+        Stream is offline
       </div>
     </div>
   </div>

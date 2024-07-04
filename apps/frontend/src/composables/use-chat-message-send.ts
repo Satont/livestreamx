@@ -8,12 +8,16 @@ export const useChatMessageSend = createGlobalState(() => {
   const sendRetries = ref(0)
   const replyTo = ref<string | null>(null)
   const textElement = ref<HTMLTextAreaElement | null>(null)
+  const isSending = ref(false)
 
   const { useSendMessage, channelData } = useChat()
   const messageSender = useSendMessage()
 
   async function sendMessage() {
-    if (!text.value || !channelData.value?.fetchUserByName) return
+    if (!text.value || !channelData.value?.fetchUserByName || isSending.value) {
+      return
+    }
+    isSending.value = true
 
     const msg = text.value.replace(/\s+/g, ' ').trim()
     if (!msg) return
@@ -45,12 +49,19 @@ export const useChatMessageSend = createGlobalState(() => {
         await new Promise((r) => setTimeout(r, 200))
       }
     }
+
+    isSending.value = false
+    // hack for focus textarea after sending message
+    setTimeout(() => {
+      textElement.value?.focus()
+    }, 100)
   }
 
   return {
     text,
     replyTo,
     textElement,
-    sendMessage
+    sendMessage,
+    isSending
   }
 })

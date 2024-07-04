@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { AlertCircle } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
 
 import { useProfile } from '@/api/profile.ts'
 import NavbarProfileProviderButton from '@/components/navbar-profile-provider-button.vue'
@@ -70,6 +71,10 @@ async function saveChanges() {
     formError.value = mutationError.message
   } else {
     formError.value = ''
+    toast.success('Profile updated', {
+      description: 'Your profile has been updated',
+      dismissible: true
+    })
   }
 }
 

@@ -29,7 +29,7 @@ const unwrappedMessages = computed(() =>
   useFragment(ChatMessage_Fragment, messages.value)
 )
 
-const { textElement } = useChatMessageSend()
+const { textElement, isSending } = useChatMessageSend()
 const { data: profile } = useProfile().useData()
 
 onMounted(() => {
@@ -104,6 +104,10 @@ function insertEmoteInText(value: unknown) {
 
 const breakPoints = useBreakpoints(breakpointsTailwind)
 const isSmall = breakPoints.smallerOrEqual('lg')
+
+const chatLocked = computed(() => {
+  return !profile.value || isSending.value
+})
 </script>
 
 <template>
@@ -129,7 +133,7 @@ const isSmall = breakPoints.smallerOrEqual('lg')
         @keyup="updateCarretPosition"
         @click="updateCarretPosition"
         @focus="updateCarretPosition"
-        :disabled="!profile"
+        :disabled="chatLocked"
         :maxlength="700"
       />
 
@@ -139,7 +143,7 @@ const isSmall = breakPoints.smallerOrEqual('lg')
             class="absolute right-1.5 top-1.5 lg:right-2 lg:top-2"
             variant="link"
             size="xs"
-            :disabled="!profile"
+            :disabled="chatLocked"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -219,7 +223,7 @@ const isSmall = breakPoints.smallerOrEqual('lg')
       <Button
         @click="sendMessage"
         size="sm"
-        :disabled="!profile"
+        :disabled="chatLocked"
         class="bg-blue-500 hover:bg-blue-600 text-white h-8 px-3"
       >
         Send

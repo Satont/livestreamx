@@ -40,8 +40,9 @@ async function saveChanges() {
     }
   })
   if (!error) {
-    toast('Settings saved', {
-      description: 'Your settings have been saved successfully'
+    toast.success('Settings saved', {
+      description: 'Your settings have been saved successfully',
+      dismissible: true
     })
   }
 }
