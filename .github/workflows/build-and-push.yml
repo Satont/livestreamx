@@ -1,4 +1,4 @@
-name: Push mediamtx
+name: Build and push app
 
 on:
   workflow_dispatch:
@@ -37,3 +37,5 @@ jobs:
             ghcr.io/satont/livestreamx:mediamtx-latest
             ghcr.io/satont/livestreamx:mediamtx-${{ github.sha }}
           builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
