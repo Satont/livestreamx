@@ -11,18 +11,13 @@ func (r *Resolver) resetStreamsViewersAndChatters(ctx context.Context) error {
 	streamsKey := "streams:viewers:*"
 	chattersKey := "streams:chatters:*"
 
-	for _, key := range []string{streamsKey, chattersKey} {
-		var cursor uint64
-		var keys []string
-		var err error
-		keys, cursor, err = r.redis.Scan(ctx, cursor, key, 0).Result()
-		if err != nil {
-			return fmt.Errorf("failed to scan keys: %w", err)
-		}
+	for _, keyPattern := range []string{streamsKey, chattersKey} {
+		iter := r.redis.Scan(ctx, 0, keyPattern, 0).Iterator()
 
-		for _, key := range keys {
-			if err := r.redis.Del(ctx, key).Err(); err != nil {
-				return fmt.Errorf("failed to delete key: %w", err)
+		for iter.Next(ctx) {
+			err := r.redis.Del(ctx, iter.Val()).Err()
+			if err != nil {
+				return err
 			}
 		}
 	}
