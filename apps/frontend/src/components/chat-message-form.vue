@@ -107,9 +107,7 @@ const isSmall = breakPoints.smallerOrEqual('lg')
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-2 bg-[#111111] min-h-auto max-h-36 p-2 relative"
-  >
+  <div class="flex flex-col gap-2.5 bg-[#111111] p-2.5 relative">
     <Mention
       :keys="mentionKeys"
       :items="mentionItems"
@@ -123,10 +121,10 @@ const isSmall = breakPoints.smallerOrEqual('lg')
       <Textarea
         id="chat-messages-form-textarea"
         v-model="text"
-        placeholder="Send message..."
+        placeholder="Send a message"
         @keydown.enter="sendMessage"
         @paste="console.log"
-        class="pr-12 min-h-8 max-h-20 resize-none bg-[#181818]"
+        class="pr-12 min-h-8 max-h-20 resize-none bg-[#181818] focus-visible:ring-offset-0 focus-visible:ring-[#4D4D4D] transition-[box-shadow,border-color,background-color] hover:border-white/20 border-white/15 px-3 placeholder:text-white/50 rounded-md focus-visible:border-white/15 focus-visible:bg-[#111111]"
         :rows="isSmall ? 1 : 3"
         @keyup="updateCarretPosition"
         @click="updateCarretPosition"
@@ -222,18 +220,10 @@ const isSmall = breakPoints.smallerOrEqual('lg')
         @click="sendMessage"
         size="sm"
         :disabled="!profile"
-        class="send-button"
+        class="bg-blue-500 hover:bg-blue-600 text-white h-8 px-3"
       >
         Send
       </Button>
     </div>
   </div>
 </template>
-
-<style scoped>
-.send-button {
-  background: linear-gradient(180deg, #2e59ef 0%, #1e4be7 100%);
-
-  @apply border-solid border-[#ffffff14] text-white font-semibold px-4;
-}
-</style>
