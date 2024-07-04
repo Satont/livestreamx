@@ -9,27 +9,15 @@ import { useStream } from '@/api/stream.ts'
 const { channelData } = useChat()
 const { data: streamData } = useStream().useStreamState()
 
-const videoSource = computed(() => {
+const src = computed(() => {
   if (!channelData.value) return null
-
-  return {
-    src: `${window.location.origin}/api/streams/read/${channelData.value.fetchUserByName.id}/index.m3u8`,
-    type: 'application/x-mpegURL'
-  }
+  return `${window.location.origin}/api/streams/${channelData.value!.fetchUserByName.id}/index.m3u8`
 })
 </script>
 
 <template>
-  <div v-if="!videoSource">
-    <div class="flex items-center justify-center w-full h-full">
-      <div class="text-center">
-        <div class="text-2xl font-bold text-gray-500">No stream available</div>
-      </div>
-    </div>
-  </div>
-
   <div
-    v-else-if="!streamData?.streamInfo?.startedAt"
+    v-if="!streamData?.streamInfo?.startedAt"
     class="flex items-center justify-center w-full h-full"
   >
     <div class="text-center">
@@ -40,18 +28,19 @@ const videoSource = computed(() => {
   </div>
 
   <media-player
-    class="overflow-hidden"
-    v-else-if="videoSource"
+    ref="player"
+    :src="src"
+    v-if="src"
+    class="overflow-hidden h-full w-full"
     storage="streamx-player-v3"
     :title="channelData?.fetchUserByName.name"
-    :src="videoSource"
     playsInline
     autoPlay
-    stream-type="live"
     disableTimeSlider
+    logLevel="debug"
+    :controls="false"
   >
     <media-provider />
-
     <media-video-layout />
   </media-player>
 </template>

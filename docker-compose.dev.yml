@@ -1,10 +1,13 @@
 services:
   mediamtx:
-    image: bluenviron/mediamtx:latest-ffmpeg
+    build:
+        context: .
+        dockerfile: mediamtx.Dockerfile
     network_mode: host
     volumes:
       - ./mediamtx.dev.yml:/mediamtx.yml
       - ./thumbnails:/thumbnails
+      - ./mediamtx-concurrent-compression.sh:/opt/mediamtx/scripts/mediamtx-concurrent-compression.sh
 
   redis:
     image: redis:latest
