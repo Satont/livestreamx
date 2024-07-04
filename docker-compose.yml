@@ -57,7 +57,7 @@ services:
       retries: 5
 
   mediamtx:
-    image: bluenviron/mediamtx:1.8.3-ffmpeg
+    image: ghcr.io/satont/livestreamx:mediamtx-latest
     restart: always
     network_mode: host
     volumes:

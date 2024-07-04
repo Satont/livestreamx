@@ -1,6 +1,8 @@
 services:
   mediamtx:
-    image: bluenviron/mediamtx:latest-ffmpeg
+    build:
+        context: .
+        dockerfile: mediamtx.Dockerfile
     network_mode: host
     volumes:
       - ./mediamtx.dev.yml:/mediamtx.yml

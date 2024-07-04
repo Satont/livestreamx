@@ -3,45 +3,11 @@ api: yes
 authMethod: http
 externalAuthenticationURL: http://localhost:1337/streams/auth
 
-#authMethod: internal
-#authInternalUsers:
-#  - user: any
-#    permissions:
-#      - action: read
-#      - action: playback
-#  - user: satont
-#    pass: q
-#    path:
-#      - mystream
-#      - proxy
-#    permissions:
-#      - action: publish
-#      - action: read
-#      - action: playback
-#      - action: api
-#      - action: metrics
-#      - action: pprof
-#  - user: any
-#    permissions:
-#      - action: publish
-#      - action: read
-#      - action: playback
-#      - action: api
-#      - action: metrics
-#      - action: pprof
-#    ips: [127.0.0.1]
-
 hlsPartDuration: 500ms
 
 paths:
-  "~^(.+)$":
-    runOnReady: sh -c 'while true; do ffmpeg -i rtsp://localhost:$RTSP_PORT/$RTSP_PATH -vframes 1 -y /thumbnails/$G1.jpg; sleep 10; done'
+  "~^.+p_(.{36})$":
+  "~^(.{36})$":
+    runOnReady: /opt/mediamtx/scripts/mediamtx-concurrent-compression.sh
     runOnReadyRestart: yes
     runOnNotReady: rm -f /thumbnails/$G1.jpg
-
-#    runOnReady: ffmpeg -re -stream_loop -1 -i file.ts -c copy -f rtsp rtsp://localhost:$RTSP_PORT/$G1
-#    runOnInitRestart: yes
-#  mystream:
-#  proxy:
-#    runOnReady: ffmpeg -i rtsp://localhost:$RTSP_PORT/$RTSP_PATH -vcodec copy -ac 2 -c:a libopus -b:a 128k -async 50 -f rtsp rtsp://localhost:$RTSP_PORT/mystream
-#    runOnInitRestart: yes

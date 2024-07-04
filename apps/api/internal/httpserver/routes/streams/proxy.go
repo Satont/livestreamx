@@ -17,8 +17,9 @@ import (
 )
 
 var (
-	proxyChannelRegexp      = regexp.MustCompile("/(?P<channel_id>.+)/(?P<params>.+)")
-	proxyChannelRegexpNames = proxyChannelRegexp.SubexpNames()
+	proxyChannelRegexp            = regexp.MustCompile("/(?P<channel_id>.+)/(?P<params>.+)")
+	proxyChannelRegexpWithQuality = regexp.MustCompile("/(?P<quality>.+p_)(?P<channel_id>.+)/(?P<params>.+)")
+	proxyChannelRegexpNames       = proxyChannelRegexp.SubexpNames()
 )
 
 func (c *Streams) reverseProxy(target string) gin.HandlerFunc {
@@ -29,13 +30,26 @@ func (c *Streams) reverseProxy(target string) gin.HandlerFunc {
 	proxy := httputil.NewSingleHostReverseProxy(remote)
 
 	return func(ctx *gin.Context) {
-		regexMatch := proxyChannelRegexp.FindStringSubmatch(ctx.Param("regex"))
-		if len(regexMatch) < 2 {
+		p := ctx.Param("regex")
+		regexMatch := proxyChannelRegexp.FindStringSubmatch(p)
+		regexMatchWithQuality := proxyChannelRegexpWithQuality.FindStringSubmatch(p)
+		if len(regexMatch) < 2 && len(regexMatchWithQuality) < 2 {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 			return
 		}
 
-		channelId, params := regexMatch[1], regexMatch[2]
+		// refererUrl, err := url.Parse(ctx.Request.Referer())
+		// if err != nil {
+		// 	ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid referer"})
+		// 	return
+		// }
+
+		var channelId, params, quality string
+		if len(regexMatchWithQuality) > 1 {
+			quality, channelId, params = regexMatchWithQuality[1], regexMatchWithQuality[2], regexMatchWithQuality[3]
+		} else {
+			channelId, params = regexMatch[1], regexMatch[2]
+		}
 
 		parsedChannelId, err := uuid.Parse(channelId)
 		if err != nil {
@@ -49,12 +63,29 @@ func (c *Streams) reverseProxy(target string) gin.HandlerFunc {
 			return
 		}
 
+		// if params == "index.m3u8" && len(regexMatchWithQuality) == 0 {
+		// 	playlist, err := c.buildPlaylist(
+		// 		ctx.Request.Context(),
+		// 		refererUrl,
+		// 		user.StreamKey.String(),
+		// 		user.ID.String(),
+		// 	)
+		// 	if err != nil {
+		// 		c.logger.Sugar().Errorf("Failed to build playlist: %v", err)
+		// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to build playlist"})
+		// 		return
+		// 	}
+		//
+		// 	ctx.String(http.StatusOK, playlist)
+		// 	return
+		// }
+
 		proxy.Director = func(req *http.Request) {
 			req.URL.Scheme = remote.Scheme
 			req.URL.Host = remote.Host
-			req.URL.Path = fmt.Sprintf("/%s/%s", user.StreamKey, params)
+			req.URL.Path = fmt.Sprintf("/%s%s/%s", quality, user.StreamKey, params)
 			req.Host = remote.Host
-			req.URL.RawPath = fmt.Sprintf("/%s/%s", user.StreamKey, params)
+			req.URL.RawPath = fmt.Sprintf("/%s%s/%s", quality, user.StreamKey, params)
 		}
 
 		proxy.ServeHTTP(ctx.Writer, ctx.Request)

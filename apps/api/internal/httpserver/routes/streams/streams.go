@@ -31,6 +31,7 @@ func New(opts Opts) (*Streams, error) {
 	group.POST("auth", s.authHandler)
 	group.GET("/thumbnails/*channelID", s.thumbnailsHandler)
 
+	group.GET("/:channelID/index.m3u8", s.indexHandler)
 	group.Any("/read/*regex", s.reverseProxy(opts.Config.MediaMtxAddr+":8888"))
 
 	return s, nil
