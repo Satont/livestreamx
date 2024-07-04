@@ -8,12 +8,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	redis "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9"
 	data_loader "github.com/satont/stream/apps/api/internal/gql/data-loader"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	"github.com/satont/stream/apps/api/internal/gql/graph"
@@ -26,6 +27,7 @@ import (
 func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) {
 	paths, err := r.mtxApi.GetPaths(ctx)
 	if err != nil {
+		r.logger.Sugar().Error(err)
 		return nil, err
 	}
 
@@ -34,6 +36,10 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 	var errwg errgroup.Group
 
 	for _, path := range paths {
+		if strings.Contains(path.Name, "_") {
+			continue
+		}
+
 		path := path
 		errwg.Go(
 			func() error {
@@ -86,7 +92,10 @@ func (r *streamResolver) Viewers(ctx context.Context, obj *gqlmodel.Stream) (int
 }
 
 // Chatters is the resolver for the chatters field.
-func (r *streamResolver) Chatters(ctx context.Context, obj *gqlmodel.Stream) ([]gqlmodel.Chatter, error) {
+func (r *streamResolver) Chatters(ctx context.Context, obj *gqlmodel.Stream) (
+	[]gqlmodel.Chatter,
+	error,
+) {
 	var chatters []gqlmodel.Chatter
 	iter := r.redis.Scan(
 		ctx,
@@ -126,12 +135,18 @@ func (r *streamResolver) Chatters(ctx context.Context, obj *gqlmodel.Stream) ([]
 }
 
 // Channel is the resolver for the channel field.
-func (r *streamResolver) Channel(ctx context.Context, obj *gqlmodel.Stream) (*gqlmodel.BaseUser, error) {
+func (r *streamResolver) Channel(ctx context.Context, obj *gqlmodel.Stream) (
+	*gqlmodel.BaseUser,
+	error,
+) {
 	return data_loader.GetBaseUserByID(ctx, obj.ChannelID)
 }
 
 // StreamInfo is the resolver for the streamInfo field.
-func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UUID) (<-chan *gqlmodel.Stream, error) {
+func (r *subscriptionResolver) StreamInfo(
+	ctx context.Context,
+	channelID uuid.UUID,
+) (<-chan *gqlmodel.Stream, error) {
 	dbChannel, err := r.userRepo.FindByID(ctx, channelID)
 	if err != nil {
 		return nil, err

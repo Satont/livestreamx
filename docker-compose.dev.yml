@@ -7,7 +7,6 @@ services:
     volumes:
       - ./mediamtx.dev.yml:/mediamtx.yml
       - ./thumbnails:/thumbnails
-      - ./mediamtx-concurrent-compression.sh:/opt/mediamtx/scripts/mediamtx-concurrent-compression.sh
 
   redis:
     image: redis:latest

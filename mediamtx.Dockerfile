@@ -1,4 +1,4 @@
-FROM bluenviron/mediamtx:latest-ffmpeg
+FROM bluenviron/mediamtx:1.8.3-ffmpeg
 
 RUN apk add --no-cache bash
 

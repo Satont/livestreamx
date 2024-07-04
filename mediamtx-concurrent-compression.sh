@@ -25,4 +25,6 @@ ffmpeg -i rtsp://localhost:$RTSP_PORT/$MTX_PATH \
   -profile:v main \
   -b:v 2800k -maxrate 2996k -bufsize 4200k -b:a 128k \
   -max_muxing_queue_size 1024 \
-  -f rtsp rtsp://localhost:$RTSP_PORT/720p_$G1
+  -f rtsp rtsp://localhost:$RTSP_PORT/720p_$G1 &
+
+while true; do ffmpeg -i rtsp://localhost:$RTSP_PORT/$G1 -vframes 1 -y /thumbnails/$G1.jpg; sleep 10; done
