@@ -1,4 +1,4 @@
-name: Push mediamtx
+name: Build and push apps
 
 on:
   push:
