@@ -5,7 +5,7 @@ ffmpeg -i rtsp://localhost:$RTSP_PORT/$MTX_PATH \
   -c:v h264 \
   -sc_threshold 0 -g 48 -keyint_min 48 \
   -profile:v main \
-  -b:v 800k -maxrate 856k -bufsize 1200k -b:a 96k \
+  -b:v 800k -maxrate 856k -bufsize 1200k -b:a 128k \
   -max_muxing_queue_size 1024 \
   -f rtsp rtsp://localhost:$RTSP_PORT/360p_$G1 &
 
