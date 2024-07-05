@@ -30,18 +30,19 @@ const src = computed(() => {
 
   <media-player
     ref="player"
-    :src="src"
     v-else-if="src"
+    :src="src"
     class="overflow-hidden h-full w-full"
     storage="streamx-player-v3"
     :title="channelData?.fetchUserByName.name"
     playsInline
     autoPlay
-    disableTimeSlider
     logLevel="debug"
     :controls="false"
+    :live-edge-tolerance="4"
+    stream-type="live"
   >
     <media-provider />
-    <media-video-layout />
+    <media-video-layout disable-time-slider />
   </media-player>
 </template>
