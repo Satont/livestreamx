@@ -108,6 +108,19 @@ const isSmall = breakPoints.smallerOrEqual('lg')
 const chatLocked = computed(() => {
   return !profile.value || isSending.value
 })
+
+function insertLatestMessage() {
+  const latestMessageFromCurrentUser = unwrappedMessages.value
+    .slice()
+    .reverse()
+    .find((m) => m.sender.id === profile.value?.userProfile.id)
+
+  if (!latestMessageFromCurrentUser) return
+
+  text.value = latestMessageFromCurrentUser.segments
+    .map((s) => s.content)
+    .join(' ')
+}
 </script>
 
 <template>
@@ -133,6 +146,7 @@ const chatLocked = computed(() => {
         @keyup="updateCarretPosition"
         @click="updateCarretPosition"
         @focus="updateCarretPosition"
+        @keydown.up="insertLatestMessage"
         :disabled="chatLocked"
         :maxlength="700"
       />
