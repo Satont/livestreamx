@@ -63,8 +63,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
       vidstack:
-        specifier: 1.11.24
-        version: 1.11.24
+        specifier: 1.11.25
+        version: 1.11.25
       vite-svg-loader:
         specifier: 5.1.0
         version: 5.1.0(vue@3.4.29(typescript@5.5.2))
@@ -1023,6 +1023,9 @@ packages:
 
   '@types/node@20.14.7':
     resolution: {integrity: sha512-uTr2m2IbJJucF3KUxgnGOZvYbN0QgkGyWxG6973HCpMYFy2KfcgYuIwkJQMQkt1VbBMlvWRbpshFTLxnxCZjKQ==}
+
+  '@types/trusted-types@2.0.7':
+    resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
@@ -2061,6 +2064,9 @@ packages:
       enquirer:
         optional: true
 
+  lit-html@2.8.0:
+    resolution: {integrity: sha512-o9t+MQM3P4y7M7yNzqAyjp7z+mQGa4NS4CxiyLqFPyFWyc4O+nodLrkrxSaCTrla6M5YOLaT3RpbbqjszB5g3Q==}
+
   local-pkg@0.5.0:
     resolution: {integrity: sha512-ok6z3qlYyCDS4ZEU27HaU6x/xZa9Whf8jD4ptH5UZTQYZVYeb9bnZ3ojVhiJNLiXK1Hfc0GNbLXcmZ5plLDDBg==}
     engines: {node: '>=14'}
@@ -2907,8 +2913,8 @@ packages:
     resolution: {integrity: sha512-Z6Uz+TYwEqE7ZN50gwn+1LCVo9ZVrpxRPOhOLnncYkY1ZzOYtrX8Fwf/rFktZ8R5mJms6EZf5TqNOMeZmnPq9Q==}
     engines: {node: '>=12'}
 
-  vidstack@1.11.24:
-    resolution: {integrity: sha512-RTd8hj3FD3ScIizm/JNnWKCaMwt9JVTU8Dgq+aOhzptyA6S+rGjXKbpQatp4GL714SwTjHjDVawCtbUrq4S10w==}
+  vidstack@1.11.25:
+    resolution: {integrity: sha512-jpYpeTStZUQudY0dsJAtekJ7JRFm6Bpwa0+ISF/DYv+3V0xzF+WY3yunNkfXSJIiow6KowypjpsZceRySjZzVA==}
     engines: {node: '>=18'}
 
   vite-node@1.6.0:
@@ -4298,6 +4304,8 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
+  '@types/trusted-types@2.0.7': {}
+
   '@types/web-bluetooth@0.0.20': {}
 
   '@types/ws@8.5.10':
@@ -5487,6 +5495,10 @@ snapshots:
       through: 2.3.8
       wrap-ansi: 7.0.0
 
+  lit-html@2.8.0:
+    dependencies:
+      '@types/trusted-types': 2.0.7
+
   local-pkg@0.5.0:
     dependencies:
       mlly: 1.7.1
@@ -6351,8 +6363,10 @@ snapshots:
 
   value-or-promise@1.0.12: {}
 
-  vidstack@1.11.24:
+  vidstack@1.11.25:
     dependencies:
+      '@floating-ui/dom': 1.6.7
+      lit-html: 2.8.0
       media-captions: 1.0.3
       unplugin: 1.11.0
 

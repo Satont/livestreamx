@@ -4,6 +4,8 @@ authMethod: http
 externalAuthenticationURL: http://localhost:1337/streams/auth
 
 hlsPartDuration: 500ms
+writeQueueSize: 5120
+hlsAlwaysRemux: yes
 
 paths:
   "~^.+p_(.{36})$":

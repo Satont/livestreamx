@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import 'vidstack/bundle'
 
+import { isHLSProvider } from 'vidstack'
 import { computed } from 'vue'
+import type { MediaProviderChangeEvent } from 'vidstack'
 
 import { useChat } from '@/api/chat.ts'
 import { useStream } from '@/api/stream.ts'
@@ -12,8 +14,24 @@ const { data: streamData } = useStream().useStreamState()
 const src = computed(() => {
   if (!channelData.value || !streamData.value?.streamInfo?.startedAt)
     return null
-  return `${window.location.origin}/api/streams/${channelData.value!.fetchUserByName.id}/index.m3u8`
+  return {
+    src: `${window.location.origin}/api/streams/${channelData.value!.fetchUserByName.id}/index.m3u8`,
+    type: 'application/x-mpegurl'
+  }
 })
+
+function onProviderChange(event: MediaProviderChangeEvent) {
+  const provider = event.detail
+  if (isHLSProvider(provider)) {
+    provider.library = () => import('hls.js')
+    provider.config = {
+      maxBufferLength: 4,
+      lowLatencyMode: true,
+      maxLiveSyncPlaybackRate: 1.5,
+      startPosition: -1
+    }
+  }
+}
 </script>
 
 <template>
@@ -40,9 +58,12 @@ const src = computed(() => {
     logLevel="debug"
     :controls="false"
     :live-edge-tolerance="4"
-    stream-type="live"
+    streamType="live"
+    viewType="video"
+    :loop="false"
+    @provider-change="onProviderChange"
   >
     <media-provider />
-    <media-video-layout disable-time-slider />
+    <media-video-layout />
   </media-player>
 </template>
