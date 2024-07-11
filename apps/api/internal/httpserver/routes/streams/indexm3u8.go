@@ -31,6 +31,13 @@ func (c *Streams) indexHandler(ctx *gin.Context) {
 
 	user, err := c.getUserById(ctx.Request.Context(), parsedChannelID)
 	if err != nil {
+		c.logger.Sugar().Errorw(
+			"Failed to get user by ID",
+			"err",
+			err,
+			"channel_id",
+			parsedChannelID,
+		)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Channel not found"})
 		return
 	}
