@@ -23,10 +23,7 @@ function onProviderChange(event: MediaProviderChangeEvent) {
   if (isHLSProvider(provider)) {
     provider.library = () => import('hls.js')
     provider.config = {
-      maxBufferLength: 4,
-      lowLatencyMode: true,
-      maxLiveSyncPlaybackRate: 1.5,
-      startPosition: -1
+      maxLiveSyncPlaybackRate: 1.5
     }
   }
 }
