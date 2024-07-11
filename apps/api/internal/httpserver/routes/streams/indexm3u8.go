@@ -16,15 +16,16 @@ import (
 )
 
 func (c *Streams) indexHandler(ctx *gin.Context) {
+	refererUrl, err := url.Parse(ctx.Request.Referer())
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid referer"})
+		return
+	}
+
 	channelID := ctx.Param("channelID")
 	parsedChannelID, err := uuid.Parse(channelID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid channel ID"})
-		return
-	}
-	refererUrl, err := url.Parse(ctx.Request.Referer())
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid referer"})
 		return
 	}
 
@@ -72,8 +73,14 @@ func (c *Streams) buildPlaylist(
 		refererUrl.Host,
 	)
 
-	// first is source
-	resolutions := []string{"", "720p_", "480p_", "360p_"}
+	// first quality is source
+	var resolutions []string
+	if c.config.FeatureDisableQuality {
+		resolutions = []string{""}
+	} else {
+		resolutions = []string{"", "720p_", "480p_", "360p_"}
+	}
+
 	masterPlaylist := m3u8.NewMasterPlaylist()
 	masterPlaylist.SetIndependentSegments(true)
 	masterPlaylist.SetVersion(6)

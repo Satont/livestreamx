@@ -33,6 +33,8 @@ type Config struct {
 	GithubClientID     string `required:"false" envconfig:"GITHUB_CLIENT_ID"`
 	GithubClientSecret string `required:"false" envconfig:"GITHUB_CLIENT_SECRET"`
 	GithubRedirectURI  string `required:"false" envconfig:"GITHUB_REDIRECT_URI"`
+
+	FeatureDisableQuality bool `envconfig:"FEATURE_DISABLE_QUALITY"`
 }
 
 func New() (Config, error) {
