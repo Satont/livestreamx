@@ -43,7 +43,7 @@ pnpm dev
 * Run stream (optional)
     * Go to OBS -> Settings -> Stream
     * Set server to `rtmp://localhost`
-    * Set stream key to `proxy?user=satont&pass=q`
+    * Copy stream key from `Profile` -> `Stream` from the site
 
 ### Writing migrations
 
