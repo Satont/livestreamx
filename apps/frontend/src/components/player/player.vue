@@ -12,12 +12,10 @@ const { channelData } = useChat()
 const { data: streamData } = useStream().useStreamState()
 
 const src = computed(() => {
-  if (!channelData.value || !streamData.value?.streamInfo?.startedAt)
+  if (!channelData.value || !streamData.value?.streamInfo?.startedAt) {
     return null
-  return {
-    src: `${window.location.origin}/api/streams/${channelData.value!.fetchUserByName.id}/index.m3u8`,
-    type: 'application/x-mpegurl'
   }
+  return `${window.location.origin}/api/streams/${channelData.value!.fetchUserByName.id}/index.m3u8`
 })
 
 function onProviderChange(event: MediaProviderChangeEvent) {
