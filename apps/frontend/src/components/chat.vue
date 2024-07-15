@@ -14,6 +14,7 @@ import ChatSystemMessage from '@/components/chat-system-message.vue'
 import StreamUptime from '@/components/stream-uptime.vue'
 import StreamViewers from '@/components/stream-viewers.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { colorMode } from '@/composables/color-mode.ts'
 import { useChatMessageSend } from '@/composables/use-chat-message-send.ts'
 import { FragmentType, useFragment } from '@/gql'
 
@@ -72,10 +73,10 @@ const replyingTo = computed(() => {
 
 <template>
   <div
-    class="relative flex h-full max-h-full flex-col lg:border-l-2 border-t-2 lg:border-t-0 border-border"
+    class="relative flex h-full max-h-full flex-col lg:border-l-2 border-t-2 lg:border-t-0 border-border text-accent-foreground dark:bg-[#111111]"
   >
     <div
-      class="flex flex-row justify-between bg-[#111111] border-b-2 border-border items-center px-4 py-2 min-w-48"
+      class="flex flex-row justify-between border-b-2 border-border items-center px-4 py-2 min-w-48"
     >
       <StreamUptime class="text-md font-semibold" />
       <StreamViewers />
@@ -86,7 +87,7 @@ const replyingTo = computed(() => {
     >
       <div
         ref="messagesEl"
-        class="h-full relative flex flex-col overflow-y-auto px-2 bg-[#111111]"
+        class="h-full relative flex flex-col overflow-y-auto px-2 dark:bg-[#111111]"
       >
         <template v-for="message in allMessages">
           <ChatMessage

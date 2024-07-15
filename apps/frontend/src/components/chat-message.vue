@@ -70,7 +70,7 @@ const repliedMessage = computed(() => {
     :style="{ fontSize: `${chatFontSize}px` }"
     class="relative group p-0.5 flex flex-col"
     :class="{
-      'hover:rounded hover:bg-[#242424]': !isReply
+      'hover:rounded hover:bg-[#242424] hover:text-white': !isReply
     }"
   >
     <div

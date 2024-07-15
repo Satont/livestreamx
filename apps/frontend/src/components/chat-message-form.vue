@@ -124,7 +124,7 @@ function insertLatestMessage() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2.5 bg-[#111111] p-2.5 relative">
+  <div class="flex flex-col gap-2.5 dark:bg-[#111111] p-2.5 relative">
     <Mention
       :keys="mentionKeys"
       :items="mentionItems"
@@ -141,7 +141,7 @@ function insertLatestMessage() {
         placeholder="Send a message"
         @keydown.enter="sendMessage"
         @paste="console.log"
-        class="pr-12 min-h-8 max-h-20 resize-none bg-[#181818] focus-visible:ring-offset-0 focus-visible:ring-[#4D4D4D] transition-[box-shadow,border-color,background-color] hover:border-white/20 border-white/15 px-3 placeholder:text-white/50 rounded-md focus-visible:border-white/15 focus-visible:bg-[#111111]"
+        class="pr-12 min-h-8 max-h-20 resize-none bg-[#181818] focus-visible:ring-offset-0 focus-visible:ring-[#4D4D4D] transition-[box-shadow,border-color,background-color] hover:border-white/20 border-white/15 px-3 text-white dark:placeholder:text-white/50 rounded-md focus-visible:border-white/15 focus-visible:bg-[#111111]"
         :rows="isSmall ? 1 : 3"
         @keyup="updateCarretPosition"
         @click="updateCarretPosition"

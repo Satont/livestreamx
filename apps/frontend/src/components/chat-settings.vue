@@ -81,7 +81,7 @@ function focusColorPicker() {
       <Button
         size="sm"
         variant="secondary"
-        class="text-stone-300/80 p-1.5 h-8"
+        class="dark:text-stone-300/80 p-1.5 h-8"
       >
         <Cog class="size-5" />
       </Button>
