@@ -1,6 +1,7 @@
 package streams
 
 import (
+	"net/url"
 	"regexp"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,7 @@ var (
 func (c *Streams) authHandler(ctx *gin.Context) {
 	body := authReq{}
 	if err := ctx.BindJSON(&body); err != nil {
+		c.logger.Sugar().Infow("Invalid body", "err", err)
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
@@ -36,21 +38,14 @@ func (c *Streams) authHandler(ctx *gin.Context) {
 	}
 
 	if body.Action == "publish" {
-		var key string
-		keyMatch := authKeyRegexp.FindStringSubmatch(body.Path)
-		keyMatchWithQuality := authKeyRegexpWithQuality.FindStringSubmatch(body.Path)
-		if len(keyMatch) < 2 && len(keyMatchWithQuality) < 2 {
-			ctx.JSON(400, gin.H{"error": "Invalid request"})
+		query, err := url.ParseQuery(body.Query)
+		if err != nil {
+			c.logger.Sugar().Infow("Invalid query", "err", err)
+			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
-		if len(keyMatchWithQuality) > 1 {
-			key = keyMatchWithQuality[2]
-		} else {
-			key = keyMatch[1]
-		}
-
-		streamKey, err := uuid.Parse(key)
+		streamKey, err := uuid.Parse(query.Get("key"))
 		if err != nil {
 			ctx.JSON(400, gin.H{"error": err.Error()})
 			return

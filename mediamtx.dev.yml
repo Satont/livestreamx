@@ -7,8 +7,7 @@ hlsPartDuration: 500ms
 hlsAlwaysRemux: yes
 
 paths:
-  "~^.+p_(.{36})$":
-  "~^(.{36})$":
+  "~^(.+)$":
     runOnReady: /opt/mediamtx/scripts/mediamtx-concurrent-compression.sh
     runOnReadyRestart: yes
     runOnNotReady: rm -f /thumbnails/$G1.jpg
