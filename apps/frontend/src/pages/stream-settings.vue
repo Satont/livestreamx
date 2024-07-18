@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Copy, Eye, EyeOff } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 
 import { useProfile } from '@/api/profile.ts'
@@ -27,6 +27,15 @@ watch(
   },
   { immediate: true }
 )
+
+const streamKey = computed(() => {
+  const data = profile.value?.userProfile
+  if (!data) {
+    return ''
+  }
+
+  return `${data.name}?key=${data.streamKey}`
+})
 
 const showStreamKey = ref(false)
 function copyText(text: string) {
@@ -80,8 +89,8 @@ async function saveChanges() {
       <div class="w-full relative">
         <Input
           id="streamKey"
-          :default-value="profile.userProfile.streamKey"
-          :value="profile.userProfile.streamKey"
+          :default-value="streamKey"
+          :value="streamKey"
           :type="showStreamKey ? 'text' : 'password'"
           class="pr-8"
           @input.prevent
@@ -90,7 +99,7 @@ async function saveChanges() {
           <Button
             size="xs"
             variant="ghost"
-            @click="copyText(profile?.userProfile.streamKey)"
+            @click="copyText(streamKey)"
           >
             <Copy class="size-4" />
           </Button>
