@@ -13,7 +13,7 @@ const { data: streamData } = useStream().useStreamState()
 
 const streamingServiceAddr = import.meta.env.DEV
   ? 'http://localhost:8888'
-  : 'http://147.45.184.193:8888'
+  : 'http://78.46.90.174:8888'
 
 const src = computed(() => {
   if (!channelData.value || !streamData.value?.streamInfo?.startedAt) {
