@@ -142,7 +142,7 @@ const repliedMessage = computed(() => {
           >
             <UiTooltip>
               <UiTooltipTrigger>
-                <NuxtImg
+                <img
                   :src="(segment.emote as ChatEmote_FragmentFragment).url"
                   :style="{
                     width: `${(segment.emote as ChatEmote_FragmentFragment).width}px`,

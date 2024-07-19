@@ -107,7 +107,7 @@ async function handleAddReaction(name: string) {
       >
         {{ reaction.reaction }}
       </span>
-      <NuxtImg
+      <img
         v-else-if="
           reaction.type === ChatMessageReactionType.Emote && 'emote' in reaction
         "
@@ -200,7 +200,7 @@ async function handleAddReaction(name: string) {
                   style="height: 60px; width: 79px"
                   @click="handleAddReaction(item.name)"
                 >
-                  <NuxtImg
+                  <img
                     :src="item.url"
                     class="size-8"
                   />
@@ -228,7 +228,7 @@ async function handleAddReaction(name: string) {
                 <span>{{ reaction.user.displayName }}</span>
               </div>
 
-              <NuxtImg
+              <img
                 v-if="
                   reaction.type === ChatMessageReactionType.Emote &&
                   'emote' in reaction
