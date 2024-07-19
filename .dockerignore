@@ -3,3 +3,6 @@ node_modules
 **/node_modules
 dist
 **/dist
+.output
+.nuxt
+**/.env

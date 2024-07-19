@@ -1,3 +1,4 @@
 .env
+!apps/frontend/.env
 !.gitkeep
 thumbnails/*

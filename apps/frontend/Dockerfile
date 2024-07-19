@@ -1,7 +1,10 @@
-FROM node:22-alpine as builder
+FROM node:22-alpine as base
 LABEL authors="satont"
-
 WORKDIR /app
+
+ARG PORT=3000
+
+FROM base as build
 
 RUN corepack enable
 
@@ -12,10 +15,9 @@ RUN cd /app/apps/frontend && pnpm install --frozen-lockfile
 
 COPY apps/frontend /app/apps/frontend
 
-ARG VITE_STREAM_URL
-ENV VITE_STREAM_URL=$VITE_STREAM_URL
-
 RUN cd /app/apps/frontend && pnpm build
 
-FROM devforth/spa-to-http:1.0.6
-COPY --from=builder /app/apps/frontend/dist .
+FROM base
+ENV NODE_ENV=production
+COPY --from=build /app/apps/frontend/.output /app/.output
+CMD [ "node", ".output/server/index.mjs" ]
