@@ -265,6 +265,12 @@ type ComplexityRoot struct {
 		SenderName  func(childComplexity int) int
 		Type        func(childComplexity int) int
 	}
+
+	SystemMessageUserJoined struct {
+		CreatedAt func(childComplexity int) int
+		Type      func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
 }
 
 type ChatMessageResolver interface {
@@ -1365,6 +1371,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SystemMessageKickMessage.Type(childComplexity), true
 
+	case "SystemMessageUserJoined.createdAt":
+		if e.complexity.SystemMessageUserJoined.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageUserJoined.CreatedAt(childComplexity), true
+
+	case "SystemMessageUserJoined.type":
+		if e.complexity.SystemMessageUserJoined.Type == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageUserJoined.Type(childComplexity), true
+
+	case "SystemMessageUserJoined.user":
+		if e.complexity.SystemMessageUserJoined.User == nil {
+			break
+		}
+
+		return e.complexity.SystemMessageUserJoined.User(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -1595,6 +1622,7 @@ enum SystemMessageType {
     EMOTE_REMOVED
     EMOTE_UPDATED
     KICK_MESSAGE
+    USER_JOINED
 }
 
 interface SystemMessage {
@@ -1643,6 +1671,13 @@ type SystemMessageKickMessage implements SystemMessage {
     senderColor: String!
     message: String!
     createdAt: Time!
+}
+
+
+type SystemMessageUserJoined implements SystemMessage {
+    type: SystemMessageType!
+    createdAt: Time!
+    user: BaseUser
 }
 
 enum ChatMessageReactionType {
@@ -9190,6 +9225,153 @@ func (ec *executionContext) fieldContext_SystemMessageKickMessage_createdAt(_ co
 	return fc, nil
 }
 
+func (ec *executionContext) _SystemMessageUserJoined_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageUserJoined) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageUserJoined_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gqlmodel.SystemMessageType)
+	fc.Result = res
+	return ec.marshalNSystemMessageType2githubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐSystemMessageType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageUserJoined_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageUserJoined",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SystemMessageType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageUserJoined_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageUserJoined) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageUserJoined_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageUserJoined_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageUserJoined",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemMessageUserJoined_user(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.SystemMessageUserJoined) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemMessageUserJoined_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmodel.BaseUser)
+	fc.Result = res
+	return ec.marshalOBaseUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐBaseUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemMessageUserJoined_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemMessageUserJoined",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BaseUser_id(ctx, field)
+			case "name":
+				return ec.fieldContext_BaseUser_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_BaseUser_displayName(ctx, field)
+			case "color":
+				return ec.fieldContext_BaseUser_color(ctx, field)
+			case "isBanned":
+				return ec.fieldContext_BaseUser_isBanned(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BaseUser_createdAt(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_BaseUser_avatarUrl(ctx, field)
+			case "isAdmin":
+				return ec.fieldContext_BaseUser_isAdmin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BaseUser", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -11264,6 +11446,13 @@ func (ec *executionContext) _SystemMessage(ctx context.Context, sel ast.Selectio
 			return graphql.Null
 		}
 		return ec._SystemMessageKickMessage(ctx, sel, obj)
+	case gqlmodel.SystemMessageUserJoined:
+		return ec._SystemMessageUserJoined(ctx, sel, &obj)
+	case *gqlmodel.SystemMessageUserJoined:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._SystemMessageUserJoined(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -13164,6 +13353,52 @@ func (ec *executionContext) _SystemMessageKickMessage(ctx context.Context, sel a
 	return out
 }
 
+var systemMessageUserJoinedImplementors = []string{"SystemMessageUserJoined", "SystemMessage"}
+
+func (ec *executionContext) _SystemMessageUserJoined(ctx context.Context, sel ast.SelectionSet, obj *gqlmodel.SystemMessageUserJoined) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, systemMessageUserJoinedImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemMessageUserJoined")
+		case "type":
+			out.Values[i] = ec._SystemMessageUserJoined_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._SystemMessageUserJoined_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._SystemMessageUserJoined_user(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -14494,6 +14729,13 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOBaseUser2ᚖgithubᚗcomᚋsatontᚋstreamᚋappsᚋapiᚋinternalᚋgqlᚋgqlmodelᚐBaseUser(ctx context.Context, sel ast.SelectionSet, v *gqlmodel.BaseUser) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BaseUser(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

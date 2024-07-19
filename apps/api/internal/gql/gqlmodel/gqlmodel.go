@@ -327,6 +327,16 @@ func (SystemMessageKickMessage) IsSystemMessage()                {}
 func (this SystemMessageKickMessage) GetType() SystemMessageType { return this.Type }
 func (this SystemMessageKickMessage) GetCreatedAt() time.Time    { return this.CreatedAt }
 
+type SystemMessageUserJoined struct {
+	Type      SystemMessageType `json:"type"`
+	CreatedAt time.Time         `json:"createdAt"`
+	User      *BaseUser         `json:"user,omitempty"`
+}
+
+func (SystemMessageUserJoined) IsSystemMessage()                {}
+func (this SystemMessageUserJoined) GetType() SystemMessageType { return this.Type }
+func (this SystemMessageUserJoined) GetCreatedAt() time.Time    { return this.CreatedAt }
+
 type UpdateRoleInput struct {
 	Name     graphql.Omittable[*string]       `json:"name,omitempty"`
 	ImageURL graphql.Omittable[*string]       `json:"imageUrl,omitempty"`
@@ -513,6 +523,7 @@ const (
 	SystemMessageTypeEmoteRemoved SystemMessageType = "EMOTE_REMOVED"
 	SystemMessageTypeEmoteUpdated SystemMessageType = "EMOTE_UPDATED"
 	SystemMessageTypeKickMessage  SystemMessageType = "KICK_MESSAGE"
+	SystemMessageTypeUserJoined   SystemMessageType = "USER_JOINED"
 )
 
 var AllSystemMessageType = []SystemMessageType{
@@ -520,11 +531,12 @@ var AllSystemMessageType = []SystemMessageType{
 	SystemMessageTypeEmoteRemoved,
 	SystemMessageTypeEmoteUpdated,
 	SystemMessageTypeKickMessage,
+	SystemMessageTypeUserJoined,
 }
 
 func (e SystemMessageType) IsValid() bool {
 	switch e {
-	case SystemMessageTypeEmoteAdded, SystemMessageTypeEmoteRemoved, SystemMessageTypeEmoteUpdated, SystemMessageTypeKickMessage:
+	case SystemMessageTypeEmoteAdded, SystemMessageTypeEmoteRemoved, SystemMessageTypeEmoteUpdated, SystemMessageTypeKickMessage, SystemMessageTypeUserJoined:
 		return true
 	}
 	return false

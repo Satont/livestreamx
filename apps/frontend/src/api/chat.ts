@@ -108,6 +108,15 @@ export const SystemMessage_Fragment = graphql(`
         senderColor
         senderName
       }
+      ...on SystemMessageUserJoined {
+        user {
+          id
+          name
+          displayName
+          color
+          avatarUrl
+        }
+      }
     }
 `)
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MessageSquareShare } from 'lucide-vue-next'
 import { computed, FunctionalComponent } from 'vue'
 
 import { SystemMessage_Fragment } from '@/api/chat.ts'
@@ -35,6 +36,11 @@ const data = computed<{
         title: 'Kick message',
         icon: SevenTv
       }
+    case SystemMessageType.UserJoined:
+      return {
+        title: 'User joined',
+        icon: MessageSquareShare
+      }
     default:
       return {
         title: 'System message'
@@ -50,7 +56,8 @@ const data = computed<{
     :class="{
       'bg-cyan-700/90':
         unwrappedMessage.type === SystemMessageType.EmoteAdded ||
-        unwrappedMessage.type === SystemMessageType.EmoteRemoved
+        unwrappedMessage.type === SystemMessageType.EmoteRemoved,
+      'bg-green-700/90': unwrappedMessage.type === SystemMessageType.UserJoined
     }"
   >
     <div class="text-sm px-1 flex items-center gap-1">
@@ -76,6 +83,19 @@ const data = computed<{
         />
         {{ (unwrappedMessage.emote as ChatEmote_FragmentFragment).name }}
       </template>
+      <div
+        v-if="
+          'user' in unwrappedMessage &&
+          unwrappedMessage.type === SystemMessageType.UserJoined
+        "
+        class="flex gap-2 p-2 items-center"
+      >
+        <img
+          class="size-7 rounded-full"
+          :src="unwrappedMessage.user?.avatarUrl"
+        />
+        <span>{{ unwrappedMessage.user?.displayName }}</span>
+      </div>
     </div>
   </div>
 </template>

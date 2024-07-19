@@ -20,6 +20,7 @@ import (
 	"github.com/satont/stream/apps/api/internal/gql/graph"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
 	userrepo "github.com/satont/stream/apps/api/internal/repositories/user"
+	system_messages "github.com/satont/stream/apps/api/internal/system-messages"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -152,6 +153,15 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 		userChatterKey := fmt.Sprintf("%s:%s", r.buildStreamChattersRedisKey(channelID), user.ID)
 		if err := r.redis.Set(ctx, userChatterKey, userBytes, 48*time.Hour).Err(); err != nil {
 			return nil, err
+		}
+
+		gqlUser := r.mapper.DbUserToChatUser(*user)
+
+		if err := r.subscriptionRouter.Publish(
+			system_messages.BuildUserJoinedChannelKey(channelID),
+			&gqlUser,
+		); err != nil {
+			r.logger.Sugar().Errorw("Cannot publish user joined event", "err", err)
 		}
 	}
 

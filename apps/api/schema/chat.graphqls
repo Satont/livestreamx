@@ -93,6 +93,7 @@ enum SystemMessageType {
     EMOTE_REMOVED
     EMOTE_UPDATED
     KICK_MESSAGE
+    USER_JOINED
 }
 
 interface SystemMessage {
@@ -141,6 +142,13 @@ type SystemMessageKickMessage implements SystemMessage {
     senderColor: String!
     message: String!
     createdAt: Time!
+}
+
+
+type SystemMessageUserJoined implements SystemMessage {
+    type: SystemMessageType!
+    createdAt: Time!
+    user: BaseUser
 }
 
 enum ChatMessageReactionType {
