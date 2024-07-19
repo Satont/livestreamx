@@ -2,33 +2,37 @@
 import { useProfile } from '~/api/profile'
 import Profile from '~/components/Profile.vue'
 
-const { data: profile } = await useProfile().useData()
+const { data: profile, executeQuery: refetchProfile } =
+  await useProfile().useData()
+const logout = useProfile().useLogout()
+
+async function doLogout() {
+  await logout.executeMutation({})
+  await refetchProfile()
+}
 </script>
 
 <template>
-  <UiButton
-    v-if="!profile?.userProfile"
-    size="sm"
-  >
-    Login
-  </UiButton>
+  <UiDialog>
+    <UiDialogTrigger v-if="!profile?.userProfile">
+      <UiButton size="sm"> Login </UiButton>
+    </UiDialogTrigger>
 
-  <UiDropdownMenu v-else>
-    <UiDropdownMenuTrigger as-child>
-      <UiButton
-        class="text-md flex items-center gap-2"
-        size="sm"
-        variant="ghost"
-      >
-        {{ profile.userProfile.displayName }}
-        <img
-          :src="profile.userProfile.avatarUrl"
-          alt="avatar"
-          class="size-7 rounded-full"
-        />
-      </UiButton>
-    </UiDropdownMenuTrigger>
-    <UiDialog>
+    <UiDropdownMenu v-else>
+      <UiDropdownMenuTrigger as-child>
+        <UiButton
+          class="text-md flex items-center gap-2"
+          size="sm"
+          variant="ghost"
+        >
+          {{ profile.userProfile.displayName }}
+          <img
+            :src="profile.userProfile.avatarUrl"
+            alt="avatar"
+            class="size-7 rounded-full"
+          />
+        </UiButton>
+      </UiDropdownMenuTrigger>
       <UiDropdownMenuContent class="min-w-48 mr-4">
         <UiDropdownMenuItem
           as-child
@@ -52,7 +56,7 @@ const { data: profile } = await useProfile().useData()
           </NuxtLink>
         </UiDropdownMenuItem>
         <UiDropdownMenuSeparator />
-        <UiDropdownMenuItem>
+        <UiDropdownMenuItem @click="doLogout">
           <Icon
             name="lucide:log-out"
             class="size-4"
@@ -60,8 +64,8 @@ const { data: profile } = await useProfile().useData()
           Logout
         </UiDropdownMenuItem>
       </UiDropdownMenuContent>
+    </UiDropdownMenu>
 
-      <Profile />
-    </UiDialog>
-  </UiDropdownMenu>
+    <Profile />
+  </UiDialog>
 </template>

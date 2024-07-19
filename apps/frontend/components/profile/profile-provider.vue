@@ -24,6 +24,10 @@ const iconName = computed(() => {
       return 'lucide:twitch'
   }
 })
+
+async function handleProviderAction() {
+  window.location.replace(authLink.value)
+}
 </script>
 
 <template>
@@ -51,8 +55,9 @@ const iconName = computed(() => {
     <UiButton
       v-else
       size="xs"
+      @click="handleProviderAction"
     >
-      Connect
+      {{ profile?.userProfile ? 'Connect' : 'Login' }}
     </UiButton>
   </div>
 </template>
