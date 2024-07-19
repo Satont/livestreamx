@@ -106,7 +106,7 @@ export default defineNuxtConfig({
   urql: {
     endpoint:
       process.env.NODE_ENV === 'production'
-        ? 'https://streamx.satont.dev/api'
+        ? 'https://streamx.satont.dev/api/query'
         : 'http://localhost:5173/api/query',
     client: './configs/urql.ts'
   },
