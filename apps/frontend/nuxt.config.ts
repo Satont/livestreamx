@@ -19,13 +19,19 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxt/icon',
     '@bicou/nuxt-urql',
-    '@nuxt-alt/proxy'
+    '@nuxt-alt/proxy',
+    '@nuxt/image',
+    '@nuxt/fonts'
   ],
 
   tailwindcss: { exposeConfig: true, editorSupport: true },
   build: { transpile: ['vue-sonner'] },
   colorMode: { classSuffix: '' },
-  css: ['notivue/notifications.css', 'notivue/animations.css'],
+  css: [
+    '~/assets/css/global.css',
+    'notivue/notifications.css',
+    'notivue/animations.css'
+  ],
   imports: {
     imports: [
       {
@@ -101,6 +107,12 @@ export default defineNuxtConfig({
     pauseOnTabChange: true,
     position: 'top-right',
     teleportTo: 'body'
+  },
+
+  app: {
+    head: {
+      title: 'Streamx'
+    }
   },
 
   urql: {

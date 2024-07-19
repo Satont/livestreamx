@@ -6,10 +6,11 @@ const useIdFunction = () => useId()
 
 <template>
   <ConfigProvider :use-id="useIdFunction">
+    <NuxtLoadingIndicator />
     <NuxtLayout>
       <NuxtPage />
-      <UiVueSonner />
-      <UiToastToaster />
     </NuxtLayout>
+    <UiVueSonner />
+    <UiToastToaster />
   </ConfigProvider>
 </template>

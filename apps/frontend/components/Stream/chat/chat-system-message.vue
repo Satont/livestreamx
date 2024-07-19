@@ -74,7 +74,7 @@ const data = computed<{
     </div>
     <div class="p-1 bg-accent rounded-b">
       <template v-if="'emote' in unwrappedMessage">
-        <img
+        <NuxtImg
           :src="(unwrappedMessage.emote as ChatEmote_FragmentFragment).url"
           :style="{
             width: `${(unwrappedMessage.emote as ChatEmote_FragmentFragment).width}px`,
@@ -91,7 +91,7 @@ const data = computed<{
         "
         class="flex gap-2 p-2 items-center"
       >
-        <img
+        <NuxtImg
           class="size-7 rounded-full"
           :src="unwrappedMessage.user?.avatarUrl"
         />

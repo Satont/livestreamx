@@ -26,7 +26,7 @@ async function doLogout() {
           variant="ghost"
         >
           {{ profile.userProfile.displayName }}
-          <img
+          <NuxtImg
             :src="profile.userProfile.avatarUrl"
             alt="avatar"
             class="size-7 rounded-full"

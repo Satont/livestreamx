@@ -46,7 +46,7 @@ async function handleProviderAction() {
       class="flex items-center gap-2"
     >
       <span class="text-md">{{ providerData.displayName }}</span>
-      <img
+      <NuxtImg
         :src="providerData.avatarUrl"
         alt="avatar"
         class="size-7 rounded-full"

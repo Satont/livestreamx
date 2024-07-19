@@ -41,9 +41,9 @@ function computeStreamUptime(startedAt: Date) {
         :to="stream.channel.name"
       >
         <div class="w-full h-full relative">
-          <img
+          <NuxtImg
             :src="stream.thumbnailUrl"
-            class="w-full h-full"
+            class="w-auto h-44"
           />
 
           <span
@@ -68,7 +68,7 @@ function computeStreamUptime(startedAt: Date) {
         </div>
 
         <div class="p-4 flex gap-2 h-auto">
-          <img
+          <NuxtImg
             :src="stream.channel.avatarUrl"
             class="size-6 rounded-full"
           />
@@ -78,5 +78,3 @@ function computeStreamUptime(startedAt: Date) {
     </div>
   </div>
 </template>
-
-<style scoped></style>

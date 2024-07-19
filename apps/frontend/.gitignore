@@ -18,5 +18,5 @@ logs
 .fleet
 .idea
 
-# Local env files
 gql
+.data

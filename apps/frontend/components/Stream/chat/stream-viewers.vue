@@ -33,7 +33,7 @@ const { data: streamState } = useStream().useStreamState()
           :href="`https://twitch.tv/${chatter.user.name}`"
           target="_blank"
         >
-          <img
+          <NuxtImg
             :src="chatter.user.avatarUrl"
             class="size-6 rounded-full"
           />

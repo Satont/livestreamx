@@ -107,7 +107,7 @@ async function handleAddReaction(name: string) {
       >
         {{ reaction.reaction }}
       </span>
-      <img
+      <NuxtImg
         v-else-if="
           reaction.type === ChatMessageReactionType.Emote && 'emote' in reaction
         "
@@ -200,7 +200,7 @@ async function handleAddReaction(name: string) {
                   style="height: 60px; width: 79px"
                   @click="handleAddReaction(item.name)"
                 >
-                  <img
+                  <NuxtImg
                     :src="item.url"
                     class="size-8"
                   />
@@ -221,14 +221,14 @@ async function handleAddReaction(name: string) {
               class="flex justify-between bg-accent p-2 rounded items-center"
             >
               <div class="flex items-center gap-2">
-                <img
+                <NuxtImg
                   :src="reaction.user.avatarUrl"
                   class="size-8 rounded-full"
                 />
                 <span>{{ reaction.user.displayName }}</span>
               </div>
 
-              <img
+              <NuxtImg
                 v-if="
                   reaction.type === ChatMessageReactionType.Emote &&
                   'emote' in reaction

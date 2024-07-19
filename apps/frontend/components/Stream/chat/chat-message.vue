@@ -97,7 +97,7 @@ const repliedMessage = computed(() => {
           class="inline-flex align-sub"
           v-if="showAvatars"
         >
-          <img
+          <NuxtImg
             :src="unwrappedMessage.sender.avatarUrl"
             class="size-4 rounded-full mr-1"
           />
@@ -142,7 +142,7 @@ const repliedMessage = computed(() => {
           >
             <UiTooltip>
               <UiTooltipTrigger>
-                <img
+                <NuxtImg
                   :src="(segment.emote as ChatEmote_FragmentFragment).url"
                   :style="{
                     width: `${(segment.emote as ChatEmote_FragmentFragment).width}px`,
@@ -153,7 +153,7 @@ const repliedMessage = computed(() => {
               </UiTooltipTrigger>
               <UiTooltipContent>
                 <div class="flex flex-col">
-                  <img
+                  <NuxtImg
                     :src="
                       (segment.emote as ChatEmote_FragmentFragment).url.replace(
                         '1x.webp',
