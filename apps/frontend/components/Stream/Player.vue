@@ -52,7 +52,7 @@ function onProviderChange(event: MediaProviderChangeEvent) {
     autoPlay
     logLevel="debug"
     :controls="false"
-    :live-edge-tolerance="1"
+    :live-edge-tolerance="4"
     streamType="live"
     viewType="video"
     :loop="false"
