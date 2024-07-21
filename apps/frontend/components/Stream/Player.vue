@@ -13,13 +13,13 @@ const { data: streamData } = useStream().useStreamState()
 
 const streamingServiceAddr = import.meta.env.DEV
   ? 'http://127.0.0.1:8888'
-  : 'http://147.45.141.180:8888'
+  : `${window.location.origin}/mtx`
 
 const src = computed(() => {
   if (!channelData.value || !streamData.value?.streamInfo?.startedAt) {
     return null
   }
-  return `${streamingServiceAddr}/${channelData.value!.fetchUserByName.name}/index.m3u8`
+  return `${streamingServiceAddr}/${channelData.value.fetchUserByName.name}/index.m3u8`
 })
 
 function onProviderChange(event: MediaProviderChangeEvent) {
