@@ -9,6 +9,7 @@ export const useChatMessageSend = createGlobalState(() => {
   const replyTo = ref<string | null>(null)
   const textElement = ref<HTMLTextAreaElement | null>(null)
   const isSending = ref(false)
+  const mentionNickname = ref<null | string>(null)
 
   const { useSendMessage, channelData } = useChat()
   const messageSender = useSendMessage()
@@ -57,11 +58,17 @@ export const useChatMessageSend = createGlobalState(() => {
     }, 100)
   }
 
+  function setMentionNickName(nick: string | null) {
+    mentionNickname.value = nick
+  }
+
   return {
     text,
     replyTo,
     textElement,
     sendMessage,
-    isSending
+    isSending,
+    mentionNickname,
+    setMentionNickName
   }
 })

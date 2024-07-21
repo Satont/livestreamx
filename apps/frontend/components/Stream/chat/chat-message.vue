@@ -28,7 +28,7 @@ const unwrappedMessages = computed(() =>
   useFragment(ChatMessage_Fragment, messages.value)
 )
 
-const { replyTo, textElement } = useChatMessageSend()
+const { replyTo, textElement, setMentionNickName } = useChatMessageSend()
 
 const colorMode = useColorMode()
 
@@ -103,8 +103,9 @@ const repliedMessage = computed(() => {
           />
         </span>
         <span
-          class="font-bold"
+          class="font-bold cursor-pointer"
           :style="{ color: correctColor(unwrappedMessage.sender.color) }"
+          @click="setMentionNickName(unwrappedMessage.sender.displayName)"
         >
           {{ unwrappedMessage.sender.displayName }}
         </span>
@@ -142,8 +143,10 @@ const repliedMessage = computed(() => {
           >
             <UiTooltip>
               <UiTooltipTrigger>
-                <img
-                  :src="(segment.emote as ChatEmote_FragmentFragment).url"
+                <NuxtImg
+                  :src="
+                    'https:' + (segment.emote as ChatEmote_FragmentFragment).url
+                  "
                   :style="{
                     width: `${(segment.emote as ChatEmote_FragmentFragment).width}px`,
                     height: `${(segment.emote as ChatEmote_FragmentFragment).height}px`
@@ -155,6 +158,7 @@ const repliedMessage = computed(() => {
                 <div class="flex flex-col">
                   <NuxtImg
                     :src="
+                      'https:' +
                       (segment.emote as ChatEmote_FragmentFragment).url.replace(
                         '1x.webp',
                         '4x.webp'
