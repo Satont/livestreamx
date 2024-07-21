@@ -25,8 +25,8 @@ func (r *Resolver) resetStreamsViewersAndChatters(ctx context.Context) error {
 	return nil
 }
 
-func (r *Resolver) computeStreamThumbnailUrl(channelID uuid.UUID) string {
-	return fmt.Sprintf("%s/%s", r.config.ThumbnailsURI, channelID.String())
+func (r *Resolver) computeStreamThumbnailUrl(channelName string) string {
+	return fmt.Sprintf("%s/%s", r.config.ThumbnailsURI, channelName)
 }
 
 func (r *Resolver) buildStreamViewersRedisKey(channelID uuid.UUID) string {

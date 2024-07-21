@@ -34,10 +34,10 @@ type PathInfo struct {
 	Readers       []interface{} `json:"readers"`
 }
 
-func (c *MtxApi) GetPathInfoByApyKey(ctx context.Context, apiKey string) (*PathInfo, error) {
+func (c *MtxApi) GetPathInfo(ctx context.Context, path string) (*PathInfo, error) {
 	data := &PathInfo{}
 
-	addr := fmt.Sprintf("%s%s/%s", c.config.MediaMtxAddr, ":9997/v3/paths/get", apiKey)
+	addr := fmt.Sprintf("%s%s/%s", c.config.MediaMtxAddr, ":9997/v3/paths/get", path)
 
 	_, err := req.SetSuccessResult(&data).SetContext(ctx).Get(addr)
 	if err != nil {

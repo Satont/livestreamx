@@ -44,12 +44,7 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 		path := path
 		errwg.Go(
 			func() error {
-				parsedStreamKey, err := uuid.Parse(path.Name)
-				if err != nil {
-					return err
-				}
-
-				dbChannel, err := r.userRepo.FindByStreamKey(ctx, parsedStreamKey)
+				dbChannel, err := r.userRepo.FindByName(ctx, path.Name)
 				if err != nil {
 					return err
 				}
@@ -63,7 +58,7 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 						Chatters:     []gqlmodel.Chatter{},
 						StartedAt:    path.ReadyTime,
 						ChannelID:    dbChannel.ID,
-						ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.ID),
+						ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.Name),
 					},
 				)
 
@@ -202,7 +197,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 			case <-ctx.Done():
 				return
 			default:
-				mtxInfo, err := r.mtxApi.GetPathInfoByApyKey(ctx, dbChannel.StreamKey.String())
+				mtxInfo, err := r.mtxApi.GetPathInfo(ctx, dbChannel.Name)
 				if err != nil {
 					r.logger.Sugar().Error(err)
 					time.Sleep(1 * time.Second)
@@ -212,7 +207,7 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 				streamInfo := &gqlmodel.Stream{
 					StartedAt:    mtxInfo.ReadyTime,
 					ChannelID:    dbChannel.ID,
-					ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.ID),
+					ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.Name),
 				}
 
 				channel <- streamInfo

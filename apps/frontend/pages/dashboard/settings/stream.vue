@@ -5,7 +5,9 @@ import { useProfile } from '@/api/profile.js'
 
 const { useData, useUpdateMutation } = useProfile()
 const { data: profile } = await useData()
-const streamAddress = import.meta.client ? `rtsp://${window.location.host}` : ''
+const streamAddress = import.meta.client
+  ? `rtsp://${window.location.hostname}`
+  : ''
 const updater = useUpdateMutation()
 
 const form = ref<{
@@ -46,6 +48,14 @@ async function saveChanges() {
     })
   }
 }
+
+const streamKey = computed(() => {
+  const data = profile.value?.userProfile
+  if (!data) {
+    return ''
+  }
+  return `${data.name}?key=${data.streamKey}`
+})
 </script>
 
 <template>
@@ -82,7 +92,7 @@ async function saveChanges() {
       <div class="w-full relative">
         <UiInput
           id="streamKey"
-          v-model="profile.userProfile.streamKey"
+          v-model="streamKey"
           :type="showStreamKey ? 'text' : 'password'"
           class="pr-8"
           @input.prevent
@@ -92,7 +102,7 @@ async function saveChanges() {
           <UiButton
             size="xs"
             variant="ghost"
-            @click="copyText(profile?.userProfile.streamKey)"
+            @click="copyText(streamKey)"
           >
             <Icon
               name="lucide:copy"
