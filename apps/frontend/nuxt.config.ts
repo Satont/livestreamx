@@ -1,5 +1,4 @@
 import path from 'node:path'
-import { webUpdateNotice } from '@plugin-web-update-notification/vite'
 import { vite as vidstack } from 'vidstack/plugins'
 import { watch } from 'vite-plugin-watch'
 
@@ -63,8 +62,7 @@ export default defineNuxtConfig({
         pattern: 'api/**/*.ts',
         command: 'graphql-codegen'
       }),
-      vidstack(),
-      webUpdateNotice()
+      vidstack()
 
     ],
     resolve: {
