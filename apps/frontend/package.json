@@ -47,6 +47,7 @@
     "@vueuse/core": "10.11.0",
     "@vueuse/nuxt": "10.11.0",
     "notivue": "2.4.4",
+    "nuxt-typed-router": "3.6.5",
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "0.6.5",
     "tailwindcss-animate": "1.0.7",

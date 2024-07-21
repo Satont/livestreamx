@@ -21,7 +21,8 @@ export default defineNuxtConfig({
     '@bicou/nuxt-urql',
     '@nuxt-alt/proxy',
     '@nuxt/image',
-    '@nuxt/fonts'
+    '@nuxt/fonts',
+    "nuxt-typed-router"
   ],
 
   tailwindcss: { exposeConfig: true, editorSupport: true },
