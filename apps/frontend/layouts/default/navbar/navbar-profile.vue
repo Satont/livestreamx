@@ -65,7 +65,6 @@ async function doLogout() {
         </UiDropdownMenuItem>
       </UiDropdownMenuContent>
     </UiDropdownMenu>
-
     <Profile />
   </UiDialog>
 </template>

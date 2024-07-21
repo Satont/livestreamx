@@ -13,6 +13,10 @@ const setTheme = (val: string) => {
 const currentIcon = computed(() => {
   return modes.find((m) => m.value === colorMode?.preference)?.icon
 })
+
+defineOptions({
+  inheritAttrs: false
+})
 </script>
 
 <template>
@@ -20,6 +24,7 @@ const currentIcon = computed(() => {
     <UiDropdownMenuTrigger as-child>
       <UiButton
         class="h-9 w-9"
+        v-bind="$attrs"
         variant="ghost"
         size="icon"
         title="Theme switcher"

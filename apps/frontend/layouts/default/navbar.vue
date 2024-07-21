@@ -26,8 +26,9 @@ import NavbarThemeSwitcher from '~/layouts/default/navbar/navbar-theme-switcher.
       </nav>
     </div>
 
-    <div class="flex items-center gap-2">
-      <NavbarThemeSwitcher />
+    <!-- there is not gap because there is weird bug when DialogOrSheet provided additional div to this flex, and it resulting content shift -->
+    <div class="flex items-center">
+      <NavbarThemeSwitcher class="mr-2" />
       <NavbarProfile />
     </div>
   </div>

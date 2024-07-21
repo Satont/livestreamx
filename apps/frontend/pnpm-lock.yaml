@@ -42,8 +42,8 @@ importers:
         specifier: ^3.12.4
         version: 3.12.4(@parcel/watcher@2.4.1)(@types/node@20.14.11)(ioredis@5.4.1)(magicast@0.3.4)(rollup@4.18.1)(terser@5.31.3)(typescript@5.5.3)(vite@5.3.4(@types/node@20.14.11)(terser@5.31.3))
       radix-vue:
-        specifier: 1.9.1
-        version: 1.9.1(vue@3.4.33(typescript@5.5.3))
+        specifier: 1.9.2
+        version: 1.9.2(vue@3.4.33(typescript@5.5.3))
       tailwind-variants:
         specifier: 0.2.1
         version: 0.2.1(tailwindcss@3.4.6)
@@ -68,7 +68,7 @@ importers:
         version: 1.8.2(defu@6.1.4)(graphql@16.9.0)(magicast@0.3.4)(rollup@4.18.1)(vue@3.4.33(typescript@5.5.3))
       '@crashmax/prettier-config':
         specifier: 5.0.2
-        version: 5.0.2(@ianvs/prettier-plugin-sort-imports@4.3.1(@vue/compiler-sfc@3.4.33)(prettier@3.3.3))(prettier-plugin-multiline-arrays@3.0.3(prettier@3.3.3))(prettier@3.3.3)
+        version: 5.0.2(@ianvs/prettier-plugin-sort-imports@4.3.1(@vue/compiler-sfc@3.4.33)(prettier@3.3.3))(prettier-plugin-multiline-arrays@3.0.6(prettier@3.3.3))(prettier@3.3.3)
       '@graphql-codegen/cli':
         specifier: 5.0.2
         version: 5.0.2(@parcel/watcher@2.4.1)(@types/node@20.14.11)(graphql@16.9.0)(typescript@5.5.3)
@@ -85,14 +85,17 @@ importers:
         specifier: 1.1.200
         version: 1.1.200
       '@nuxt/icon':
-        specifier: 1.2.0
-        version: 1.2.0(magicast@0.3.4)(rollup@4.18.1)(vite@5.3.4(@types/node@20.14.11)(terser@5.31.3))(vue@3.4.33(typescript@5.5.3))
+        specifier: 1.2.1
+        version: 1.2.1(magicast@0.3.4)(rollup@4.18.1)(vite@5.3.4(@types/node@20.14.11)(terser@5.31.3))(vue@3.4.33(typescript@5.5.3))
       '@nuxtjs/color-mode':
         specifier: 3.4.2
         version: 3.4.2(magicast@0.3.4)(rollup@4.18.1)
       '@nuxtjs/tailwindcss':
         specifier: 6.12.1
         version: 6.12.1(magicast@0.3.4)(rollup@4.18.1)
+      '@plugin-web-update-notification/vite':
+        specifier: 1.7.1
+        version: 1.7.1(vite@5.3.4(@types/node@20.14.11)(terser@5.31.3))
       '@tailwindcss/forms':
         specifier: 0.5.7
         version: 0.5.7(tailwindcss@3.4.6)
@@ -155,8 +158,14 @@ packages:
     resolution: {integrity: sha512-xhlTqH0m31mnsG0tIP4ETgfSB6gXDaYYsUWTrlUV93fFQPI9dd8hE0Ot6MHLCtqgB32hwJAC3YZMWlXZw7AleA==}
     engines: {node: '>=14'}
 
-  '@augment-vir/common@22.4.0':
-    resolution: {integrity: sha512-7E0Qng7YN0nhqxtqzePTB6Mms5fR05OTexjlKOgjbNi+SWDCRt2zFGWfMhirEoDONa3BRpgXsQjqz/sEzIwHMg==}
+  '@augment-vir/common@23.4.0':
+    resolution: {integrity: sha512-QIrJ1doD00TNbOzeVrk9KgPTzRlIjayxERnhtbQjK/AFPj5yElcB03GbnGdQZPzws/R+5gfMM5cZiH7QyBP+Kg==}
+
+  '@augment-vir/common@28.2.4':
+    resolution: {integrity: sha512-5Ib0OX7YlxAuFrG+MAoTsz6RlKMcbdMdoNGcEEKH/ezc/ZKMy/IHZ9Z/ZcCHYopZ4ocGXzVY4KUOiJ8+CXXvTA==}
+
+  '@augment-vir/common@29.3.0':
+    resolution: {integrity: sha512-k3OX35/576thmGUzQUBcCKGarb7ONBfiu07+iV2vxmjl7VoB1rOB0vu8WqgB1ceJq2EMLDPXY18hHpJ9WeTHXQ==}
 
   '@babel/code-frame@7.24.7':
     resolution: {integrity: sha512-BcYH1CVJBO9tvyIZ2jVeXgSIMvGZ2FDRvDdOIVQyuklNKSsx+eppDEBq/g47Ayw+RqNFE+URvOShmf+f/qwAlA==}
@@ -1301,8 +1310,8 @@ packages:
   '@nuxt/fonts@0.7.1':
     resolution: {integrity: sha512-uB1vHiWhm96VI0+6QsmWzEDbZlhWGkaUqydZph5huRTW3Y7I9+VIPvsLa9PS0bgbK2hmADrvrMEK9b2zUUIGvQ==}
 
-  '@nuxt/icon@1.2.0':
-    resolution: {integrity: sha512-7qB2pYxn8YQsBuMvzpcfEOwnIkZGTSKpLZg0hUQnhq6v3lLyFEsbs/pLpL+oHKM1+bYx/trNV9xbo4bvCsYmow==}
+  '@nuxt/icon@1.2.1':
+    resolution: {integrity: sha512-pI9/x/MMzU8cuRxQoOe+4qbnXpGgLOhiKMQj7mMiSyVY2RmrmmfK0uy/rruO17Wqoe5IT+qaLxpyTgHts2Rf7Q==}
 
   '@nuxt/image@1.7.0':
     resolution: {integrity: sha512-zSj32bLgbV9AvLkLX0pF52J5KBfSyj0eSIdpXCtTJATSZlqgcJigoCvmabC1nbcMIp0SZ29Bu9+acQpGTQKz+g==}
@@ -1428,6 +1437,14 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@plugin-web-update-notification/core@1.7.1':
+    resolution: {integrity: sha512-G5xbuFE4B3TGxM9FxYwUlbGleuWNUzdbw3ZNcht1WDn85Qbhgzk7lQwuXVilxZII6LhsghJ4Zdapw0jgzuCJQw==}
+
+  '@plugin-web-update-notification/vite@1.7.1':
+    resolution: {integrity: sha512-qIP2JBt19gZGWjagZOGc0qatoLGa2h4GnrHjF1ETzVgHUuJMgBeZpqMjzO81MwbmOUQdWbvwlF3ZZhXopeXB/w==}
+    peerDependencies:
+      vite: ^5.0.0 || >4.0.0 || ^3.0.0
 
   '@polka/url@1.0.0-next.25':
     resolution: {integrity: sha512-j7P6Rgr3mmtdkeDGTe0E/aYyWEWVtc5yFXtHCRHs28/jptDEWfaVOc5T7cblqy1XKPPfCxJc/8DwQ5YgLOZOVQ==}
@@ -2030,6 +2047,9 @@ packages:
 
   browser-or-node@2.1.1:
     resolution: {integrity: sha512-8CVjaLJGuSKMVTxJ2DpBl5XnlNDiT4cQFeuCJJrvJmts9YrTZDizTX7PjC2s6W4x+MBGZeEY6dGMrF04/6Hgqg==}
+
+  browser-or-node@3.0.0:
+    resolution: {integrity: sha512-iczIdVJzGEYhP5DqQxYM9Hh7Ztpqqi+CXZpSmX8ALFs9ecXkQIeqRyM6TfxEfMVpwhl3dSuDvxdzzo9sUOIVBQ==}
 
   browserslist@4.23.2:
     resolution: {integrity: sha512-qkqSyistMYdxAcw+CzbZwlBy8AGmS/eEWs+sEV5TnLRGDOL+C5M2EnH6tlZyg0YoAxGJAFKh61En9BR941GnHA==}
@@ -4236,10 +4256,10 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  prettier-plugin-multiline-arrays@3.0.3:
-    resolution: {integrity: sha512-5/ccfqC9ibADfkv91Roe5EZJBbtlLXuG7bldlWJcuGDfYln44fybHb636/71HfcKUREP2fml+7S4wLrm4Pr1ow==}
+  prettier-plugin-multiline-arrays@3.0.6:
+    resolution: {integrity: sha512-FrWVa7MoDQo9b5XoLPrqIDClb0k+O8wOIsIr1DutRXhcerLY8PfIe/yYeTVD/vpRISkSXCBEYmj5Voe0wb5dEQ==}
     peerDependencies:
-      prettier: ^3.0.0
+      prettier: '>=3.0.0'
 
   prettier-plugin-tailwindcss@0.6.5:
     resolution: {integrity: sha512-axfeOArc/RiGHjOIy9HytehlC0ZLeMaqY09mm8YCkMzznKiDkwFzOpBvtuhuv3xG5qB73+Mj7OCe2j/L1ryfuQ==}
@@ -4329,8 +4349,8 @@ packages:
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
-  proxy-vir@0.0.2:
-    resolution: {integrity: sha512-4yP9ol7cFb1lUwYyj0B1+M+EpQz7tAu7PTgHCqOQenn0abXOJ3epfS3d2e+9zTgpBfYFzutL5tD2hyFz/smXyw==}
+  proxy-vir@1.0.0:
+    resolution: {integrity: sha512-WV1gkBxUOwLSz0Bn09tisIqLK7leAqtFm/474t3L0hQKJw7/gdrkGcWw0/OT1PhSy+TDS6swfq7Niuoq3XJhkQ==}
 
   pump@3.0.0:
     resolution: {integrity: sha512-LwZy+p3SFs1Pytd/jYct4wpv49HiYCqd9Rlc5ZVdk0V+8Yzv6jR5Blk3TRmPL1ft69TxP0IMZGJ+WPFU2BFhww==}
@@ -4351,8 +4371,8 @@ packages:
   queue-tick@1.0.1:
     resolution: {integrity: sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==}
 
-  radix-vue@1.9.1:
-    resolution: {integrity: sha512-fObA+9l2ixNWBXRMj5mBZfmVv2znqIUph+0uo7QA/s7pDYSST2vGvxCbrg/xQGxWRwaQ8ejgo1wg2MzhHcbjLw==}
+  radix-vue@1.9.2:
+    resolution: {integrity: sha512-XXwEMmXJmzcy9SebywbQdrZg8UE1jueqPMpxKK6NoquRC0CP4dvlBcuzp4lDWNSsqOgmkXa6CNbwEzdCX96umg==}
     peerDependencies:
       vue: '>= 3.2.0'
 
@@ -4500,8 +4520,8 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
-  run-time-assertions@0.3.0:
-    resolution: {integrity: sha512-XDSPemT0ppqLnlar4Nea7SoZdfImygVh5HtIwHdq3mefWtTZAXwKdtckAoVsgQQhrdxf2T8c4b8DktBvEWOqng==}
+  run-time-assertions@1.5.2:
+    resolution: {integrity: sha512-ccfwvjGuNU14cSSXLlmPRiqEgMfA7w3J2TViO79zMnzXGvE6FJ0dxnhIQGwe5r/vwySOJ4sqZksexo9wyAlA8g==}
 
   rxjs@7.8.1:
     resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
@@ -5462,10 +5482,22 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@augment-vir/common@22.4.0':
+  '@augment-vir/common@23.4.0':
     dependencies:
       browser-or-node: 2.1.1
-      run-time-assertions: 0.3.0
+      run-time-assertions: 1.5.2
+      type-fest: 4.22.1
+
+  '@augment-vir/common@28.2.4':
+    dependencies:
+      browser-or-node: 3.0.0
+      run-time-assertions: 1.5.2
+      type-fest: 4.22.1
+
+  '@augment-vir/common@29.3.0':
+    dependencies:
+      browser-or-node: 3.0.0
+      run-time-assertions: 1.5.2
       type-fest: 4.22.1
 
   '@babel/code-frame@7.24.7':
@@ -5901,11 +5933,11 @@ snapshots:
 
   '@colors/colors@1.6.0': {}
 
-  '@crashmax/prettier-config@5.0.2(@ianvs/prettier-plugin-sort-imports@4.3.1(@vue/compiler-sfc@3.4.33)(prettier@3.3.3))(prettier-plugin-multiline-arrays@3.0.3(prettier@3.3.3))(prettier@3.3.3)':
+  '@crashmax/prettier-config@5.0.2(@ianvs/prettier-plugin-sort-imports@4.3.1(@vue/compiler-sfc@3.4.33)(prettier@3.3.3))(prettier-plugin-multiline-arrays@3.0.6(prettier@3.3.3))(prettier@3.3.3)':
     dependencies:
       '@ianvs/prettier-plugin-sort-imports': 4.3.1(@vue/compiler-sfc@3.4.33)(prettier@3.3.3)
       prettier: 3.3.3
-      prettier-plugin-multiline-arrays: 3.0.3(prettier@3.3.3)
+      prettier-plugin-multiline-arrays: 3.0.6(prettier@3.3.3)
 
   '@csstools/selector-resolve-nested@1.1.0(postcss-selector-parser@6.1.1)':
     dependencies:
@@ -6850,7 +6882,7 @@ snapshots:
       - uWebSockets.js
       - vite
 
-  '@nuxt/icon@1.2.0(magicast@0.3.4)(rollup@4.18.1)(vite@5.3.4(@types/node@20.14.11)(terser@5.31.3))(vue@3.4.33(typescript@5.5.3))':
+  '@nuxt/icon@1.2.1(magicast@0.3.4)(rollup@4.18.1)(vite@5.3.4(@types/node@20.14.11)(terser@5.31.3))(vue@3.4.33(typescript@5.5.3))':
     dependencies:
       '@iconify/collections': 1.0.441
       '@iconify/types': 2.0.0
@@ -7142,6 +7174,13 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@plugin-web-update-notification/core@1.7.1': {}
+
+  '@plugin-web-update-notification/vite@1.7.1(vite@5.3.4(@types/node@20.14.11)(terser@5.31.3))':
+    dependencies:
+      '@plugin-web-update-notification/core': 1.7.1
+      vite: 5.3.4(@types/node@20.14.11)(terser@5.31.3)
 
   '@polka/url@1.0.0-next.25': {}
 
@@ -7865,6 +7904,8 @@ snapshots:
       base64-js: 1.5.1
 
   browser-or-node@2.1.1: {}
+
+  browser-or-node@3.0.0: {}
 
   browserslist@4.23.2:
     dependencies:
@@ -10360,11 +10401,11 @@ snapshots:
       tunnel-agent: 0.6.0
     optional: true
 
-  prettier-plugin-multiline-arrays@3.0.3(prettier@3.3.3):
+  prettier-plugin-multiline-arrays@3.0.6(prettier@3.3.3):
     dependencies:
-      '@augment-vir/common': 22.4.0
+      '@augment-vir/common': 28.2.4
       prettier: 3.3.3
-      proxy-vir: 0.0.2
+      proxy-vir: 1.0.0
 
   prettier-plugin-tailwindcss@0.6.5(@ianvs/prettier-plugin-sort-imports@4.3.1(@vue/compiler-sfc@3.4.33)(prettier@3.3.3))(prettier@3.3.3):
     dependencies:
@@ -10399,9 +10440,9 @@ snapshots:
 
   proxy-from-env@1.1.0: {}
 
-  proxy-vir@0.0.2:
+  proxy-vir@1.0.0:
     dependencies:
-      '@augment-vir/common': 22.4.0
+      '@augment-vir/common': 23.4.0
 
   pump@3.0.0:
     dependencies:
@@ -10421,7 +10462,7 @@ snapshots:
 
   queue-tick@1.0.1: {}
 
-  radix-vue@1.9.1(vue@3.4.33(typescript@5.5.3)):
+  radix-vue@1.9.2(vue@3.4.33(typescript@5.5.3)):
     dependencies:
       '@floating-ui/dom': 1.6.7
       '@floating-ui/vue': 1.1.1(vue@3.4.33(typescript@5.5.3))
@@ -10605,9 +10646,9 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  run-time-assertions@0.3.0:
+  run-time-assertions@1.5.2:
     dependencies:
-      '@augment-vir/common': 22.4.0
+      '@augment-vir/common': 29.3.0
       expect-type: 0.15.0
       type-fest: 4.22.1
 
