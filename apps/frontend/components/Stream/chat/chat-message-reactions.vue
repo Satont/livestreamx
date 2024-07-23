@@ -70,6 +70,7 @@ const { openDialog } = useReactions()
       variant="secondary"
       @click="addReaction(reaction.reaction, unwrappedMessage.id)"
       :disabled="
+        !profile?.userProfile ||
         reactions.some(
           (r) =>
             r.user.id === profile?.userProfile.id &&

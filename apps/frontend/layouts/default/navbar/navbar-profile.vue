@@ -8,7 +8,7 @@ const logout = useProfile().useLogout()
 
 async function doLogout() {
   await logout.executeMutation({})
-  await refetchProfile()
+  await refetchProfile({ requestPolicy: 'network-only' })
 }
 </script>
 
