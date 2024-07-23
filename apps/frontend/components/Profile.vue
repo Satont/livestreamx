@@ -14,9 +14,11 @@ const { data: profile, executeQuery: refetchProfile } = useData()
 const form = ref<{
   name: string
   displayName: string
+  avatarUrl: string
 }>({
   name: '',
-  displayName: ''
+  displayName: '',
+  avatarUrl: ''
 })
 const formError = ref('')
 
@@ -26,6 +28,7 @@ watch(
     if (!v) return
     form.value.name = v.userProfile.name
     form.value.displayName = v.userProfile.displayName
+    form.value.avatarUrl = v.userProfile.avatarUrl
   },
   { immediate: true }
 )
@@ -39,7 +42,8 @@ async function saveChanges() {
   const { error: mutationError } = await updater.executeMutation({
     input: {
       name: form.value.name,
-      displayName: form.value.displayName
+      displayName: form.value.displayName,
+      avatarUrl: form.value.avatarUrl
     }
   })
 
@@ -52,6 +56,7 @@ async function saveChanges() {
       description: 'Your profile has been updated',
       variant: 'success'
     })
+    await refetchProfile({ requestPolicy: 'network-only' })
   }
 }
 
@@ -94,6 +99,21 @@ const deleteConfirmationOpened = ref(false)
             v-model="form.displayName"
             class="col-span-3"
             :maxlength="25"
+          />
+        </div>
+
+        <div class="grid grid-cols-4 items-center gap-4">
+          <UiLabel
+            for="avatarUrl"
+            class="text-right"
+          >
+            Avatar
+          </UiLabel>
+          <UiInput
+            id="avatarUrl"
+            v-model="form.avatarUrl"
+            class="col-span-3"
+            :maxlength="300"
           />
         </div>
 

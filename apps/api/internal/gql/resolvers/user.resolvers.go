@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"github.com/imroc/req/v3"
 	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
@@ -18,7 +19,10 @@ import (
 )
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
-func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.AuthedUser, error) {
+func (r *mutationResolver) UpdateUserProfile(
+	ctx context.Context,
+	input gqlmodel.UpdateUserProfileInput,
+) (*gqlmodel.AuthedUser, error) {
 	currentUser := middlewares.GetUserFromContext(ctx)
 	if currentUser == nil {
 		return nil, fmt.Errorf("user not found")
@@ -29,6 +33,19 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel
 	}
 	if input.Color.IsSet() {
 		opts.Color = input.Color.Value()
+	}
+
+	if input.AvatarURL.IsSet() {
+		resp, err := req.Get(*input.AvatarURL.Value())
+		if err != nil {
+			return nil, fmt.Errorf("cannot fetch avatar url: %w", err)
+		}
+
+		if !strings.HasPrefix(resp.GetContentType(), "image") {
+			return nil, fmt.Errorf("provided avatar is not an image")
+		}
+
+		opts.AvatarUrl = input.AvatarURL.Value()
 	}
 
 	if input.Name.IsSet() && input.DisplayName.IsSet() {

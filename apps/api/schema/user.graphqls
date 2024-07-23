@@ -64,4 +64,5 @@ input UpdateUserProfileInput {
     name: String
     displayName: String
     sevenTvEmoteSetId: String
+    avatarUrl: String
 }

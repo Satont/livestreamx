@@ -22,7 +22,6 @@ export const useReactions = createGlobalState(() => {
   async function addReaction(name: string, messageId?: string) {
     if (!channelData.value) return
     const msgId = messageId ?? currentMessage.value?.id
-    console.log(messageId, msgId)
     if (!msgId) return
 
     try {

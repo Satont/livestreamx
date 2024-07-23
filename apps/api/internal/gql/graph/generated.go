@@ -1855,6 +1855,7 @@ input UpdateUserProfileInput {
     name: String
     displayName: String
     sevenTvEmoteSetId: String
+    avatarUrl: String
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -11309,7 +11310,7 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"color", "name", "displayName", "sevenTvEmoteSetId"}
+	fieldsInOrder := [...]string{"color", "name", "displayName", "sevenTvEmoteSetId", "avatarUrl"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11344,6 +11345,13 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 				return it, err
 			}
 			it.SevenTvEmoteSetID = graphql.OmittableOf(data)
+		case "avatarUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avatarUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AvatarURL = graphql.OmittableOf(data)
 		}
 	}
 

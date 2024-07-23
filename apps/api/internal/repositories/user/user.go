@@ -58,6 +58,7 @@ type UpdateOpts struct {
 	Color             *string
 	IsBanned          *bool
 	SevenTvEmoteSetID *string
+	AvatarUrl         *string
 }
 
 type AddProviderToUserOpts struct {

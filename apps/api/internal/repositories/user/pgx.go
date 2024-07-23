@@ -629,6 +629,10 @@ func (c *Pgx) Update(ctx context.Context, userID uuid.UUID, opts UpdateOpts) (*U
 		updateMap["seven_tv_emote_set_id"] = opts.SevenTvEmoteSetID
 	}
 
+	if opts.AvatarUrl != nil {
+		updateMap["avatar_url"] = opts.AvatarUrl
+	}
+
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Update("users").
 		SetMap(updateMap).

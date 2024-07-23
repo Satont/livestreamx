@@ -348,6 +348,7 @@ type UpdateUserProfileInput struct {
 	Name              graphql.Omittable[*string] `json:"name,omitempty"`
 	DisplayName       graphql.Omittable[*string] `json:"displayName,omitempty"`
 	SevenTvEmoteSetID graphql.Omittable[*string] `json:"sevenTvEmoteSetId,omitempty"`
+	AvatarURL         graphql.Omittable[*string] `json:"avatarUrl,omitempty"`
 }
 
 type AuthedUserProviderType string
