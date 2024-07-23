@@ -19,12 +19,14 @@ export const useReactions = createGlobalState(() => {
     dialogOpened.value = true
   }
 
-  async function addReaction(name: string) {
-    if (!channelData.value) return
+  async function addReaction(name: string, messageId?: string) {
+    if (!channelData.value || !currentMessage.value) return
+    const msgId = messageId ?? currentMessage.value!.id
+    if (!msgId) return
 
     try {
       const { error } = await reactionAddMutation.executeMutation({
-        messageId: currentMessage.value!.id,
+        messageId: msgId,
         content: name,
         channelID: channelData.value!.fetchUserByName.id
       })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import type { FragmentType } from '@/gql'
 
 import { ChatMessage_Fragment, ChatReaction_Fragment } from '@/api/chat.js'
@@ -68,7 +68,7 @@ const { openDialog } = useReactions()
         'p-0': reaction.type === ChatMessageReactionType.Emote
       }"
       variant="secondary"
-      @click="addReaction(reaction.reaction)"
+      @click="addReaction(reaction.reaction, unwrappedMessage.id)"
       :disabled="
         reactions.some(
           (r) =>
