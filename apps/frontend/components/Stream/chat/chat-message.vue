@@ -5,7 +5,6 @@ import type { ChatEmote_FragmentFragment } from '@/gql/graphql.ts'
 
 import { ChatMessage_Fragment, useChat } from '@/api/chat.js'
 import { useProfile } from '@/api/profile.js'
-import { chatFontSize } from '@/composables/chat-font-size.js'
 import { showAvatars } from '@/composables/show-avatars.js'
 import { showTimestamps } from '@/composables/show-timestamps.js'
 import { useFragment } from '@/gql'
@@ -60,7 +59,6 @@ const repliedMessage = computed(() => {
 
 <template>
   <div
-    :style="{ fontSize: `${chatFontSize}px` }"
     class="relative group p-0.5 flex flex-col"
     :class="{
       'hover:rounded hover:bg-[#242424] hover:text-white': !isReply
@@ -99,7 +97,7 @@ const repliedMessage = computed(() => {
         >
           <NuxtImg
             :src="unwrappedMessage.sender.avatarUrl"
-            class="size-4 rounded-full mr-1"
+            class="size-[1em] rounded-full mr-1"
           />
         </span>
         <span

@@ -118,7 +118,7 @@ export const SystemMessage_Fragment = graphql(`
 `);
 
 export const useChat = createGlobalState(() => {
-  const routerParams = useRoute();
+  const routerParams = useRoute('channelName');
   const channelName = computed(() => {
     if (typeof routerParams.params.channelName != "string") return null;
 

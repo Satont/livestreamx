@@ -12,6 +12,7 @@ import { useFragment } from '@/gql'
 import ChatMessageForm from '~/components/Stream/chat/chat-message-form.vue'
 import ChatMessage from '~/components/Stream/chat/chat-message.vue'
 import ChatSystemMessage from '~/components/Stream/chat/chat-system-message.vue'
+import ReactionsModal from '~/components/Stream/chat/reactions-modal.vue'
 import StreamUptime from '~/components/Stream/chat/stream-uptime.vue'
 import StreamViewers from '~/components/Stream/chat/stream-viewers.vue'
 import { useChatMessageSend } from '~/composables/use-chat-message-send.js'
@@ -86,6 +87,7 @@ const replyingTo = computed(() => {
       <div
         ref="messagesEl"
         class="h-full relative flex flex-col overflow-y-auto px-2 dark:bg-[#111111]"
+        :style="{ fontSize: `${chatFontSize}px` }"
       >
         <template v-for="message in allMessages">
           <ChatMessage
@@ -124,6 +126,6 @@ const replyingTo = computed(() => {
     </UiTooltipProvider>
     <ChatMessageForm />
   </div>
-</template>
 
-<style scoped></style>
+  <ReactionsModal />
+</template>

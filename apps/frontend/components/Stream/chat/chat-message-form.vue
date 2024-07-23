@@ -132,7 +132,7 @@ async function handleKeyDown(e: KeyboardEvent) {
         selectedEmoteIndex.value--
         virtualListRef.value.scrollTo(selectedEmoteIndex.value)
       }
-    } else {
+    } else if (!text.value.length) {
       insertLatestMessage()
     }
   } else if (e.key === 'Enter') {
