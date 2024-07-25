@@ -195,16 +195,7 @@ const repliedMessage = computed(() => {
               class="size-4"
             />
           </UiButton>
-          <UiButton
-            @click="setReplyTo"
-            size="xs"
-            :disabled="!profile?.userProfile"
-          >
-            <Icon
-              name="lucide:corner-up-left"
-              class="size-4"
-            />
-          </UiButton>
+
         </div>
       </div>
       <UiButton
