@@ -13,6 +13,8 @@ export default defineNuxtConfig({
     }
   },
 
+  srcDir: './app',
+
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxtjs/color-mode',
@@ -22,7 +24,7 @@ export default defineNuxtConfig({
     '@nuxt-alt/proxy',
     '@nuxt/image',
     '@nuxt/fonts',
-    "nuxt-typed-router"
+    'nuxt-typed-router'
   ],
 
   tailwindcss: { exposeConfig: true, editorSupport: true },
@@ -60,7 +62,7 @@ export default defineNuxtConfig({
     plugins: [
       watch({
         onInit: true,
-        pattern: 'api/**/*.ts',
+        pattern: '~/api/**/*.ts',
         command: 'graphql-codegen'
       }),
       vidstack()
@@ -68,7 +70,7 @@ export default defineNuxtConfig({
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname)
+        '@': path.resolve(__dirname, 'app')
       }
     }
   },
@@ -121,7 +123,7 @@ export default defineNuxtConfig({
       process.env.NODE_ENV === 'production'
         ? 'https://streamx.satont.dev/api/query'
         : 'http://localhost:5173/api/query',
-    client: './configs/urql.ts'
+    client: '~/configs/urql.ts'
   },
 
   icon: {

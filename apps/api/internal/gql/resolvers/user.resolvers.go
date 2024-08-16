@@ -11,7 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
-	"github.com/imroc/req/v3"
+	req "github.com/imroc/req/v3"
 	"github.com/samber/lo"
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
@@ -19,10 +19,7 @@ import (
 )
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
-func (r *mutationResolver) UpdateUserProfile(
-	ctx context.Context,
-	input gqlmodel.UpdateUserProfileInput,
-) (*gqlmodel.AuthedUser, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input gqlmodel.UpdateUserProfileInput) (*gqlmodel.AuthedUser, error) {
 	currentUser := middlewares.GetUserFromContext(ctx)
 	if currentUser == nil {
 		return nil, fmt.Errorf("user not found")
