@@ -129,7 +129,7 @@ const streamKey = computed(() => {
         id="seventv"
         v-model="form.sevenTvEmoteSetId"
         class="col-span-3"
-        :maxlength="25"
+        :maxlength="100"
       />
     </div>
 
