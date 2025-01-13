@@ -5,23 +5,21 @@ import { reverseStreamChatDirection } from '~/composables/reverse-stream-chat-di
 </script>
 
 <template>
-  <div
-    class="h-full flex flex-col overflow-y-hidden"
-    :class="{
-      'xl:flex-row': !reverseStreamChatDirection,
-      'xl:flex-row-reverse': reverseStreamChatDirection
-    }"
-  >
-    <main class="h-[40dvh] xl:h-full xl:flex-1 overflow-y-hidden w-full">
-      <ClientOnly>
+  <ClientOnly>
+    <div
+      class="h-full flex flex-col overflow-y-hidden"
+      :class="{
+        'xl:flex-row': !reverseStreamChatDirection,
+        'xl:flex-row-reverse': reverseStreamChatDirection
+      }"
+    >
+      <main class="h-[40dvh] xl:h-full xl:flex-1 overflow-y-hidden w-full">
         <Player class="w-full h-full" />
-      </ClientOnly>
-    </main>
+      </main>
 
-    <aside class="h-[60dvh] w-full xl:h-full xl:w-96">
-      <ClientOnly>
+      <aside class="h-[60dvh] w-full xl:h-full xl:w-96">
         <Chat />
-      </ClientOnly>
-    </aside>
-  </div>
+      </aside>
+    </div>
+  </ClientOnly>
 </template>
