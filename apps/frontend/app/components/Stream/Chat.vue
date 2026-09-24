@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useScroll } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
 import { computed, nextTick, ref, watch } from 'vue'
 import type { FragmentType } from '@/gql'
 
@@ -36,30 +36,62 @@ const allMessages = computed(() => {
 const { replyTo } = useChatMessageSend()
 
 const messagesEl = ref<HTMLElement | null>(null)
-const { y, arrivedState } = useScroll(messagesEl)
+const messagesContentEl = ref<HTMLElement | null>(null)
 
-const scrollPaused = ref(false)
+// Browsers can leave a couple of pixels between the scroll position and the
+// real bottom because of fractional layout, so exact equality is not reliable.
+const BOTTOM_THRESHOLD_PX = 24
 
-watch(arrivedState, (v) => {
-  scrollPaused.value = !v.bottom
-})
+// Chat follows the newest messages until the user scrolls away from the bottom.
+const followBottom = ref(true)
+const scrollPaused = computed(() => !followBottom.value)
+
+let lastScrollTop = 0
+
+function isAtBottom() {
+  const el = messagesEl.value
+  if (!el) return true
+
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= BOTTOM_THRESHOLD_PX
+}
+
+function handleScroll() {
+  const el = messagesEl.value
+  if (!el) return
+
+  // Resizing the list (e.g. showing the reply preview) can produce scroll
+  // events without moving the scroll position. They must not pause the chat.
+  if (el.scrollTop === lastScrollTop) return
+
+  lastScrollTop = el.scrollTop
+  followBottom.value = isAtBottom()
+}
+
+async function scrollToBottom() {
+  followBottom.value = true
+
+  await nextTick()
+  if (!messagesEl.value) return
+
+  messagesEl.value.scrollTop = messagesEl.value.scrollHeight
+  // The scroll event for this position may be dispatched only on the next
+  // frame, after the messages have grown again. Remember it beforehand.
+  lastScrollTop = messagesEl.value.scrollTop
+}
 
 watch(
   allMessages,
-  async () => {
-    if (!messagesEl.value || scrollPaused.value) return
-
-    await scrollToBottom()
+  () => {
+    if (followBottom.value) scrollToBottom()
   },
   { immediate: true }
 )
 
-async function scrollToBottom() {
-  await nextTick()
-  if (!messagesEl.value) return
-
-  y.value = messagesEl.value.scrollHeight
-}
+// Messages and the reply preview can change their height after they are
+// rendered, so keep the chat pinned to the bottom while following it.
+useResizeObserver([messagesEl, messagesContentEl], () => {
+  if (followBottom.value) scrollToBottom()
+})
 
 const replyingTo = computed(() => {
   if (!replyTo.value) return null
@@ -88,18 +120,24 @@ const replyingTo = computed(() => {
         ref="messagesEl"
         class="h-full relative flex flex-col overflow-y-auto px-2 dark:bg-[#111111]"
         :style="{ fontSize: `${chatFontSize}px` }"
+        @scroll.passive="handleScroll"
       >
-        <template v-for="message in allMessages">
-          <ChatMessage
-            v-if="!('type' in message)"
-            :msg="message as FragmentType<typeof ChatMessage_Fragment>"
-            @reply="scrollToBottom"
-          />
-          <ChatSystemMessage
-            v-else
-            :msg="message as FragmentType<typeof SystemMessage_Fragment>"
-          />
-        </template>
+        <div
+          ref="messagesContentEl"
+          class="flex flex-col"
+        >
+          <template v-for="message in allMessages">
+            <ChatMessage
+              v-if="!('type' in message)"
+              :msg="message as FragmentType<typeof ChatMessage_Fragment>"
+              @reply="scrollToBottom"
+            />
+            <ChatSystemMessage
+              v-else
+              :msg="message as FragmentType<typeof SystemMessage_Fragment>"
+            />
+          </template>
+        </div>
       </div>
       <div
         v-if="scrollPaused || replyingTo"
