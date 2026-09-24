@@ -6,7 +6,9 @@ ARG PORT=3000
 
 FROM base as build
 
-RUN corepack enable
+# pin pnpm: the lockfile is v9, modern pnpm releases skip dependency
+# build scripts (esbuild, sharp) and fail the install
+RUN npm install -g pnpm@9.15.9
 
 COPY apps/frontend/package.json ./apps/frontend/pnpm-lock.yaml /app/apps/frontend/
 COPY apps/api/schema /app/apps/api/schema/
