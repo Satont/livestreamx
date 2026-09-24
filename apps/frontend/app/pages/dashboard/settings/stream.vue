@@ -6,7 +6,7 @@ import { useProfile } from '@/api/profile.js'
 const { useData, useUpdateMutation } = useProfile()
 const { data: profile } = await useData()
 const streamAddress = import.meta.client
-  ? `rtsp://${window.location.hostname}`
+  ? `rtmp://${window.location.hostname}/app`
   : ''
 const updater = useUpdateMutation()
 
