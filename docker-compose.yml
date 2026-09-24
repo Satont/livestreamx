@@ -4,9 +4,11 @@ services:
     build:
         context: .
         dockerfile: apps/api/Dockerfile
-        args:
-          - VITE_STREAM_URL=http://localhost:8889/mystream/
     env_file: .env
+    environment:
+      # internal compose addresses, always point to the ome service here
+      OME_API_ADDR: http://ome:8081
+      OME_LLHLS_ADDR: http://ome:3333
     networks:
       - default
       - caddy
@@ -14,8 +16,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./thumbnails:/app/thumbnails
     labels:
       caddy: streamx.satont.dev
       caddy.handle_path: /api/*
@@ -33,6 +33,27 @@ services:
     labels:
       caddy: streamx.satont.dev
       caddy.reverse_proxy: "{{upstreams 8080}}"
+
+  ome:
+    image: ovenmedialabs/ovenmediaengine:v0.21.0
+    restart: always
+    environment:
+      OME_API_ACCESS_TOKEN: ${OME_API_ACCESS_TOKEN:-livestreamx}
+      OME_ADMISSION_URL: http://api:1337/streams/auth
+      OME_ADMISSION_SECRET: ${OME_ADMISSION_SECRET:-livestreamx}
+    ports:
+      # rtmp ingest for obs
+      - "1935:1935"
+    networks:
+      - default
+      - caddy
+    labels:
+      caddy: streamx.satont.dev
+      caddy.handle_path: /mtx/*
+      caddy.handle_path.0_reverse_proxy: "{{upstreams 3333}}"
+    volumes:
+      - ./ome/Server.xml:/opt/ovenmediaengine/bin/origin_conf/Server.xml:ro
+      - ./ome/Logger.xml:/opt/ovenmediaengine/bin/origin_conf/Logger.xml:ro
 
   redis:
     image: redis:latest
@@ -55,14 +76,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  mediamtx:
-    image: ghcr.io/satont/livestreamx:mediamtx-latest
-    restart: always
-    network_mode: host
-    volumes:
-      - ./mediamtx.yml:/mediamtx.yml
-      - ./thumbnails:/thumbnails
 
   nats:
     image: nats:2.10.11-scratch

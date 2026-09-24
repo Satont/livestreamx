@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+	OvenMediaEngine configuration for LivestreamX.
+
+	Ingest:  RTMP (OBS) -> rtmp://<host>:1935/app/<channel>?key=<stream_key>
+	Output:  LL-HLS (ABR ladder + source passthrough) and Thumbnails
+	Auth:    AdmissionWebhooks -> API /streams/auth
+
+	Ports and the admission webhook URL can be overridden with env vars
+	(see docker-compose.yml / docker-compose.dev.yml).
+-->
+<Server version="8">
+	<Name>OvenMediaEngine</Name>
+	<Type>origin</Type>
+	<IP>*</IP>
+	<PrivacyProtection>false</PrivacyProtection>
+
+	<Modules>
+		<HTTP2>
+			<Enable>true</Enable>
+		</HTTP2>
+
+		<LLHLS>
+			<Enable>true</Enable>
+		</LLHLS>
+
+		<P2P>
+			<Enable>false</Enable>
+		</P2P>
+	</Modules>
+
+	<Bind>
+		<Managers>
+			<API>
+				<Port>${env:OME_API_PORT:8081}</Port>
+				<WorkerCount>1</WorkerCount>
+			</API>
+		</Managers>
+
+		<Providers>
+			<RTMP>
+				<Port>${env:OME_RTMP_PROV_PORT:1935}</Port>
+				<WorkerCount>1</WorkerCount>
+			</RTMP>
+		</Providers>
+
+		<Publishers>
+			<!-- LL-HLS. Thumbnails are served on the same port. -->
+			<LLHLS>
+				<Port>${env:OME_LLHLS_PORT:3333}</Port>
+				<WorkerCount>1</WorkerCount>
+			</LLHLS>
+			<Thumbnail>
+				<Port>${env:OME_LLHLS_PORT:3333}</Port>
+			</Thumbnail>
+		</Publishers>
+	</Bind>
+
+	<Managers>
+		<API>
+			<AccessToken>${env:OME_API_ACCESS_TOKEN:livestreamx}</AccessToken>
+		</API>
+	</Managers>
+
+	<Defaults>
+		<CrossDomains>
+			<Url>*</Url>
+		</CrossDomains>
+	</Defaults>
+
+	<VirtualHosts>
+		<VirtualHost>
+			<Name>default</Name>
+			<Distribution>livestreamx</Distribution>
+
+			<Host>
+				<Names>
+					<Name>*</Name>
+				</Names>
+			</Host>
+
+			<AdmissionWebhooks>
+				<ControlServerUrl>${env:OME_ADMISSION_URL:http://api:1337/streams/auth}</ControlServerUrl>
+				<SecretKey>${env:OME_ADMISSION_SECRET:livestreamx}</SecretKey>
+				<Timeout>3000</Timeout>
+				<Enables>
+					<Providers>rtmp</Providers>
+					<Publishers></Publishers>
+				</Enables>
+			</AdmissionWebhooks>
+
+			<Applications>
+				<Application>
+					<Name>app</Name>
+					<Type>live</Type>
+
+					<OutputProfiles>
+						<Decodes>
+							<ThreadCount>2</ThreadCount>
+						</Decodes>
+
+						<OutputProfile>
+							<Name>abr</Name>
+							<OutputStreamName>${OriginStreamName}</OutputStreamName>
+
+							<Playlist>
+								<Name>master</Name>
+								<FileName>master</FileName>
+								<Options>
+									<HLSChunklistPathDepth>0</HLSChunklistPathDepth>
+									<EnableTsPackaging>false</EnableTsPackaging>
+								</Options>
+								<Rendition>
+									<Name>Source</Name>
+									<Video>bypass_video</Video>
+									<Audio>aac_audio</Audio>
+								</Rendition>
+								<Rendition>
+									<Name>720p</Name>
+									<Video>video_720</Video>
+									<Audio>aac_audio</Audio>
+								</Rendition>
+								<Rendition>
+									<Name>480p</Name>
+									<Video>video_480</Video>
+									<Audio>aac_audio</Audio>
+								</Rendition>
+								<Rendition>
+									<Name>360p</Name>
+									<Video>video_360</Video>
+									<Audio>aac_audio</Audio>
+								</Rendition>
+							</Playlist>
+
+							<Encodes>
+								<Video>
+									<Name>bypass_video</Name>
+									<Bypass>true</Bypass>
+								</Video>
+
+								<Video>
+									<Name>video_720</Name>
+									<Codec>h264</Codec>
+									<Modules>x264</Modules>
+									<Bitrate>2800000</Bitrate>
+									<Height>720</Height>
+									<Framerate>30</Framerate>
+									<KeyFrameInterval>30</KeyFrameInterval>
+									<BFrames>0</BFrames>
+									<Preset>faster</Preset>
+								</Video>
+
+								<Video>
+									<Name>video_480</Name>
+									<Codec>h264</Codec>
+									<Modules>x264</Modules>
+									<Bitrate>1400000</Bitrate>
+									<Height>480</Height>
+									<Framerate>30</Framerate>
+									<KeyFrameInterval>30</KeyFrameInterval>
+									<BFrames>0</BFrames>
+									<Preset>faster</Preset>
+								</Video>
+
+								<Video>
+									<Name>video_360</Name>
+									<Codec>h264</Codec>
+									<Modules>x264</Modules>
+									<Bitrate>800000</Bitrate>
+									<Height>360</Height>
+									<Framerate>30</Framerate>
+									<KeyFrameInterval>30</KeyFrameInterval>
+									<BFrames>0</BFrames>
+									<Preset>faster</Preset>
+								</Video>
+
+								<Audio>
+									<Name>aac_audio</Name>
+									<Codec>aac</Codec>
+									<Bitrate>128000</Bitrate>
+									<Samplerate>48000</Samplerate>
+									<Channel>2</Channel>
+									<BypassIfMatch>
+										<Codec>eq</Codec>
+									</BypassIfMatch>
+								</Audio>
+
+								<!-- Stream preview thumbnails: /app/<channel>/thumb.jpg -->
+								<Image>
+									<Codec>jpeg</Codec>
+									<Framerate>1</Framerate>
+									<Width>1280</Width>
+									<Height>720</Height>
+								</Image>
+							</Encodes>
+						</OutputProfile>
+					</OutputProfiles>
+
+					<Providers>
+						<RTMP />
+					</Providers>
+
+					<Publishers>
+						<AppWorkerCount>1</AppWorkerCount>
+						<StreamWorkerCount>8</StreamWorkerCount>
+
+						<LLHLS>
+							<ChunkDuration>0.5</ChunkDuration>
+							<PartHoldBack>1.5</PartHoldBack>
+							<SegmentDuration>6</SegmentDuration>
+							<SegmentCount>10</SegmentCount>
+							<CreateDefaultPlaylist>false</CreateDefaultPlaylist>
+							<CrossDomains>
+								<Url>*</Url>
+							</CrossDomains>
+						</LLHLS>
+
+						<Thumbnail>
+							<CrossDomains>
+								<Url>*</Url>
+							</CrossDomains>
+						</Thumbnail>
+					</Publishers>
+				</Application>
+			</Applications>
+		</VirtualHost>
+	</VirtualHosts>
+</Server>

@@ -1,12 +1,27 @@
 services:
-  mediamtx:
-    build:
-        context: .
-        dockerfile: mediamtx.Dockerfile
-    network_mode: host
+  ome:
+    image: ovenmedialabs/ovenmediaengine:v0.21.0
+    restart: unless-stopped
+    extra_hosts:
+      # allows the container to reach the api running on the host
+      - "host.docker.internal:host-gateway"
+    environment:
+      OME_RTMP_PROV_PORT: 1935
+      OME_LLHLS_PORT: 3333
+      OME_API_PORT: 8081
+      OME_API_ACCESS_TOKEN: livestreamx
+      OME_ADMISSION_URL: http://host.docker.internal:1337/streams/auth
+      OME_ADMISSION_SECRET: livestreamx
+    ports:
+      # rtmp ingest for obs
+      - "1935:1935"
+      # ll-hls + thumbnails (host 3334 because 3333 is often already taken)
+      - "3334:3333"
+      # rest api
+      - "9998:8081"
     volumes:
-      - ./mediamtx.dev.yml:/mediamtx.yml
-      - ./thumbnails:/thumbnails
+      - ./ome/Server.xml:/opt/ovenmediaengine/bin/origin_conf/Server.xml:ro
+      - ./ome/Logger.xml:/opt/ovenmediaengine/bin/origin_conf/Logger.xml:ro
 
   redis:
     image: redis:latest
@@ -28,16 +43,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  minio:
-    image: minio/minio:latest
-    ports:
-      - "8810:9000"
-      - "8811:9090"
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio-password
-    command: server /data
 
   nats:
     image: nats:2.10.11-scratch
