@@ -36,6 +36,47 @@ function onProviderChange(event: MediaProviderChangeEvent) {
   }
 }
 
+// after a pause we always want to be live again, otherwise the user keeps
+// watching with a delay equal to the pause duration
+const LIVE_EDGE_RESUME_THRESHOLD_MS = 1000
+
+let pausedAt: number | null = null
+
+function onPlayerPause() {
+  pausedAt = Date.now()
+}
+
+function onPlayerPlay() {
+  const pausedFor = pausedAt === null ? 0 : Date.now() - pausedAt
+  pausedAt = null
+
+  if (pausedFor < LIVE_EDGE_RESUME_THRESHOLD_MS) {
+    return
+  }
+
+  seekToLiveEdge()
+}
+
+// `player.seekToLiveEdge()` is a no-op for live streams without a dvr window,
+// which is how we play ome ll-hls here, so ask hls.js where live is right now.
+// it keeps `liveSyncPosition` fresh while paused because it continues to
+// refresh the playlist in the background.
+function seekToLiveEdge() {
+  const el = player.value
+  const provider = el?.provider
+
+  if (provider && isHLSProvider(provider)) {
+    const hls = provider.instance
+    const position = hls?.liveSyncPosition
+    if (hls?.media && position != null && Number.isFinite(position)) {
+      hls.media.currentTime = position
+      return
+    }
+  }
+
+  el?.seekToLiveEdge()
+}
+
 const qualities = ref<VideoQuality[]>([])
 const selectedQuality = ref<VideoQuality | null>(null)
 const isAutoQuality = ref(true)
@@ -99,6 +140,7 @@ function detachQualityListeners(el: MediaPlayerElement) {
 }
 
 watch(player, (el, prevEl) => {
+  pausedAt = null
   if (prevEl) {
     detachQualityListeners(prevEl)
   }
@@ -142,6 +184,8 @@ onBeforeUnmount(() => {
     streamType="live"
     viewType="video"
     :loop="false"
+    @pause="onPlayerPause"
+    @play="onPlayerPlay"
     @provider-change="onProviderChange"
   >
     <media-provider />
