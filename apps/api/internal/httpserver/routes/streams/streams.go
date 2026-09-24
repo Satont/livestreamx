@@ -1,6 +1,8 @@
 package streams
 
 import (
+	"net/http"
+
 	"github.com/redis/go-redis/v9"
 	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/httpserver"
@@ -21,10 +23,11 @@ type Opts struct {
 
 func New(opts Opts) (*Streams, error) {
 	s := &Streams{
-		config:   opts.Config,
-		userRepo: opts.UserRepo,
-		redis:    opts.Redis,
-		logger:   opts.Logger,
+		config:     opts.Config,
+		userRepo:   opts.UserRepo,
+		redis:      opts.Redis,
+		logger:     opts.Logger,
+		httpClient: newThumbnailsHttpClient(),
 	}
 
 	group := opts.HttpServer.Group("/streams")
@@ -35,8 +38,9 @@ func New(opts Opts) (*Streams, error) {
 }
 
 type Streams struct {
-	config   config.Config
-	userRepo user.Repository
-	redis    *redis.Client
-	logger   *zap.Logger
+	config     config.Config
+	userRepo   user.Repository
+	redis      *redis.Client
+	logger     *zap.Logger
+	httpClient *http.Client
 }

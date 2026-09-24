@@ -2,8 +2,8 @@
 import 'vidstack/bundle'
 
 import { isHLSProvider } from 'vidstack'
-import { computed } from 'vue'
-import type { MediaProviderChangeEvent } from 'vidstack'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import type { MediaPlayerElement, MediaProviderChangeEvent, VideoQuality } from 'vidstack'
 
 import { useChat } from '~/api/chat.js'
 import { useStream } from '~/api/stream.js'
@@ -11,15 +11,19 @@ import { useStream } from '~/api/stream.js'
 const { channelData } = useChat()
 const { data: streamData } = useStream().useStreamState()
 
+const player = ref<MediaPlayerElement | null>(null)
+
+// dev runs the player against the local ome instance directly,
+// production goes through caddy: /mtx/* -> ome:3333
 const streamingServiceAddr = import.meta.env.DEV
-  ? 'http://127.0.0.1:8888'
+  ? 'http://127.0.0.1:3334'
   : `${window.location.origin}/mtx`
 
 const src = computed(() => {
   if (!channelData.value || !streamData.value?.streamInfo?.startedAt) {
     return null
   }
-  return `${streamingServiceAddr}/${channelData.value.fetchUserByName.name}/index.m3u8`
+  return `${streamingServiceAddr}/app/${channelData.value.fetchUserByName.name}/master.m3u8`
 })
 
 function onProviderChange(event: MediaProviderChangeEvent) {
@@ -31,6 +35,84 @@ function onProviderChange(event: MediaProviderChangeEvent) {
     }
   }
 }
+
+const qualities = ref<VideoQuality[]>([])
+const selectedQuality = ref<VideoQuality | null>(null)
+const isAutoQuality = ref(true)
+const isQualityMenuOpen = ref(false)
+
+const sortedQualities = computed(() =>
+  [...qualities.value].sort(
+    (a, b) => b.height - a.height || (b.bitrate ?? 0) - (a.bitrate ?? 0)
+  )
+)
+
+const currentQualityLabel = computed(() => {
+  if (isAutoQuality.value || !selectedQuality.value) {
+    return 'Auto'
+  }
+  return qualityLabel(selectedQuality.value).split(' · ')[0]
+})
+
+function qualityLabel(quality: VideoQuality) {
+  const height = quality.height ? `${quality.height}p` : 'Source'
+  const bitrate = quality.bitrate
+    ? ` · ${(quality.bitrate / 1e6).toFixed(1)} Mbps`
+    : ''
+  return `${height}${bitrate}`
+}
+
+function syncQualityState() {
+  const list = player.value?.qualities
+  if (!list) {
+    return
+  }
+  qualities.value = list.toArray()
+  selectedQuality.value = list.selected
+  isAutoQuality.value = list.auto
+}
+
+function selectQuality(quality: VideoQuality) {
+  quality.selected = true
+  isQualityMenuOpen.value = false
+  syncQualityState()
+}
+
+function selectAutoQuality() {
+  player.value?.qualities.autoSelect()
+  isQualityMenuOpen.value = false
+  syncQualityState()
+}
+
+function attachQualityListeners(el: MediaPlayerElement) {
+  el.qualities.addEventListener('change', syncQualityState)
+  el.qualities.addEventListener('auto-change', syncQualityState)
+  el.qualities.addEventListener('add', syncQualityState)
+  el.qualities.addEventListener('remove', syncQualityState)
+}
+
+function detachQualityListeners(el: MediaPlayerElement) {
+  el.qualities.removeEventListener('change', syncQualityState)
+  el.qualities.removeEventListener('auto-change', syncQualityState)
+  el.qualities.removeEventListener('add', syncQualityState)
+  el.qualities.removeEventListener('remove', syncQualityState)
+}
+
+watch(player, (el, prevEl) => {
+  if (prevEl) {
+    detachQualityListeners(prevEl)
+  }
+  if (el) {
+    attachQualityListeners(el)
+    syncQualityState()
+  }
+})
+
+onBeforeUnmount(() => {
+  if (player.value) {
+    detachQualityListeners(player.value)
+  }
+})
 </script>
 
 <template>
@@ -64,5 +146,74 @@ function onProviderChange(event: MediaProviderChangeEvent) {
   >
     <media-provider />
     <media-video-layout />
+
+    <div
+      v-if="qualities.length > 1"
+      class="quality-menu absolute right-2 top-2 z-20"
+      :data-open="isQualityMenuOpen || undefined"
+      @click.stop
+      @pointerdown.stop
+    >
+      <button
+        type="button"
+        class="flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-xs font-medium text-white backdrop-blur transition hover:bg-black/85"
+        @click="isQualityMenuOpen = !isQualityMenuOpen"
+      >
+        <Icon
+          name="lucide:settings-2"
+          class="size-3.5"
+        />
+        {{ currentQualityLabel }}
+      </button>
+
+      <ul
+        v-if="isQualityMenuOpen"
+        class="absolute right-0 top-8 min-w-36 overflow-hidden rounded-md border border-white/10 bg-black/90 py-1 text-xs text-white shadow-lg backdrop-blur"
+      >
+        <li>
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
+            :class="{ 'text-primary': isAutoQuality }"
+            @click="selectAutoQuality"
+          >
+            Auto
+            <Icon
+              v-if="isAutoQuality"
+              name="lucide:check"
+              class="size-3.5"
+            />
+          </button>
+        </li>
+
+        <li
+          v-for="quality of sortedQualities"
+          :key="quality.id"
+        >
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
+            :class="{ 'text-primary': !isAutoQuality && selectedQuality?.id === quality.id }"
+            @click="selectQuality(quality)"
+          >
+            {{ qualityLabel(quality) }}
+            <Icon
+              v-if="!isAutoQuality && selectedQuality?.id === quality.id"
+              name="lucide:check"
+              class="size-3.5"
+            />
+          </button>
+        </li>
+      </ul>
+    </div>
   </media-player>
 </template>
+
+<style scoped>
+/* the menu is a part of the player element, so it stays visible in fullscreen.
+   mimic the default layout behaviour: hide it together with the controls. */
+media-player:not([data-controls]) .quality-menu:not([data-open]) {
+  opacity: 0;
+  pointer-events: none;
+}
+</style>
