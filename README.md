@@ -92,16 +92,28 @@ hardware decoding). The transcoded renditions are always H.264.
 
 ### Production notes
 
-`docker-compose.yml` runs OvenMediaEngine in the compose network and Caddy proxies
-`/mtx/*` to it. The player requests `https://<domain>/mtx/app/<channel>/master.m3u8`,
-and thumbnails are proxied by the API (`THUMBNAILS_URI`).
+Routing is handled by Traefik through the external `traefik-public` network
+(`traefik.enable=true` labels are set on `api`, `frontend` and `ome`):
 
-The API requires these envs (set them in the server `.env`):
+| Router | Rule | Middleware | Service |
+| ------ | ---- | ---------- | ------- |
+| `streamx` | `Host(<domain>)` | – | frontend `:8080` |
+| `streamx-http` | `Host(<domain>)` on `web` | redirect to https | frontend `:8080` |
+| `streamx-api` | `Host(<domain>) && PathPrefix(/api)` | strip `/api` | api `:1337` |
+| `streamx-mtx` | `Host(<domain>) && PathPrefix(/mtx)` | strip `/mtx` | ome `:3333` |
+
+The labels assume the `web`/`websecure` entrypoints and the `le` certificate
+resolver of the reference Traefik setup. The domain defaults to
+`streamx.satont.dev` and can be changed with `DOMAIN` in `.env`.
+
+The player requests `https://<domain>/mtx/app/<channel>/master.m3u8`, and
+thumbnails are proxied by the API (`THUMBNAILS_URI`).
+
+The `OME_API_ADDR` / `OME_LLHLS_ADDR` addresses are set by `docker-compose.yml`
+for the api service. These envs are shared with the `ome` service and should be
+changed from the defaults in the server `.env`:
 
 ```env
-OME_API_ADDR=http://ome:8081
-OME_LLHLS_ADDR=http://ome:3333
-# must match the ome service envs of the same names
 OME_API_ACCESS_TOKEN=change-me
 OME_ADMISSION_SECRET=change-me
 ```
