@@ -5,8 +5,7 @@ server (RTMP ingest, ABR transcoding, LL-HLS delivery and thumbnails).
 
 ### Requirements
 
-* [Node.js (20+)](https://nodejs.org/en)
-* [Pnpm](https://pnpm.io/)
+* [Bun (1.4+)](https://bun.sh/)
 * [Go (1.21+)](https://go.dev/)
 
 * [Docker](https://docs.docker.com/engine/)
@@ -22,7 +21,7 @@ docker compose -f docker-compose.dev.yml up -d
 * Install dependencies
 ```bash
 cd apps/frontend
-pnpm install --frozen-lockfile
+bun install --frozen-lockfile
 ```
 
 ```bash
@@ -40,7 +39,7 @@ go run apps/api/cmd/main.go
 * Run frontend
 ```bash
 cd apps/frontend
-pnpm dev
+bun dev
 ```
 
 * Run stream (optional)

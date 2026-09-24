@@ -8,5 +8,5 @@ export default {
   utilsLocation: "utils",
   force: true,
   useDefaultFilename: true,
-  packageManager: "pnpm",
+  packageManager: "bun",
 };
