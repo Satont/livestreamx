@@ -11,15 +11,23 @@ services:
       OME_LLHLS_ADDR: http://ome:3333
     networks:
       - default
-      - caddy
+      - traefik-public
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
     labels:
-      caddy: streamx.satont.dev
-      caddy.handle_path: /api/*
-      caddy.handle_path.0_reverse_proxy: "{{upstreams 1337}}"
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # https://<domain>/api/* -> api:1337/* (/api prefix is stripped)
+      - "traefik.http.routers.streamx-api.rule=Host(`${DOMAIN:-streamx.satont.dev}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.streamx-api.entrypoints=websecure"
+      - "traefik.http.routers.streamx-api.priority=100"
+      - "traefik.http.routers.streamx-api.middlewares=streamx-strip-api"
+      - "traefik.http.routers.streamx-api.service=streamx-api"
+      - "traefik.http.routers.streamx-api.tls.certresolver=le"
+      - "traefik.http.middlewares.streamx-strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.services.streamx-api.loadbalancer.server.port=1337"
 
   frontend:
     image: ghcr.io/satont/livestreamx:frontend-latest
@@ -29,10 +37,23 @@ services:
         dockerfile: apps/frontend/Dockerfile
     networks:
       - default
-      - caddy
+      - traefik-public
     labels:
-      caddy: streamx.satont.dev
-      caddy.reverse_proxy: "{{upstreams 8080}}"
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.streamx.rule=Host(`${DOMAIN:-streamx.satont.dev}`)"
+      - "traefik.http.routers.streamx.entrypoints=websecure"
+      - "traefik.http.routers.streamx.priority=1"
+      - "traefik.http.routers.streamx.service=streamx-frontend"
+      - "traefik.http.routers.streamx.tls.certresolver=le"
+      - "traefik.http.services.streamx-frontend.loadbalancer.server.port=8080"
+      # http -> https
+      - "traefik.http.routers.streamx-http.rule=Host(`${DOMAIN:-streamx.satont.dev}`)"
+      - "traefik.http.routers.streamx-http.entrypoints=web"
+      - "traefik.http.routers.streamx-http.service=streamx-frontend"
+      - "traefik.http.routers.streamx-http.middlewares=streamx-https-redirect"
+      - "traefik.http.middlewares.streamx-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.streamx-https-redirect.redirectscheme.permanent=true"
 
   ome:
     image: ovenmedialabs/ovenmediaengine:v0.21.0
@@ -46,11 +67,19 @@ services:
       - "1935:1935"
     networks:
       - default
-      - caddy
+      - traefik-public
     labels:
-      caddy: streamx.satont.dev
-      caddy.handle_path: /mtx/*
-      caddy.handle_path.0_reverse_proxy: "{{upstreams 3333}}"
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # https://<domain>/mtx/* -> ome:3333/* (/mtx prefix is stripped)
+      - "traefik.http.routers.streamx-mtx.rule=Host(`${DOMAIN:-streamx.satont.dev}`) && PathPrefix(`/mtx`)"
+      - "traefik.http.routers.streamx-mtx.entrypoints=websecure"
+      - "traefik.http.routers.streamx-mtx.priority=100"
+      - "traefik.http.routers.streamx-mtx.middlewares=streamx-strip-mtx"
+      - "traefik.http.routers.streamx-mtx.service=streamx-mtx"
+      - "traefik.http.routers.streamx-mtx.tls.certresolver=le"
+      - "traefik.http.middlewares.streamx-strip-mtx.stripprefix.prefixes=/mtx"
+      - "traefik.http.services.streamx-mtx.loadbalancer.server.port=3333"
     volumes:
       - ./ome/Server.xml:/opt/ovenmediaengine/bin/origin_conf/Server.xml:ro
       - ./ome/Logger.xml:/opt/ovenmediaengine/bin/origin_conf/Logger.xml:ro
@@ -87,5 +116,5 @@ volumes:
     redis:
 
 networks:
-  caddy:
+  traefik-public:
     external: true

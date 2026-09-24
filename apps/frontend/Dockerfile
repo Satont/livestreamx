@@ -2,8 +2,6 @@ FROM node:22-alpine as base
 LABEL authors="satont"
 WORKDIR /app
 
-ARG PORT=3000
-
 FROM base as build
 
 # pin pnpm: the lockfile is v9, modern pnpm releases skip dependency
@@ -21,5 +19,7 @@ RUN cd /app/apps/frontend && pnpm build
 
 FROM base
 ENV NODE_ENV=production
+# nitro server port, keep in sync with the traefik label (streamx-frontend)
+ENV PORT=8080
 COPY --from=build /app/apps/frontend/.output /app/.output
 CMD [ "node", ".output/server/index.mjs" ]
