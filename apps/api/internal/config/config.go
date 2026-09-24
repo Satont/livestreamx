@@ -17,8 +17,14 @@ type Config struct {
 
 	ApiPort          int    `required:"false"  envconfig:"API_PORT" default:"1337"`
 	ApiSessionSecret string `envconfig:"API_SESSION_SECRET"`
-	MediaMtxAddr     string `envconfig:"MEDIA_MTX_ADDR" required:"true"`
 	ThumbnailsURI    string `envconfig:"THUMBNAILS_URI" required:"true"`
+
+	OmeApiAddr         string `envconfig:"OME_API_ADDR" required:"true"`
+	OmeApiAccessToken  string `envconfig:"OME_API_ACCESS_TOKEN"`
+	OmeVHost           string `envconfig:"OME_VHOST" default:"default"`
+	OmeApp             string `envconfig:"OME_APP" default:"app"`
+	OmeLlhlsAddr       string `envconfig:"OME_LLHLS_ADDR" required:"true"`
+	OmeAdmissionSecret string `envconfig:"OME_ADMISSION_SECRET"`
 
 	S3Host        string `envconfig:"S3_HOST"`
 	S3AccessToken string `envconfig:"S3_ACCESS_TOKEN"`
@@ -33,8 +39,6 @@ type Config struct {
 	GithubClientID     string `required:"false" envconfig:"GITHUB_CLIENT_ID"`
 	GithubClientSecret string `required:"false" envconfig:"GITHUB_CLIENT_SECRET"`
 	GithubRedirectURI  string `required:"false" envconfig:"GITHUB_REDIRECT_URI"`
-
-	FeatureDisableQuality bool `envconfig:"FEATURE_DISABLE_QUALITY"`
 }
 
 func New() (Config, error) {

@@ -8,7 +8,7 @@ import (
 	"github.com/satont/stream/apps/api/internal/config"
 	"github.com/satont/stream/apps/api/internal/gql/mappers"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
-	mtx_api "github.com/satont/stream/apps/api/internal/mtx-api"
+	ome_api "github.com/satont/stream/apps/api/internal/ome-api"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 	"github.com/satont/stream/apps/api/internal/repositories/role"
@@ -35,7 +35,7 @@ type Resolver struct {
 	s3                 *minio.Client
 	config             config.Config
 	sevenTv            *seven_tv.SevenTV
-	mtxApi             *mtx_api.MtxApi
+	omeApi             *ome_api.OmeApi
 	subscriptionRouter subscriptions_router.Router
 	redis              *redis.Client
 	logger             *zap.Logger
@@ -56,7 +56,7 @@ type Opts struct {
 	// S3             *minio.Client
 	Config             config.Config
 	SevenTv            *seven_tv.SevenTV
-	MtxApi             *mtx_api.MtxApi
+	OmeApi             *ome_api.OmeApi
 	SubscriptionRouter subscriptions_router.Router
 	Redis              *redis.Client
 	Logger             *zap.Logger
@@ -73,7 +73,7 @@ func New(opts Opts) *Resolver {
 		sessionStorage: opts.SessionStorage,
 		mapper:         opts.Converter,
 		config:         opts.Config,
-		mtxApi:         opts.MtxApi,
+		omeApi:         opts.OmeApi,
 		// userFilesRepo:            opts.UserFilesRepo,
 		sevenTv: opts.SevenTv,
 		redis:   opts.Redis,

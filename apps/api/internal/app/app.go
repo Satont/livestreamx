@@ -20,7 +20,7 @@ import (
 	"github.com/satont/stream/apps/api/internal/httpserver/routes/auth"
 	"github.com/satont/stream/apps/api/internal/httpserver/routes/streams"
 	session_storage "github.com/satont/stream/apps/api/internal/httpserver/session-storage"
-	mtx_api "github.com/satont/stream/apps/api/internal/mtx-api"
+	ome_api "github.com/satont/stream/apps/api/internal/ome-api"
 	chat_message "github.com/satont/stream/apps/api/internal/repositories/chat-message"
 	message_reaction "github.com/satont/stream/apps/api/internal/repositories/message-reaction"
 	"github.com/satont/stream/apps/api/internal/repositories/role"
@@ -75,7 +75,7 @@ var App = fx.Options(
 			subscriptions_router.NewNatsSubscription,
 			fx.As(new(subscriptions_router.Router)),
 		),
-		mtx_api.New,
+		ome_api.New,
 		seven_tv.New,
 		mappers.New,
 		session_storage.New,

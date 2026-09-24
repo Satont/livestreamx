@@ -18,6 +18,7 @@ import (
 	"github.com/satont/stream/apps/api/internal/gql/gqlmodel"
 	"github.com/satont/stream/apps/api/internal/gql/graph"
 	"github.com/satont/stream/apps/api/internal/httpserver/middlewares"
+	ome_api "github.com/satont/stream/apps/api/internal/ome-api"
 	userrepo "github.com/satont/stream/apps/api/internal/repositories/user"
 	system_messages "github.com/satont/stream/apps/api/internal/system-messages"
 	"golang.org/x/sync/errgroup"
@@ -25,7 +26,7 @@ import (
 
 // Streams is the resolver for the streams field.
 func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) {
-	paths, err := r.mtxApi.GetPaths(ctx)
+	streamNames, err := r.omeApi.ListStreams(ctx)
 	if err != nil {
 		r.logger.Sugar().Error(err)
 		return nil, err
@@ -35,14 +36,21 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 	var streams []gqlmodel.Stream
 	var errwg errgroup.Group
 
-	for _, path := range paths {
-		path := path
+	for _, streamName := range streamNames {
+		streamName := streamName
 		errwg.Go(
 			func() error {
-				dbChannel, err := r.userRepo.FindByName(ctx, path.Name)
+				dbChannel, err := r.userRepo.FindByName(ctx, streamName)
 				if err != nil {
-					r.logger.Sugar().Errorw("Cannot find channel by name", "err", err)
-					return err
+					r.logger.Sugar().Errorw("Cannot find channel by name", "err", err, "name", streamName)
+					return nil
+				}
+
+				streamInfo, err := r.omeApi.GetStream(ctx, streamName)
+				if err != nil {
+					// stream could go offline between list and get requests
+					r.logger.Sugar().Errorw("Cannot get stream info", "err", err, "name", streamName)
+					return nil
 				}
 
 				streamsMu.Lock()
@@ -52,7 +60,7 @@ func (r *queryResolver) Streams(ctx context.Context) ([]gqlmodel.Stream, error) 
 					streams,
 					gqlmodel.Stream{
 						Chatters:     []gqlmodel.Chatter{},
-						StartedAt:    path.ReadyTime,
+						StartedAt:    streamInfo.CreatedTime,
 						ChannelID:    dbChannel.ID,
 						ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.Name),
 					},
@@ -193,17 +201,20 @@ func (r *subscriptionResolver) StreamInfo(ctx context.Context, channelID uuid.UU
 			case <-ctx.Done():
 				return
 			default:
-				mtxInfo, err := r.mtxApi.GetPathInfo(ctx, dbChannel.Name)
-				if err != nil {
-					r.logger.Sugar().Error(err)
-					time.Sleep(1 * time.Second)
-					continue
-				}
-
 				streamInfo := &gqlmodel.Stream{
-					StartedAt:    mtxInfo.ReadyTime,
 					ChannelID:    dbChannel.ID,
 					ThumbnailURL: r.Resolver.computeStreamThumbnailUrl(dbChannel.Name),
+				}
+
+				omeStreamInfo, err := r.omeApi.GetStream(ctx, dbChannel.Name)
+				if err != nil {
+					if !errors.Is(err, ome_api.ErrNotFound) {
+						r.logger.Sugar().Error(err)
+						time.Sleep(1 * time.Second)
+						continue
+					}
+				} else {
+					streamInfo.StartedAt = omeStreamInfo.CreatedTime
 				}
 
 				channel <- streamInfo
