@@ -31,7 +31,12 @@ function onProviderChange(event: MediaProviderChangeEvent) {
   if (isHLSProvider(provider)) {
     provider.library = () => import('hls.js')
     provider.config = {
-      maxLiveSyncPlaybackRate: 1.5
+      maxLiveSyncPlaybackRate: 1.5,
+      // hls.js starts auto quality from a bandwidth estimate capped at 5 Mbps
+      // (abrEwmaDefaultEstimateMax), so it picks 720p even when the viewer can
+      // handle the source rendition. Assume the top of the ladder is playable
+      // and let ABR drop the level if the measured bandwidth can't keep up.
+      abrEwmaDefaultEstimate: Number.POSITIVE_INFINITY
     }
   }
 }
