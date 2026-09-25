@@ -298,6 +298,7 @@ export const useChat = createGlobalState(() => {
   });
 
   return {
+    channelName,
     messages,
     useSendMessage,
     emotes,
