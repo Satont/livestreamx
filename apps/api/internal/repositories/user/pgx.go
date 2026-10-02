@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -360,6 +361,39 @@ func (c *Pgx) FindByName(ctx context.Context, name string) (*User, error) {
 }
 
 func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
+	for try := 0; try < maxNicknameTries; try++ {
+		name, displayName, err := c.pickFreeNickname(ctx, opts.Name, opts.DisplayName, try)
+		if err != nil {
+			return nil, err
+		}
+
+		user, err := c.insertUser(ctx, opts, name, displayName)
+		if err == nil {
+			return user, nil
+		}
+
+		// The nickname could be taken by a concurrent login between the check
+		// and the insert. Pick the next free one and try again.
+		switch uniqueViolationConstraint(err) {
+		case "users_name_unique_idx", "users_display_name_unique_idx":
+			continue
+		default:
+			return nil, err
+		}
+	}
+
+	return nil, fmt.Errorf(
+		"could not create user: could not find a free nickname for %q",
+		opts.Name,
+	)
+}
+
+func (c *Pgx) insertUser(
+	ctx context.Context,
+	opts CreateOpts,
+	name string,
+	displayName string,
+) (*User, error) {
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Insert("users").
 		Columns(
@@ -369,8 +403,8 @@ func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 			"color",
 		).
 		Values(
-			opts.Name,
-			opts.DisplayName,
+			name,
+			displayName,
 			opts.AvatarUrl,
 			opts.Color,
 		).
@@ -385,11 +419,7 @@ func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 		return nil, err
 	}
 	defer func() {
-		if err != nil {
-			tx.Rollback(ctx)
-		} else {
-			tx.Commit(ctx)
-		}
+		_ = tx.Rollback(ctx)
 	}()
 
 	user := &User{}
@@ -446,6 +476,10 @@ func (c *Pgx) Create(ctx context.Context, opts CreateOpts) (*User, error) {
 		&provider.Email,
 	)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
