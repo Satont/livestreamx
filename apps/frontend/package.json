@@ -26,7 +26,7 @@
     "date-fns": "3.6.0",
     "graphql": "16.9.0",
     "graphql-ws": "5.16.0",
-    "hls.js": "1.5.13",
+    "hls.js": "1.6.19",
     "nuxt": "^3.12.4",
     "radix-vue": "1.9.2",
     "tailwind-variants": "0.2.1",

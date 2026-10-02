@@ -14,7 +14,7 @@
         "date-fns": "3.6.0",
         "graphql": "16.9.0",
         "graphql-ws": "5.16.0",
-        "hls.js": "1.5.13",
+        "hls.js": "1.6.19",
         "nuxt": "^3.12.4",
         "radix-vue": "1.9.2",
         "tailwind-variants": "0.2.1",
@@ -1225,7 +1225,7 @@
 
     "header-case": ["header-case@2.0.4", "", { "dependencies": { "capital-case": "^1.0.4", "tslib": "^2.0.3" } }, "sha512-H/vuk5TEEVZwrR0lp2zed9OCo1uAILMlx0JEMgC26rzyJJ3N1v6XkwHHXJQdR2doSjcGPM6OKPYoJgf0plJ11Q=="],
 
-    "hls.js": ["hls.js@1.5.13", "", {}, "sha512-xRgKo84nsC7clEvSfIdgn/Tc0NOT+d7vdiL/wvkLO+0k0juc26NRBPPG1SfB8pd5bHXIjMW/F5VM8VYYkOYYdw=="],
+    "hls.js": ["hls.js@1.6.19", "", {}, "sha512-A//aZeaAgM5rgUCbTURD4gkfyw5Uag2/4Jky7CfDOukL/DN+P5DjbgK2BYteyP3/KnCkPfkGVkbLxQG2T0AbUQ=="],
 
     "hookable": ["hookable@5.5.3", "", {}, "sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ=="],
 

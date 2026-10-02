@@ -80,6 +80,40 @@ Since the source rendition is a passthrough, HDR/HEVC streams keep their origina
 video track and can be played by browsers with HEVC support (Safari, Chromium with
 hardware decoding). The transcoded renditions are always H.264.
 
+### Live latency
+
+The player runs hls.js in LL-HLS mode (`stream-type="ll-live"`) with a bounded
+latency policy defined in `apps/frontend/app/utils/live-edge-sync.ts`:
+
+* target latency is 3s behind the live edge (`liveSyncDuration`), with a smooth
+  catch-up of up to 1.15x playback rate;
+* falling further than 8s behind triggers an hls.js hard seek
+  (`liveMaxLatencyDuration`);
+* buffer stalls no longer raise the target latency
+  (`liveSyncOnStallIncrease: 0`), which used to leave the player permanently
+  behind;
+* resuming from a pause, returning to the tab, bfcache restore and network
+  recovery seek back to the live edge; a user paused player is never resumed
+  automatically.
+
+To inspect playback state while watching, run this in the browser console:
+
+```js
+const player = document.querySelector('media-player')
+const hls = player?.provider?.instance
+console.table({
+  lowLatencyMode: hls?.config?.lowLatencyMode,
+  latency: hls?.latency,
+  targetLatency: hls?.targetLatency,
+  maxLatency: hls?.maxLatency,
+  liveSyncPosition: hls?.liveSyncPosition,
+  currentTime: hls?.media?.currentTime
+})
+```
+
+`latency` should stay close to `targetLatency` without a growing trend, and
+`targetLatency` should not step up after buffering.
+
 ### Ports (development)
 
 | Service | Address |
