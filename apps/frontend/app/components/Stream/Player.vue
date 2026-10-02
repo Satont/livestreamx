@@ -3,18 +3,23 @@ import 'vidstack/bundle'
 
 import { isHLSProvider } from 'vidstack'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import type { MediaPlayerElement, MediaProviderChangeEvent, VideoQuality } from 'vidstack'
+import type { MediaProviderChangeEvent, VideoQuality } from 'vidstack'
+import type { MediaPlayerElement } from 'vidstack/elements'
 
 import { useChat } from '~/api/chat.js'
 import { useStream } from '~/api/stream.js'
+import { useLiveStreamSync } from '~/composables/use-live-stream-sync'
+import { HLS_LIVE_CONFIG } from '~/utils/live-edge-sync'
 
 const { channelData } = useChat()
 const { data: streamData } = useStream().useStreamState()
 
 const player = ref<MediaPlayerElement | null>(null)
 
+const liveSync = useLiveStreamSync(player)
+
 // dev runs the player against the local ome instance directly,
-// production goes through caddy: /mtx/* -> ome:3333
+// production goes through traefik: /mtx/* -> ome:3333
 const streamingServiceAddr = import.meta.env.DEV
   ? 'http://127.0.0.1:3334'
   : `${window.location.origin}/mtx`
@@ -31,7 +36,7 @@ function onProviderChange(event: MediaProviderChangeEvent) {
   if (isHLSProvider(provider)) {
     provider.library = () => import('hls.js')
     provider.config = {
-      maxLiveSyncPlaybackRate: 1.5,
+      ...HLS_LIVE_CONFIG,
       // hls.js starts auto quality from a bandwidth estimate capped at 5 Mbps
       // (abrEwmaDefaultEstimateMax), so it picks 720p even when the viewer can
       // handle the source rendition. Assume the top of the ladder is playable
@@ -39,48 +44,11 @@ function onProviderChange(event: MediaProviderChangeEvent) {
       abrEwmaDefaultEstimate: Number.POSITIVE_INFINITY
     }
   }
+  liveSync.attachProvider(provider)
 }
 
-// after a pause we always want to be live again, otherwise the user keeps
-// watching with a delay equal to the pause duration
-const LIVE_EDGE_RESUME_THRESHOLD_MS = 1000
-
-let pausedAt: number | null = null
-
-function onPlayerPause() {
-  pausedAt = Date.now()
-}
-
-function onPlayerPlay() {
-  const pausedFor = pausedAt === null ? 0 : Date.now() - pausedAt
-  pausedAt = null
-
-  if (pausedFor < LIVE_EDGE_RESUME_THRESHOLD_MS) {
-    return
-  }
-
-  seekToLiveEdge()
-}
-
-// `player.seekToLiveEdge()` is a no-op for live streams without a dvr window,
-// which is how we play ome ll-hls here, so ask hls.js where live is right now.
-// it keeps `liveSyncPosition` fresh while paused because it continues to
-// refresh the playlist in the background.
-function seekToLiveEdge() {
-  const el = player.value
-  const provider = el?.provider
-
-  if (provider && isHLSProvider(provider)) {
-    const hls = provider.instance
-    const position = hls?.liveSyncPosition
-    if (hls?.media && position != null && Number.isFinite(position)) {
-      hls.media.currentTime = position
-      return
-    }
-  }
-
-  el?.seekToLiveEdge()
-}
+// a new source is a new timeline: drop pending corrections and pause state
+watch(src, () => liveSync.reset())
 
 const qualities = ref<VideoQuality[]>([])
 const selectedQuality = ref<VideoQuality | null>(null)
@@ -186,11 +154,11 @@ onBeforeUnmount(() => {
     logLevel="debug"
     :controls="false"
     :live-edge-tolerance="4"
-    streamType="live"
+    streamType="ll-live"
     viewType="video"
     :loop="false"
-    @pause="onPlayerPause"
-    @play="onPlayerPlay"
+    @pause="liveSync.onPause"
+    @play="liveSync.onPlay"
     @provider-change="onProviderChange"
   >
     <media-provider />

@@ -43,7 +43,7 @@ services:
       - "traefik.docker.network=traefik-public"
       - "traefik.http.routers.streamx.rule=Host(`${DOMAIN:-streamx.satont.dev}`)"
       - "traefik.http.routers.streamx.entrypoints=websecure"
-      - "traefik.http.routers.streamx.priority=1"
+      - "traefik.http.routers.streamx.priority=2"
       - "traefik.http.routers.streamx.service=streamx-frontend"
       - "traefik.http.routers.streamx.tls.certresolver=le"
       - "traefik.http.services.streamx-frontend.loadbalancer.server.port=8080"
