@@ -13,11 +13,11 @@ import { reverseStreamChatDirection } from '~/composables/reverse-stream-chat-di
         'xl:flex-row-reverse': reverseStreamChatDirection
       }"
     >
-      <main class="shrink-0 overflow-y-auto w-full xl:h-full xl:min-w-0 xl:flex-1 xl:shrink">
-        <Player class="w-full xl:max-h-full" />
+      <main class="h-[40dvh] xl:h-full xl:flex-1 overflow-y-hidden w-full">
+        <Player class="w-full h-full" />
       </main>
 
-      <aside class="min-h-0 flex-1 w-full xl:h-full xl:w-96 xl:flex-none">
+      <aside class="h-[60dvh] w-full xl:h-full xl:w-96">
         <Chat />
       </aside>
     </div>
