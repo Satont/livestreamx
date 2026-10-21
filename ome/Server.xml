@@ -28,6 +28,11 @@
 		<P2P>
 			<Enable>false</Enable>
 		</P2P>
+
+		<!-- Enhanced RTMP: HEVC/AV1 ingest from OBS. Disabled by default in OME. -->
+		<ERTMP>
+			<Enable>true</Enable>
+		</ERTMP>
 	</Modules>
 
 	<Bind>
