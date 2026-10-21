@@ -102,10 +102,9 @@ latency policy defined in `apps/frontend/app/utils/live-edge-sync.ts`:
   recovery seek back to the live edge; a user paused player is never resumed
   automatically.
 
-The current quality and latency are shown under the player. The activity button
-in the top right corner of the player toggles the "Video stats" overlay with
-latency, buffer, rendition, bitrate, bandwidth estimate, dropped frames and
-codecs; it stays available in fullscreen.
+The activity button next to the settings (gear) button in the player controls
+toggles the "Video stats" overlay with latency, quality, buffer, bitrate,
+bandwidth estimate, dropped frames and codecs; it stays available in fullscreen.
 
 To inspect playback state while watching, run this in the browser console:
 

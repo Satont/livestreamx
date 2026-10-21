@@ -31,6 +31,28 @@ const isStatsOpen = useLocalStorage('streamx-player-video-stats', false, {
   initOnMounted: true
 })
 
+// the default layout has no slots for extra buttons, so the stats toggle is
+// teleported into a host that is kept right before the settings (gear) menu.
+// vidstack re-renders the controls when the layout changes, which drops
+// foreign nodes: a mutation observer puts the host back.
+const statsButtonHost = document.createElement('div')
+statsButtonHost.style.display = 'contents'
+
+function placeStatsButton() {
+  const settingsMenu = player.value?.querySelector(
+    'media-video-layout .vds-settings-menu'
+  )
+  if (!settingsMenu) {
+    statsButtonHost.remove()
+    return
+  }
+  if (settingsMenu.previousElementSibling !== statsButtonHost) {
+    settingsMenu.before(statsButtonHost)
+  }
+}
+
+const controlsObserver = new MutationObserver(placeStatsButton)
+
 // dev runs the player against the local ome instance directly,
 // production goes through traefik: /mtx/* -> ome:3333
 const streamingServiceAddr = import.meta.env.DEV
@@ -163,16 +185,21 @@ function detachQualityListeners(el: MediaPlayerElement) {
 }
 
 watch(player, (el, prevEl) => {
+  controlsObserver.disconnect()
   if (prevEl) {
     detachQualityListeners(prevEl)
   }
   if (el) {
     attachQualityListeners(el)
     syncQualityState()
+    controlsObserver.observe(el, { childList: true, subtree: true })
   }
+  placeStatsButton()
 })
 
 onBeforeUnmount(() => {
+  controlsObserver.disconnect()
+  statsButtonHost.remove()
   if (player.value) {
     detachQualityListeners(player.value)
   }
@@ -180,186 +207,162 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-col">
+  <div
+    v-if="!streamData?.streamInfo?.startedAt"
+    class="flex items-center justify-center w-full h-full"
+  >
+    <div class="text-center">
+      <div class="text-2xl font-bold text-accent-foreground">
+        Stream is offline
+      </div>
+    </div>
+  </div>
+
+  <media-player
+    ref="player"
+    v-else-if="src"
+    :src="src"
+    class="overflow-hidden h-full w-full"
+    storage="streamx-player-v3"
+    :title="channelData?.fetchUserByName.name"
+    playsInline
+    autoPlay
+    logLevel="debug"
+    :controls="false"
+    :live-edge-tolerance="4"
+    streamType="ll-live"
+    viewType="video"
+    :loop="false"
+    @pause="liveSync.onPause"
+    @play="liveSync.onPlay"
+    @provider-change="onProviderChange"
+  >
+    <media-provider />
+    <media-video-layout />
+
+    <Teleport :to="statsButtonHost">
+      <button
+        type="button"
+        class="vds-button"
+        :class="{ 'text-primary': isStatsOpen }"
+        :aria-pressed="isStatsOpen"
+        aria-label="Video stats"
+        title="Video stats"
+        @click="isStatsOpen = !isStatsOpen"
+      >
+        <Icon
+          name="lucide:activity"
+          class="vds-icon size-6"
+        />
+      </button>
+    </Teleport>
+
     <div
-      class="relative aspect-video max-h-[60dvh] min-h-0 w-full shrink bg-black xl:max-h-none"
+      v-if="isStatsOpen"
+      class="absolute left-2 top-2 z-20 max-h-[calc(100%-5rem)] max-w-[calc(100%-1rem)] overflow-auto rounded-md bg-black/80 text-xs text-white shadow-lg backdrop-blur"
+      @click.stop
+      @pointerdown.stop
+      @dblclick.stop
     >
       <div
-        v-if="!streamData?.streamInfo?.startedAt"
-        class="flex items-center justify-center w-full h-full"
+        class="flex items-center justify-between gap-4 border-b border-white/10 py-1 pl-3 pr-1"
       >
-        <div class="text-center">
-          <div class="text-2xl font-bold text-accent-foreground">
-            Stream is offline
-          </div>
-        </div>
+        <span class="font-semibold">Video stats</span>
+        <button
+          type="button"
+          class="flex size-6 items-center justify-center rounded transition hover:bg-white/10"
+          aria-label="Close video stats"
+          @click="isStatsOpen = false"
+        >
+          <Icon
+            name="lucide:x"
+            class="size-3.5"
+          />
+        </button>
       </div>
-
-      <media-player
-        ref="player"
-        v-else-if="src"
-        :src="src"
-        class="overflow-hidden h-full w-full"
-        storage="streamx-player-v3"
-        :title="channelData?.fetchUserByName.name"
-        playsInline
-        autoPlay
-        logLevel="debug"
-        :controls="false"
-        :live-edge-tolerance="4"
-        streamType="ll-live"
-        viewType="video"
-        :loop="false"
-        @pause="liveSync.onPause"
-        @play="liveSync.onPlay"
-        @provider-change="onProviderChange"
-      >
-        <media-provider />
-        <media-video-layout />
-
-        <div
-          v-if="isStatsOpen"
-          class="absolute left-2 top-2 z-20 max-h-[calc(100%-5rem)] max-w-[calc(100%-1rem)] overflow-auto rounded-md bg-black/80 text-xs text-white shadow-lg backdrop-blur"
-          @click.stop
-          @pointerdown.stop
-          @dblclick.stop
-        >
-          <div
-            class="flex items-center justify-between gap-4 border-b border-white/10 py-1 pl-3 pr-1"
+      <table class="my-1 tabular-nums">
+        <tbody>
+          <tr
+            v-for="[name, value] of statsRows"
+            :key="name"
           >
-            <span class="font-semibold">Video stats</span>
-            <button
-              type="button"
-              class="flex size-6 items-center justify-center rounded transition hover:bg-white/10"
-              aria-label="Close video stats"
-              @click="isStatsOpen = false"
+            <th
+              scope="row"
+              class="whitespace-nowrap py-0.5 pl-3 pr-4 text-left font-normal text-white/70"
             >
-              <Icon
-                name="lucide:x"
-                class="size-3.5"
-              />
-            </button>
-          </div>
-          <table class="my-1 tabular-nums">
-            <tbody>
-              <tr
-                v-for="[name, value] of statsRows"
-                :key="name"
-              >
-                <th
-                  scope="row"
-                  class="whitespace-nowrap py-0.5 pl-3 pr-4 text-left font-normal text-white/70"
-                >
-                  {{ name }}
-                </th>
-                <td class="whitespace-nowrap py-0.5 pr-3">
-                  {{ value }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              {{ name }}
+            </th>
+            <td class="whitespace-nowrap py-0.5 pr-3">
+              {{ value }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-        <div
-          class="quality-menu absolute right-2 top-2 z-20 flex items-start gap-1"
-          :data-open="isQualityMenuOpen || undefined"
-          @click.stop
-          @pointerdown.stop
-        >
+    <div
+      v-if="qualities.length > 1"
+      class="quality-menu absolute right-2 top-2 z-20"
+      :data-open="isQualityMenuOpen || undefined"
+      @click.stop
+      @pointerdown.stop
+    >
+      <button
+        type="button"
+        class="flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-xs font-medium text-white backdrop-blur transition hover:bg-black/85"
+        @click="isQualityMenuOpen = !isQualityMenuOpen"
+      >
+        <Icon
+          name="lucide:settings-2"
+          class="size-3.5"
+        />
+        {{ currentQualityLabel }}
+      </button>
+
+      <ul
+        v-if="isQualityMenuOpen"
+        class="absolute right-0 top-8 min-w-36 overflow-hidden rounded-md border border-white/10 bg-black/90 py-1 text-xs text-white shadow-lg backdrop-blur"
+      >
+        <li>
           <button
             type="button"
-            class="flex items-center rounded-md bg-black/70 px-1.5 py-1 backdrop-blur transition hover:bg-black/85"
-            :class="isStatsOpen ? 'text-primary' : 'text-white'"
-            :aria-pressed="isStatsOpen"
-            aria-label="Video stats"
-            title="Video stats"
-            @click="isStatsOpen = !isStatsOpen"
+            class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
+            :class="{ 'text-primary': isAutoQuality }"
+            @click="selectAutoQuality"
           >
+            Auto
             <Icon
-              name="lucide:activity"
+              v-if="isAutoQuality"
+              name="lucide:check"
               class="size-3.5"
             />
           </button>
+        </li>
 
-          <div
-            v-if="qualities.length > 1"
-            class="relative"
+        <li
+          v-for="quality of sortedQualities"
+          :key="quality.id"
+        >
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
+            :class="{
+              'text-primary':
+                !isAutoQuality && selectedQuality?.id === quality.id
+            }"
+            @click="selectQuality(quality)"
           >
-            <button
-              type="button"
-              class="flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-xs font-medium text-white backdrop-blur transition hover:bg-black/85"
-              @click="isQualityMenuOpen = !isQualityMenuOpen"
-            >
-              <Icon
-                name="lucide:settings-2"
-                class="size-3.5"
-              />
-              {{ currentQualityLabel }}
-            </button>
-
-            <ul
-              v-if="isQualityMenuOpen"
-              class="absolute right-0 top-8 min-w-36 overflow-hidden rounded-md border border-white/10 bg-black/90 py-1 text-xs text-white shadow-lg backdrop-blur"
-            >
-              <li>
-                <button
-                  type="button"
-                  class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
-                  :class="{ 'text-primary': isAutoQuality }"
-                  @click="selectAutoQuality"
-                >
-                  Auto
-                  <Icon
-                    v-if="isAutoQuality"
-                    name="lucide:check"
-                    class="size-3.5"
-                  />
-                </button>
-              </li>
-
-              <li
-                v-for="quality of sortedQualities"
-                :key="quality.id"
-              >
-                <button
-                  type="button"
-                  class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
-                  :class="{
-                    'text-primary':
-                      !isAutoQuality && selectedQuality?.id === quality.id
-                  }"
-                  @click="selectQuality(quality)"
-                >
-                  {{ qualityLabel(quality) }}
-                  <Icon
-                    v-if="!isAutoQuality && selectedQuality?.id === quality.id"
-                    name="lucide:check"
-                    class="size-3.5"
-                  />
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </media-player>
+            {{ qualityLabel(quality) }}
+            <Icon
+              v-if="!isAutoQuality && selectedQuality?.id === quality.id"
+              name="lucide:check"
+              class="size-3.5"
+            />
+          </button>
+        </li>
+      </ul>
     </div>
-
-    <div
-      v-if="src"
-      class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b-2 border-border px-4 py-2 text-xs text-muted-foreground tabular-nums"
-    >
-      <span>
-        Quality:
-        <span class="text-accent-foreground">{{ qualityStatusLabel }}</span>
-      </span>
-      <span>
-        Latency:
-        <span class="text-accent-foreground">{{
-          formatSeconds(stats.latency, 1)
-        }}</span>
-      </span>
-    </div>
-  </div>
+  </media-player>
 </template>
 
 <style scoped>
