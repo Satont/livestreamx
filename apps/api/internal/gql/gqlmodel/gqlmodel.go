@@ -115,14 +115,16 @@ func (this BaseUser) GetAvatarURL() string    { return this.AvatarURL }
 func (this BaseUser) GetIsAdmin() bool        { return this.IsAdmin }
 
 type ChatMessage struct {
-	ID        string                `json:"id"`
-	ChannelID uuid.UUID             `json:"channelId"`
-	Segments  []MessageSegment      `json:"segments"`
-	SenderID  uuid.UUID             `json:"senderId"`
-	Sender    *ChatUser             `json:"sender"`
-	CreatedAt time.Time             `json:"createdAt"`
-	Reactions []ChatMessageReaction `json:"reactions"`
-	ReplyTo   *uuid.UUID            `json:"replyTo,omitempty"`
+	ID        string           `json:"id"`
+	ChannelID uuid.UUID        `json:"channelId"`
+	Segments  []MessageSegment `json:"segments"`
+	SenderID  uuid.UUID        `json:"senderId"`
+	// Sender's nickname color at the moment the message was sent.
+	SenderColor string                `json:"senderColor"`
+	Sender      *ChatUser             `json:"sender"`
+	CreatedAt   time.Time             `json:"createdAt"`
+	Reactions   []ChatMessageReaction `json:"reactions"`
+	ReplyTo     *uuid.UUID            `json:"replyTo,omitempty"`
 }
 
 type ChatMessageReactionEmoji struct {

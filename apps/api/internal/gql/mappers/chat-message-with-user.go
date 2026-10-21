@@ -93,12 +93,13 @@ func (c *Mapper) ChatMessageWithUser(
 	}
 
 	return gqlmodel.ChatMessage{
-		ID:        m.ID.String(),
-		ChannelID: m.ChannelID,
-		SenderID:  m.SenderID,
-		Segments:  segments,
-		CreatedAt: m.CreatedAt,
-		Reactions: reactions,
-		ReplyTo:   m.ReplyTo,
+		ID:          m.ID.String(),
+		ChannelID:   m.ChannelID,
+		SenderID:    m.SenderID,
+		SenderColor: m.SenderColor,
+		Segments:    segments,
+		CreatedAt:   m.CreatedAt,
+		Reactions:   reactions,
+		ReplyTo:     m.ReplyTo,
 	}
 }

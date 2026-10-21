@@ -103,14 +103,15 @@ type ComplexityRoot struct {
 	}
 
 	ChatMessage struct {
-		ChannelID func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Reactions func(childComplexity int) int
-		ReplyTo   func(childComplexity int) int
-		Segments  func(childComplexity int) int
-		Sender    func(childComplexity int) int
-		SenderID  func(childComplexity int) int
+		ChannelID   func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Reactions   func(childComplexity int) int
+		ReplyTo     func(childComplexity int) int
+		Segments    func(childComplexity int) int
+		Sender      func(childComplexity int) int
+		SenderColor func(childComplexity int) int
+		SenderID    func(childComplexity int) int
 	}
 
 	ChatMessageReactionEmoji struct {
@@ -601,6 +602,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatMessage.Sender(childComplexity), true
+
+	case "ChatMessage.senderColor":
+		if e.complexity.ChatMessage.SenderColor == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.SenderColor(childComplexity), true
 
 	case "ChatMessage.senderId":
 		if e.complexity.ChatMessage.SenderID == nil {
@@ -1561,6 +1569,8 @@ type ChatMessage {
     channelId: UUID!
     segments: [MessageSegment!]!
     senderId: UUID!
+    """Sender's nickname color at the moment the message was sent."""
+    senderColor: String!
     sender: ChatUser! @goField(forceResolver: true)
     createdAt: Time!
     reactions: [ChatMessageReaction!]!
@@ -3756,6 +3766,50 @@ func (ec *executionContext) fieldContext_ChatMessage_senderId(_ context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type UUID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessage_senderColor(ctx context.Context, field graphql.CollectedField, obj *gqlmodel.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_senderColor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SenderColor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_senderColor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6925,6 +6979,8 @@ func (ec *executionContext) fieldContext_Query_chatMessagesLatest(ctx context.Co
 				return ec.fieldContext_ChatMessage_segments(ctx, field)
 			case "senderId":
 				return ec.fieldContext_ChatMessage_senderId(ctx, field)
+			case "senderColor":
+				return ec.fieldContext_ChatMessage_senderColor(ctx, field)
 			case "sender":
 				return ec.fieldContext_ChatMessage_sender(ctx, field)
 			case "createdAt":
@@ -8042,6 +8098,8 @@ func (ec *executionContext) fieldContext_Subscription_chatMessages(ctx context.C
 				return ec.fieldContext_ChatMessage_segments(ctx, field)
 			case "senderId":
 				return ec.fieldContext_ChatMessage_senderId(ctx, field)
+			case "senderColor":
+				return ec.fieldContext_ChatMessage_senderColor(ctx, field)
 			case "sender":
 				return ec.fieldContext_ChatMessage_sender(ctx, field)
 			case "createdAt":
@@ -11811,6 +11869,11 @@ func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionS
 			}
 		case "senderId":
 			out.Values[i] = ec._ChatMessage_senderId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "senderColor":
+			out.Values[i] = ec._ChatMessage_senderColor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

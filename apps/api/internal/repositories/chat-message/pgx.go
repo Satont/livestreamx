@@ -40,6 +40,7 @@ type tempMessageReaction struct {
 var selectColumns = []string{
 	"cm.id",
 	"cm.sender_id",
+	"cm.sender_color",
 	"cm.text",
 	"cm.created_at",
 	"cm.reply_to",
@@ -76,6 +77,7 @@ func (c *ChatMessagePgx) FindByID(ctx context.Context, id uuid.UUID) (*Message, 
 		err = rows.Scan(
 			&row.ID,
 			&row.SenderID,
+			&row.SenderColor,
 			&row.Text,
 			&row.CreatedAt,
 			&row.ReplyTo,
@@ -116,8 +118,8 @@ func (c *ChatMessagePgx) FindByID(ctx context.Context, id uuid.UUID) (*Message, 
 func (c *ChatMessagePgx) Create(ctx context.Context, opts CreateChatMessageOpts) (*Message, error) {
 	query, args, err := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).
 		Insert("chat_messages").
-		Columns("sender_id", "text", "reply_to", "channel_id").
-		Values(opts.SenderID, opts.Text, opts.ReplyTo, opts.ChannelID).
+		Columns("sender_id", "sender_color", "text", "reply_to", "channel_id").
+		Values(opts.SenderID, opts.SenderColor, opts.Text, opts.ReplyTo, opts.ChannelID).
 		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
@@ -170,6 +172,7 @@ func (c *ChatMessagePgx) FindLatest(ctx context.Context, opts FindLatestOpts) ([
 		err = rows.Scan(
 			&message.ID,
 			&message.SenderID,
+			&message.SenderColor,
 			&message.Text,
 			&message.CreatedAt,
 			&message.ReplyTo,

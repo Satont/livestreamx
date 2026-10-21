@@ -13,10 +13,11 @@ type Repository interface {
 }
 
 type CreateChatMessageOpts struct {
-	ChannelID uuid.UUID
-	SenderID  uuid.UUID
-	Text      string
-	ReplyTo   *uuid.UUID
+	ChannelID   uuid.UUID
+	SenderID    uuid.UUID
+	SenderColor string
+	Text        string
+	ReplyTo     *uuid.UUID
 }
 
 type FindLatestOpts struct {
