@@ -80,13 +80,20 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input gqlmodel.SendM
 		return false, nil
 	}
 
+	senderID := uuid.MustParse(userId)
+	sender, err := r.userRepo.FindByID(ctx, senderID)
+	if err != nil {
+		return false, fmt.Errorf("failed to find sender: %w", err)
+	}
+
 	message, err := r.chatMessageRepo.Create(
 		ctx,
 		chat_message.CreateChatMessageOpts{
-			SenderID:  uuid.MustParse(userId),
-			ChannelID: input.ChannelID,
-			Text:      text,
-			ReplyTo:   input.ReplyTo.Value(),
+			SenderID:    senderID,
+			SenderColor: sender.Color,
+			ChannelID:   input.ChannelID,
+			Text:        text,
+			ReplyTo:     input.ReplyTo.Value(),
 		},
 	)
 	if err != nil {

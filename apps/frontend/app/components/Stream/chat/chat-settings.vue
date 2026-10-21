@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { ChatMessage_Fragment, useChat } from '@/api/chat.js'
 import { useProfile } from '@/api/profile.js'
 import { chatFontSize } from '@/composables/chat-font-size.js'
 import { reverseStreamChatDirection } from '@/composables/reverse-stream-chat-direction.js'
 import { showAvatars } from '@/composables/show-avatars.js'
 import { showTimestamps } from '@/composables/show-timestamps.js'
 import { useShowReactionsOnMessage } from '@/composables/use-show-reactions-on-message.js'
-import { useFragment } from '@/gql'
 
 const fontSize = computed({
   get() {
@@ -27,8 +25,6 @@ const { data: profile, executeQuery: refetchProfile } = useData()
 const updateUser = useUpdateMutation()
 const { showReactionsOnMessage } = useShowReactionsOnMessage()
 
-const { messages } = useChat()
-
 async function handleColorChange(e: Event) {
   const newValue = (e.target as HTMLInputElement).value
 
@@ -38,12 +34,6 @@ async function handleColorChange(e: Event) {
     }
   })
   await refetchProfile({ requestPolicy: 'network-only' })
-
-  // update colors in chat for that user
-  for (const message of messages.value) {
-    const msgFragment = useFragment(ChatMessage_Fragment, message)
-    msgFragment.sender.color = newValue
-  }
 
   useToast().toast({
     title: 'Color updated',

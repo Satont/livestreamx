@@ -23,10 +23,10 @@ export const ChatMessage_Fragment = graphql(`
         }
       }
     }
+    senderColor
     sender {
       id
       avatarUrl
-      color
       createdAt
       name
       displayName

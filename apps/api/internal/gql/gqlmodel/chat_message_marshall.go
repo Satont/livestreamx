@@ -57,6 +57,9 @@ func (cm *ChatMessage) UnmarshalJSON(data []byte) error {
 	senderID, _ := uuid.Parse(raw["senderId"].(string))
 	cm.SenderID = senderID
 
+	senderColor, _ := raw["senderColor"].(string)
+	cm.SenderColor = senderColor
+
 	senderData, _ := json.Marshal(raw["sender"])
 	var sender ChatUser
 	if err := json.Unmarshal(senderData, &sender); err != nil {

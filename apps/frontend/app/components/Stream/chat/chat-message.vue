@@ -102,7 +102,7 @@ const repliedMessage = computed(() => {
         </span>
         <span
           class="font-bold cursor-pointer"
-          :style="{ color: correctColor(unwrappedMessage.sender.color) }"
+          :style="{ color: correctColor(unwrappedMessage.senderColor) }"
           @click="setMentionNickName(unwrappedMessage.sender.displayName)"
         >
           {{ unwrappedMessage.sender.displayName }}

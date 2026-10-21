@@ -32,6 +32,8 @@ type ChatMessage {
     channelId: UUID!
     segments: [MessageSegment!]!
     senderId: UUID!
+    """Sender's nickname color at the moment the message was sent."""
+    senderColor: String!
     sender: ChatUser! @goField(forceResolver: true)
     createdAt: Time!
     reactions: [ChatMessageReaction!]!

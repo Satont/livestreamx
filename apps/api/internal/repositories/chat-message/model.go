@@ -8,12 +8,13 @@ import (
 )
 
 type Message struct {
-	ID        uuid.UUID
-	ChannelID uuid.UUID
-	SenderID  uuid.UUID
-	Text      string
-	CreatedAt time.Time
-	ReplyTo   *uuid.UUID
+	ID          uuid.UUID
+	ChannelID   uuid.UUID
+	SenderID    uuid.UUID
+	SenderColor string
+	Text        string
+	CreatedAt   time.Time
+	ReplyTo     *uuid.UUID
 
 	Reactions []message_reaction.MessageReaction
 }
