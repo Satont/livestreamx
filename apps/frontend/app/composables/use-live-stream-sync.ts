@@ -22,7 +22,9 @@ type Timer = ReturnType<typeof setTimeout>
  * hls.js bounds latency on its own through the config applied in `Player.vue`,
  * this composable adds the event driven corrections:
  *
- * - resuming from a pause seeks back to the live edge;
+ * - pausing stops hls.js loading, so a paused player doesn't keep polling the
+ *   live playlist and fetching parts; resuming restarts loading and seeks to
+ *   the live edge of the fresh playlist;
  * - returning to the tab, bfcache restore and network recovery re-check drift;
  * - pending corrections are retried on fresh playlists/media events;
  * - fatal network errors restart hls.js loading with a capped backoff.
@@ -38,6 +40,10 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
   let networkRestartTimer: Timer | null = null
   let networkRestartAttempts = 0
   let loadingStopped = false
+  // loading was stopped because the user paused playback
+  let loadingPaused = false
+  // the playlist went stale during a pause: hold corrections until a fresh one
+  let awaitingFreshPlaylist = false
 
   function getMediaElement(): HTMLMediaElement | null {
     const element = player.value
@@ -58,7 +64,7 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
     }
     const provider = element.provider
     if (provider && isHLSProvider(provider)) {
-      return resolveHlsLiveEdge(provider.instance)
+      return awaitingFreshPlaylist ? null : resolveHlsLiveEdge(provider.instance)
     }
     return resolveNativeLiveEdge(getMediaElement(), NATIVE_LIVE_EDGE_OFFSET)
   }
@@ -97,7 +103,7 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
   }
 
   function restartHlsLoading() {
-    if (!hls || !loadingStopped) {
+    if (!hls || !loadingStopped || loadingPaused) {
       return
     }
     hls.startLoad()
@@ -126,6 +132,8 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
     disposeHlsListeners?.()
     disposeHlsListeners = null
     hls = instance
+    loadingPaused = false
+    awaitingFreshPlaylist = false
 
     const onError = (_event: string, data: ErrorData) => {
       if (!data.fatal || data.type !== ctor.ErrorTypes.NETWORK_ERROR) {
@@ -136,6 +144,7 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
     }
     const onLevelLoaded = () => {
       loadingStopped = false
+      awaitingFreshPlaylist = false
       networkRestartAttempts = 0
       controller.retry()
     }
@@ -170,6 +179,8 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
     media = null
     hls = null
     loadingStopped = false
+    loadingPaused = false
+    awaitingFreshPlaylist = false
     networkRestartAttempts = 0
   }
 
@@ -201,8 +212,27 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
   function reset() {
     controller.reset()
     loadingStopped = false
+    loadingPaused = false
+    awaitingFreshPlaylist = false
     networkRestartAttempts = 0
     clearNetworkRestartTimer()
+  }
+
+  function onPause() {
+    controller.pause()
+    if (hls?.loadingEnabled) {
+      hls.stopLoad()
+      loadingPaused = true
+    }
+  }
+
+  function onPlay() {
+    if (hls && loadingPaused) {
+      loadingPaused = false
+      awaitingFreshPlaylist = true
+      hls.startLoad()
+    }
+    controller.play()
   }
 
   function onVisibilityChange() {
@@ -250,7 +280,7 @@ export function useLiveStreamSync(player: Ref<MediaPlayerElement | null>) {
   return {
     attachProvider,
     reset,
-    onPause: () => controller.pause(),
-    onPlay: () => controller.play()
+    onPause,
+    onPlay
   }
 }

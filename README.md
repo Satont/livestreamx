@@ -95,9 +95,17 @@ latency policy defined in `apps/frontend/app/utils/live-edge-sync.ts`:
 * buffer stalls no longer raise the target latency
   (`liveSyncOnStallIncrease: 0`), which used to leave the player permanently
   behind;
+* pausing stops hls.js loading, so a paused player doesn't keep fetching the
+  live playlist and parts; resuming restarts loading and jumps to the live edge
+  of the fresh playlist;
 * resuming from a pause, returning to the tab, bfcache restore and network
   recovery seek back to the live edge; a user paused player is never resumed
   automatically.
+
+The current quality and latency are shown under the player. The activity button
+in the top right corner of the player toggles the "Video stats" overlay with
+latency, buffer, rendition, bitrate, bandwidth estimate, dropped frames and
+codecs; it stays available in fullscreen.
 
 To inspect playback state while watching, run this in the browser console:
 
