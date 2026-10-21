@@ -76,9 +76,12 @@ Streams are publicly readable; publishing is authorized by the API through
 OvenMediaEngine [AdmissionWebhooks](https://docs.ovenmediaengine.com/access-control/admission-webhooks)
 (`POST /streams/auth`), which validates the stream key and the channel name.
 
-Since the source rendition is a passthrough, HDR/HEVC streams keep their original
-video track and can be played by browsers with HEVC support (Safari, Chromium with
-hardware decoding). The transcoded renditions are always H.264.
+HEVC and AV1 are ingested over Enhanced RTMP (`<ERTMP>` in `ome/Server.xml`, an
+experimental OME module that is off by default). In OBS, pick an HEVC or AV1 encoder
+and keep the same `rtmp://` server URL. Since the source rendition is a passthrough,
+these streams keep their original video track and play only in browsers that can
+decode it. The transcoded renditions are always H.264, so other viewers can switch to
+them.
 
 ### Live latency
 
