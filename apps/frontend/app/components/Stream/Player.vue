@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import 'vidstack/bundle'
 
+import { useLocalStorage } from '@vueuse/core'
 import { isHLSProvider } from 'vidstack'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { MediaProviderChangeEvent, VideoQuality } from 'vidstack'
@@ -9,7 +10,14 @@ import type { MediaPlayerElement } from 'vidstack/elements'
 import { useChat } from '~/api/chat.js'
 import { useStream } from '~/api/stream.js'
 import { useLiveStreamSync } from '~/composables/use-live-stream-sync'
+import { usePlayerStats } from '~/composables/use-player-stats'
 import { HLS_LIVE_CONFIG } from '~/utils/live-edge-sync'
+import {
+  formatBitrate,
+  formatRendition,
+  formatSeconds,
+  formatSize
+} from '~/utils/player-stats'
 
 const { channelData } = useChat()
 const { data: streamData } = useStream().useStreamState()
@@ -17,6 +25,11 @@ const { data: streamData } = useStream().useStreamState()
 const player = ref<MediaPlayerElement | null>(null)
 
 const liveSync = useLiveStreamSync(player)
+const stats = usePlayerStats(player)
+
+const isStatsOpen = useLocalStorage('streamx-player-video-stats', false, {
+  initOnMounted: true
+})
 
 // dev runs the player against the local ome instance directly,
 // production goes through traefik: /mtx/* -> ome:3333
@@ -68,6 +81,43 @@ const currentQualityLabel = computed(() => {
   return qualityLabel(selectedQuality.value).split(' · ')[0]
 })
 
+const playingRendition = computed(() =>
+  formatRendition(stats.value.levelHeight, stats.value.levelFrameRate)
+)
+
+const qualityStatusLabel = computed(() => {
+  if (isAutoQuality.value || !selectedQuality.value) {
+    return playingRendition.value ? `Auto · ${playingRendition.value}` : 'Auto'
+  }
+  return playingRendition.value ?? currentQualityLabel.value
+})
+
+const statsRows = computed(() => {
+  const value = stats.value
+  return [
+    ['Latency to broadcaster', formatSeconds(value.latency)],
+    ['Target latency', formatSeconds(value.targetLatency)],
+    ['Buffer size', formatSeconds(value.buffer)],
+    [
+      'Playback rate',
+      value.playbackRate === null ? '—' : `${value.playbackRate.toFixed(2)}×`
+    ],
+    ['Quality', qualityStatusLabel.value],
+    ['Video resolution', formatSize(value.videoSize)],
+    ['Viewport', formatSize(value.viewportSize)],
+    ['Rendition bitrate', formatBitrate(value.levelBitrate)],
+    ['Bandwidth estimate', formatBitrate(value.bandwidthEstimate)],
+    [
+      'Dropped frames',
+      value.droppedFrames === null
+        ? '—'
+        : `${value.droppedFrames} / ${value.totalFrames ?? 0}`
+    ],
+    ['Codecs', value.codecs ?? '—'],
+    ['Protocol', value.protocol ?? '—']
+  ] as const
+})
+
 function qualityLabel(quality: VideoQuality) {
   const height = quality.height ? `${quality.height}p` : 'Source'
   const bitrate = quality.bitrate
@@ -113,7 +163,6 @@ function detachQualityListeners(el: MediaPlayerElement) {
 }
 
 watch(player, (el, prevEl) => {
-  pausedAt = null
   if (prevEl) {
     detachQualityListeners(prevEl)
   }
@@ -131,99 +180,186 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    v-if="!streamData?.streamInfo?.startedAt"
-    class="flex items-center justify-center w-full h-full"
-  >
-    <div class="text-center">
-      <div class="text-2xl font-bold text-accent-foreground">
-        Stream is offline
-      </div>
-    </div>
-  </div>
-
-  <media-player
-    ref="player"
-    v-else-if="src"
-    :src="src"
-    class="overflow-hidden h-full w-full"
-    storage="streamx-player-v3"
-    :title="channelData?.fetchUserByName.name"
-    playsInline
-    autoPlay
-    logLevel="debug"
-    :controls="false"
-    :live-edge-tolerance="4"
-    streamType="ll-live"
-    viewType="video"
-    :loop="false"
-    @pause="liveSync.onPause"
-    @play="liveSync.onPlay"
-    @provider-change="onProviderChange"
-  >
-    <media-provider />
-    <media-video-layout />
-
+  <div class="flex min-h-0 flex-col">
     <div
-      v-if="qualities.length > 1"
-      class="quality-menu absolute right-2 top-2 z-20"
-      :data-open="isQualityMenuOpen || undefined"
-      @click.stop
-      @pointerdown.stop
+      class="relative aspect-video max-h-[60dvh] min-h-0 w-full shrink bg-black xl:max-h-none"
     >
-      <button
-        type="button"
-        class="flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-xs font-medium text-white backdrop-blur transition hover:bg-black/85"
-        @click="isQualityMenuOpen = !isQualityMenuOpen"
+      <div
+        v-if="!streamData?.streamInfo?.startedAt"
+        class="flex items-center justify-center w-full h-full"
       >
-        <Icon
-          name="lucide:settings-2"
-          class="size-3.5"
-        />
-        {{ currentQualityLabel }}
-      </button>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-accent-foreground">
+            Stream is offline
+          </div>
+        </div>
+      </div>
 
-      <ul
-        v-if="isQualityMenuOpen"
-        class="absolute right-0 top-8 min-w-36 overflow-hidden rounded-md border border-white/10 bg-black/90 py-1 text-xs text-white shadow-lg backdrop-blur"
+      <media-player
+        ref="player"
+        v-else-if="src"
+        :src="src"
+        class="overflow-hidden h-full w-full"
+        storage="streamx-player-v3"
+        :title="channelData?.fetchUserByName.name"
+        playsInline
+        autoPlay
+        logLevel="debug"
+        :controls="false"
+        :live-edge-tolerance="4"
+        streamType="ll-live"
+        viewType="video"
+        :loop="false"
+        @pause="liveSync.onPause"
+        @play="liveSync.onPlay"
+        @provider-change="onProviderChange"
       >
-        <li>
-          <button
-            type="button"
-            class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
-            :class="{ 'text-primary': isAutoQuality }"
-            @click="selectAutoQuality"
+        <media-provider />
+        <media-video-layout />
+
+        <div
+          v-if="isStatsOpen"
+          class="absolute left-2 top-2 z-20 max-h-[calc(100%-5rem)] max-w-[calc(100%-1rem)] overflow-auto rounded-md bg-black/80 text-xs text-white shadow-lg backdrop-blur"
+          @click.stop
+          @pointerdown.stop
+          @dblclick.stop
+        >
+          <div
+            class="flex items-center justify-between gap-4 border-b border-white/10 py-1 pl-3 pr-1"
           >
-            Auto
-            <Icon
-              v-if="isAutoQuality"
-              name="lucide:check"
-              class="size-3.5"
-            />
-          </button>
-        </li>
+            <span class="font-semibold">Video stats</span>
+            <button
+              type="button"
+              class="flex size-6 items-center justify-center rounded transition hover:bg-white/10"
+              aria-label="Close video stats"
+              @click="isStatsOpen = false"
+            >
+              <Icon
+                name="lucide:x"
+                class="size-3.5"
+              />
+            </button>
+          </div>
+          <table class="my-1 tabular-nums">
+            <tbody>
+              <tr
+                v-for="[name, value] of statsRows"
+                :key="name"
+              >
+                <th
+                  scope="row"
+                  class="whitespace-nowrap py-0.5 pl-3 pr-4 text-left font-normal text-white/70"
+                >
+                  {{ name }}
+                </th>
+                <td class="whitespace-nowrap py-0.5 pr-3">
+                  {{ value }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <li
-          v-for="quality of sortedQualities"
-          :key="quality.id"
+        <div
+          class="quality-menu absolute right-2 top-2 z-20 flex items-start gap-1"
+          :data-open="isQualityMenuOpen || undefined"
+          @click.stop
+          @pointerdown.stop
         >
           <button
             type="button"
-            class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
-            :class="{ 'text-primary': !isAutoQuality && selectedQuality?.id === quality.id }"
-            @click="selectQuality(quality)"
+            class="flex items-center rounded-md bg-black/70 px-1.5 py-1 backdrop-blur transition hover:bg-black/85"
+            :class="isStatsOpen ? 'text-primary' : 'text-white'"
+            :aria-pressed="isStatsOpen"
+            aria-label="Video stats"
+            title="Video stats"
+            @click="isStatsOpen = !isStatsOpen"
           >
-            {{ qualityLabel(quality) }}
             <Icon
-              v-if="!isAutoQuality && selectedQuality?.id === quality.id"
-              name="lucide:check"
+              name="lucide:activity"
               class="size-3.5"
             />
           </button>
-        </li>
-      </ul>
+
+          <div
+            v-if="qualities.length > 1"
+            class="relative"
+          >
+            <button
+              type="button"
+              class="flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-xs font-medium text-white backdrop-blur transition hover:bg-black/85"
+              @click="isQualityMenuOpen = !isQualityMenuOpen"
+            >
+              <Icon
+                name="lucide:settings-2"
+                class="size-3.5"
+              />
+              {{ currentQualityLabel }}
+            </button>
+
+            <ul
+              v-if="isQualityMenuOpen"
+              class="absolute right-0 top-8 min-w-36 overflow-hidden rounded-md border border-white/10 bg-black/90 py-1 text-xs text-white shadow-lg backdrop-blur"
+            >
+              <li>
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
+                  :class="{ 'text-primary': isAutoQuality }"
+                  @click="selectAutoQuality"
+                >
+                  Auto
+                  <Icon
+                    v-if="isAutoQuality"
+                    name="lucide:check"
+                    class="size-3.5"
+                  />
+                </button>
+              </li>
+
+              <li
+                v-for="quality of sortedQualities"
+                :key="quality.id"
+              >
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left transition hover:bg-white/10"
+                  :class="{
+                    'text-primary':
+                      !isAutoQuality && selectedQuality?.id === quality.id
+                  }"
+                  @click="selectQuality(quality)"
+                >
+                  {{ qualityLabel(quality) }}
+                  <Icon
+                    v-if="!isAutoQuality && selectedQuality?.id === quality.id"
+                    name="lucide:check"
+                    class="size-3.5"
+                  />
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </media-player>
     </div>
-  </media-player>
+
+    <div
+      v-if="src"
+      class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b-2 border-border px-4 py-2 text-xs text-muted-foreground tabular-nums"
+    >
+      <span>
+        Quality:
+        <span class="text-accent-foreground">{{ qualityStatusLabel }}</span>
+      </span>
+      <span>
+        Latency:
+        <span class="text-accent-foreground">{{
+          formatSeconds(stats.latency, 1)
+        }}</span>
+      </span>
+    </div>
+  </div>
 </template>
 
 <style scoped>
