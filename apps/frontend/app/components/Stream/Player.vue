@@ -11,6 +11,7 @@ import { useChat } from '~/api/chat.js'
 import { useStream } from '~/api/stream.js'
 import { useLiveStreamSync } from '~/composables/use-live-stream-sync'
 import { usePlayerStats } from '~/composables/use-player-stats'
+import { useSettingsMenuSlot } from '~/composables/use-settings-menu-slot'
 import { HLS_LIVE_CONFIG } from '~/utils/live-edge-sync'
 import {
   formatBitrate,
@@ -31,27 +32,7 @@ const isStatsOpen = useLocalStorage('streamx-player-video-stats', false, {
   initOnMounted: true
 })
 
-// the default layout has no slots for extra buttons, so the stats toggle is
-// teleported into a host that is kept right before the settings (gear) menu.
-// vidstack re-renders the controls when the layout changes, which drops
-// foreign nodes: a mutation observer puts the host back.
-const statsButtonHost = document.createElement('div')
-statsButtonHost.style.display = 'contents'
-
-function placeStatsButton() {
-  const settingsMenu = player.value?.querySelector(
-    'media-video-layout .vds-settings-menu'
-  )
-  if (!settingsMenu) {
-    statsButtonHost.remove()
-    return
-  }
-  if (settingsMenu.previousElementSibling !== statsButtonHost) {
-    settingsMenu.before(statsButtonHost)
-  }
-}
-
-const controlsObserver = new MutationObserver(placeStatsButton)
+const statsButtonHost = useSettingsMenuSlot(player)
 
 // dev runs the player against the local ome instance directly,
 // production goes through traefik: /mtx/* -> ome:3333
@@ -185,21 +166,16 @@ function detachQualityListeners(el: MediaPlayerElement) {
 }
 
 watch(player, (el, prevEl) => {
-  controlsObserver.disconnect()
   if (prevEl) {
     detachQualityListeners(prevEl)
   }
   if (el) {
     attachQualityListeners(el)
     syncQualityState()
-    controlsObserver.observe(el, { childList: true, subtree: true })
   }
-  placeStatsButton()
 })
 
 onBeforeUnmount(() => {
-  controlsObserver.disconnect()
-  statsButtonHost.remove()
   if (player.value) {
     detachQualityListeners(player.value)
   }
